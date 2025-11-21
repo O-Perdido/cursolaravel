@@ -1,0 +1,168 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use App\Models\Termo;
+use App\Models\Supervisor;
+use App\Models\AlteracaoTermo;
+use Barryvdh\DomPDF\Facade\Pdf;
+
+class AlteracaoTermoController extends Controller
+{
+    public function index($id)
+    {
+        $termo = Termo::find($id);
+        $alteracoesTermo = AlteracaoTermo::all();
+        return view('termos.alteracoes.index', compact('alteracoesTermo', 'termo'));
+    }
+
+    public function create($id)
+    {
+        $termo = Termo::all();
+        $supervisores = Supervisor::orderBy('nome_supervisor', 'asc')->get();
+        ;
+        $id_termo = $id;
+        $termo_selecionado = Termo::find($id);
+
+        return view('termos.alteracoes.create')->with([
+            'id_termo' => $id_termo,
+            'termo' => $termo,
+            'supervisores' => $supervisores,
+            'termo_selecionado' => $termo_selecionado
+        ]);
+    }
+
+    public function store(Request $request, $id)
+    {
+        $validatedData = $request->validate([
+            'id_alteracao' => 'nullable|integer',
+            'fk_id_termo' => 'nullable|integer',
+            'fk_id_supervisor' => 'nullable|integer',
+            'desc_atividades_alteracao' => 'nullable|string',
+            'nome_orientador_alteracao' => 'nullable|string',
+            'cargo_orientador_alteracao' => 'nullable|string',
+            'data_fim_estagio_alteracao' => 'nullable|date',
+            'data_alteracao' => 'nullable|date',
+            'horario_alteracao' => 'nullable|string',
+            'valor_bolsa_alteracao' => 'nullable',
+            'auxilio_transporte_alteracao' => 'nullable',
+            'descricao' => 'nullable|string',
+        ]);
+
+        $validatedData['data_alteracao'] = now()->toDateString();
+        $validatedData['fk_id_termo'] = $id;
+
+        // Fazer o update na tabela original
+        $termo = Termo::findOrFail($id);
+
+        // Armazenar os valores antigos
+        $validatedData['old_fk_id_supervisor'] = $termo->fk_id_supervisor;
+        $validatedData['old_nome_orientador'] = $termo->nome_orientador;
+        $validatedData['old_cargo_orientador'] = $termo->cargo_orientador;
+        $validatedData['old_data_fim_estagio'] = $termo->data_fim_estagio;
+        $validatedData['old_horario'] = $termo->horario;
+        $validatedData['old_valor_bolsa'] = $termo->valor_bolsa;
+        $validatedData['old_auxilio_transporte'] = $termo->auxilio_transporte;
+        $validatedData['old_desc_atividades'] = $termo->desc_atividades;
+
+
+        // Atualiza os campos alterados, mantendo os valores antigos caso não venham no request
+        $updateData = [
+            'fk_id_supervisor' => $validatedData['fk_id_supervisor'] ?? $termo->fk_id_supervisor,
+            'nome_orientador' => $validatedData['nome_orientador_alteracao'] ?? $termo->nome_orientador,
+            'cargo_orientador' => $validatedData['cargo_orientador_alteracao'] ?? $termo->cargo_orientador,
+            'data_fim_estagio' => $validatedData['data_fim_estagio_alteracao'] ?? $termo->data_fim_estagio,
+            'valor_bolsa' => $validatedData['valor_bolsa_alteracao'] ?? $termo->valor_bolsa,
+            'auxilio_transporte' => $validatedData['auxilio_transporte_alteracao'] ?? $termo->auxilio_transporte,
+            'horario' => $validatedData['horario_alteracao'] ?? $termo->horario,
+            'desc_atividades' => $validatedData['desc_atividades_alteracao'] ?? $termo->desc_atividades,
+        ];
+
+        // Formatar os valores monetários campos valor_bolsa e auxilio_transporte
+        //Teste se o valor_bolsa não é nulo
+        if (isset($updateData['valor_bolsa']) && $updateData['valor_bolsa'] != null) {
+            $updateData['valor_bolsa'] = str_replace(',', '.', str_replace('.', '', $updateData['valor_bolsa']));
+        }
+        //Teste se o auxilio_transporte não é nulo
+        if (isset($updateData['auxilio_transporte']) && $updateData['auxilio_transporte'] != null) {
+            $updateData['auxilio_transporte'] = str_replace(',', '.', str_replace('.', '', $updateData['auxilio_transporte']));
+        }
+
+
+        // Se houver atualizações, aplica o update na tabela tb_termos
+        if (!empty($updateData)) {
+            $termo->update($updateData);
+        }
+        // Formatar os valores monetários campos valor_bolsa_alteracao e auxilio_transporte_alteracao
+        //Teste se o valor_bolsa_alteracao não é nulo
+        if (isset($validatedData['valor_bolsa_alteracao']) && $validatedData['valor_bolsa_alteracao'] != null) {
+            $validatedData['valor_bolsa_alteracao'] = str_replace(',', '.', str_replace('.', '', $validatedData['valor_bolsa_alteracao']));
+        }
+        //Teste se o auxilio_transporte_alteracao não é nulo
+        if (isset($validatedData['auxilio_transporte_alteracao']) && $validatedData['auxilio_transporte_alteracao'] != null) {
+            $validatedData['auxilio_transporte_alteracao'] = str_replace(',', '.', str_replace('.', '', $validatedData['auxilio_transporte_alteracao']));
+        }
+
+
+        AlteracaoTermo::create($validatedData);
+        return redirect('/termos/' . $id . '/alteracoes')->with('success', 'Alteração criada com sucesso!');
+    }
+
+    public function destroy($id, $id_alteracao)
+    {
+        $alteracaoTermo = AlteracaoTermo::findOrFail($id_alteracao);
+        $termo = Termo::findOrFail($id);
+
+        // Verificar se a alteração é a mais recente
+        $alteracaoMaisRecente = AlteracaoTermo::where('fk_id_termo', $id)
+            ->orderBy('id_alteracao', 'desc')
+            ->first();
+
+        if ($alteracaoMaisRecente->id_alteracao != $id_alteracao) {
+            return redirect('/termos/' . $id . '/alteracoes')->with('error', 'Você só pode excluir a alteração mais recente.');
+        }
+
+        // Restaurar os valores antigos
+        $restoreData = [
+            'fk_id_supervisor' => $alteracaoTermo->old_fk_id_supervisor,
+            'nome_orientador' => $alteracaoTermo->old_nome_orientador,
+            'cargo_orientador' => $alteracaoTermo->old_cargo_orientador,
+            'data_fim_estagio' => $alteracaoTermo->old_data_fim_estagio,
+            'valor_bolsa' => $alteracaoTermo->old_valor_bolsa,
+            'auxilio_transporte' => $alteracaoTermo->old_auxilio_transporte,
+            'horario' => $alteracaoTermo->old_horario,
+            'desc_atividades' => $alteracaoTermo->old_desc_atividades,
+        ];
+
+        // Atualizar apenas os campos que não são nulos
+        foreach ($restoreData as $key => $value) {
+            if (!is_null($value)) {
+                $termo->$key = $value;
+            }
+        }
+
+        $termo->save();
+        $alteracaoTermo->delete();
+
+        return redirect('/termos/' . $id . '/alteracoes')->with('success', 'Alteração excluída com sucesso!');
+    }
+
+    public function gerarPdf($id, $id_alteracao)
+    {
+
+        $alteracao = AlteracaoTermo::findOrFail($id_alteracao);
+        $linklogo = public_path('images/logo_pdf_padrao.png');
+
+
+
+        //return view('termos.gerarPdf', compact('termo'));
+        $pdf = Pdf::loadView('termos.alteracoes.gerarPdfAlteracao', ['alteracao' => $alteracao, 'linklogo' => $linklogo])
+            ->setPaper([0, 0, 595.28, 841.89], 'portrait');
+
+
+        return $pdf->stream('TAE ' . $alteracao->id_alteracao . '-' . \Carbon\Carbon::parse($alteracao->data_alteracao)->format('d-m-Y') . '-' . $alteracao->termo->estagiario->nome_estagiario . '.pdf');
+        //return $pdf->download('TCE'.'.pdf');
+
+    }
+}

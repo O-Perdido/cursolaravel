@@ -1,0 +1,52 @@
+// ADICIONE ESTE MÉTODO ANTES DO FECHAMENTO DA CLASSE ZapSignService (antes do último })
+
+    /**
+     * Posicionar assinaturas no documento (place-signatures)
+     * 
+     * @param string $docToken Token do documento
+     * @param array $rubricas Array de objetos com page, relative_position_bottom, relative_position_left, etc
+     * @return array
+     */
+    public function posicionarAssinaturas($docToken, array $rubricas)
+    {
+        try {
+            $payload = [
+                'rubricas' => $rubricas
+            ];
+
+            $response = Http::withHeaders([
+                'Authorization' => 'Bearer ' . $this->apiToken,
+                'Content-Type' => 'application/json',
+            ])
+            ->withOptions(['verify' => false])
+            ->post($this->apiUrl . '/docs/' . $docToken . '/place-signatures/', $payload);
+
+            if ($response->successful()) {
+                Log::info('Assinaturas posicionadas no ZapSign', ['doc_token' => $docToken]);
+                return [
+                    'success' => true,
+                    'data' => $response->json(),
+                ];
+            }
+
+            Log::error('Erro ao posicionar assinaturas no ZapSign', [
+                'status' => $response->status(),
+                'body' => $response->body(),
+            ]);
+
+            return [
+                'success' => false,
+                'message' => 'Erro ao posicionar assinaturas: ' . $response->body(),
+            ];
+
+        } catch (Exception $e) {
+            Log::error('Exceção ao posicionar assinaturas no ZapSign', [
+                'message' => $e->getMessage(),
+            ]);
+
+            return [
+                'success' => false,
+                'message' => 'Erro: ' . $e->getMessage(),
+            ];
+        }
+    }

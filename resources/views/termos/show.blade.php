@@ -1,0 +1,945 @@
+@extends('layouts.main')
+
+@section('title', 'Detalhes do Termo de Estágio')
+
+@section('content')
+
+    @if(session('success'))
+        <div class="alert alert-success">
+            {{ session('success') }}
+        </div>
+    @endif
+
+    <div class="d-flex justify-content-between align-items-center flex-wrap mb-3">
+        <h1 class="mb-0">Detalhes do Termo de Estágio</h1>
+        <div class="btn-group mt-2 mt-md-0">
+            <a href="{{ route('termos.index') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Voltar
+            </a>
+            <a href="{{ route('termos.gerarPdf', $termo->id_termo) }}" class="btn btn-primary" target="_blank">
+                <i class="fas fa-file-pdf"></i> PDF Termo
+            </a>
+            @if (Auth::user()->nivel == 'admin' || Auth::user()->nivel == 'operador')
+                <!-- Botão ZapSign -->
+                <button type="button" class="btn btn-success" data-bs-toggle="modal"
+                    data-bs-target="#zapSignModalShow" title="Enviar para Assinatura ZapSign">
+                    <i class="fas fa-file-signature"></i> ZapSign
+                </button>
+                <!-- Botão Recesso -->
+                <button type="button" class="btn btn-info" data-bs-toggle="modal"
+                    data-bs-target="#recessoModal" title="Conceder Recesso">
+                    <i class="fas fa-umbrella-beach"></i> Recesso
+                </button>
+                @if($termo->rescisao)
+                    <a href="{{ route('rescisoes.gerarPdf', $termo->rescisao->id_rescisao) }}" class="btn btn-primary"
+                        target="_blank">
+                        <i class="fas fa-file-pdf"></i> PDF Rescisão
+                    </a>
+                @else
+                    <button type="button" class="btn btn-warning" style="color: crimson; font-weight: 900;" data-toggle="modal"
+                        data-target="#exampleModal">
+                        <i class="fas fa-ban"></i> Rescindir
+                    </button>
+                @endif
+                <a href="{{ route('alteracao.create', $termo->id_termo) }}" class="btn btn-success">
+                    <i class="fas fa-plus"></i> Nova Alteração
+                </a>
+            @elseif (Auth::user()->nivel == 'empresa')
+                <!-- Empresa: apenas Recesso -->
+                <button type="button" class="btn btn-info" data-bs-toggle="modal"
+                    data-bs-target="#recessoModal" title="Conceder Recesso">
+                    <i class="fas fa-umbrella-beach"></i> Recesso
+                </button>
+            @endif
+            <a href="{{ route('alteracoes.index', $termo->id_termo) }}" class="btn btn-primary">
+                <i class="fas fa-list"></i> Alterações
+            </a>
+        </div>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-header text-white d-flex justify-content-between align-items-center"
+            style="background-color: #102e6c;">
+            <div>
+                <strong>Número do Termo:</strong>
+                {{ $termo->numero_termo }}/{{ $termo->ano_termo }}
+            </div>
+            @php
+                $isVencido = \Carbon\Carbon::parse($termo->data_fim_estagio)->isPast() && !$termo->rescisao;
+            @endphp
+            @if($termo->rescisao)
+                <span class="badge badge-danger px-3 py-2" style="font-size:1rem;">
+                    Encerrado
+                </span>
+            @elseif($isVencido)
+                <span class="badge badge-warning px-3 py-2" style="font-size:1rem;">
+                    Contrato Vencido
+                </span>
+            @else
+                <span class="badge badge-success px-3 py-2" style="font-size:1rem;">
+                    Ativo
+                </span>
+            @endif
+        </div>
+        <div class="card-body">
+            @php
+                $zsRaw = strtolower($termo->zapsign_status ?? '');
+                $zsMap = [
+                    '' => ['Não enviado', 'secondary'],
+                    'enviado' => ['Enviado', 'info'],
+                    'pending' => ['Pendente', 'secondary'],
+                    'waiting' => ['Pendente', 'secondary'],
+                    'waiting_signature' => ['Pendente', 'secondary'],
+                    'processing' => ['Processando', 'secondary'],
+                    'partially_signed' => ['Parcialmente assinado', 'warning'],
+                    'partial' => ['Parcialmente assinado', 'warning'],
+                    'finished' => ['Assinado', 'success'],
+                    'signed' => ['Assinado', 'success'],
+                    'concluded' => ['Assinado', 'success'],
+                    'completed' => ['Assinado', 'success'],
+                    'canceled' => ['Cancelado', 'dark'],
+                    'cancelled' => ['Cancelado', 'dark'],
+                    'refused' => ['Recusado', 'danger'],
+                    'rejected' => ['Recusado', 'danger'],
+                    'declined' => ['Recusado', 'danger'],
+                    'error' => ['Erro', 'danger'],
+                    'failed' => ['Erro', 'danger'],
+                ];
+                $zsLabel = $zsMap[$zsRaw][0] ?? ucfirst($zsRaw);
+                $zsClass = $zsMap[$zsRaw][1] ?? 'secondary';
+            @endphp
+            @if (Auth::user()->nivel == 'admin' || Auth::user()->nivel == 'operador')
+            <div class="alert alert-light border d-flex justify-content-between align-items-center mb-4" role="alert">
+                <div>
+                    <h5 class="mb-1">Assinatura ZapSign</h5>
+                    <div class="mb-1">
+                        <span class="badge bg-{{ $zsClass }}">{{ $zsLabel }}</span>
+                        @if(!empty($termo->zapsign_enviado_em))
+                            <small class="text-muted ms-2">Enviado em: {{ \Carbon\Carbon::parse($termo->zapsign_enviado_em)->format('d/m/Y H:i') }}</small>
+                        @endif
+                    </div>
+                    @if(!empty($termo->zapsign_doc_token))
+                        <div>
+                            <strong>Doc token:</strong>
+                            <span class="text-monospace">{{ $termo->zapsign_doc_token }}</span>
+                            <button type="button" class="btn btn-outline-primary btn-sm ms-2"
+                                    data-token="{{ $termo->zapsign_doc_token }}"
+                                    onclick="copyEmailToClipboard(this.dataset.token, this)">
+                                <i class="fas fa-copy"></i> Copiar
+                            </button>
+                        </div>
+                    @else
+                        <div class="text-muted">Nenhum documento enviado para assinatura.</div>
+                    @endif
+                </div>
+                <div>
+                    <a href="{{ route('termos.statusZapSign', $termo->id_termo) }}" class="btn btn-outline-secondary btn-sm">
+                        <i class="fas fa-sync-alt"></i> Atualizar status
+                    </a>
+                </div>
+            </div>
+            @endif
+            <div class="mt-4">
+                @php
+                    $isVencido = \Carbon\Carbon::parse($termo->data_fim_estagio)->isPast() && !$termo->rescisao;
+                @endphp
+                <div class="alert 
+                        @if($termo->rescisao)
+                            alert-danger
+                        @elseif($isVencido)
+                            alert-warning
+                        @else
+                            alert-success
+                        @endif
+                        d-flex align-items-center" style="margin-top: -25px;" role="alert">
+                    <i class="fas fa-info-circle fa-2x mr-3" style="margin-right: 15px;"></i>
+                    <div>
+                        <h5 class="alert-heading mb-1">Status do Contrato</h5>
+                        @if($termo->rescisao)
+                            <p class="mb-1"><strong>Encerrado</strong></p>
+                            <p class="mb-1"><strong>Data da Rescisão:</strong>
+                                {{ \Carbon\Carbon::parse($termo->rescisao->data_rescisao)->format('d/m/Y') }}</p>
+                            <p class="mb-0"><strong>Motivo:</strong> {{ $termo->rescisao->motivo }}</p>
+                        @elseif($isVencido)
+                            <p class="mb-1"><strong>Contrato Vencido</strong></p>
+                        @else
+                            <p class="mb-1"><strong>Ativo</strong></p>
+                        @endif
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <div class="card-body">
+                            <h5 class="card-title text-primary">Informações Gerais</h5>
+                            <ul class="list-group list-group-flush">
+                                <li class="list-group-item"><strong>Estagiário:</strong>
+                                    {{ $termo->estagiario->nome_estagiario }}
+                                    <a href="{{ route('estagiario.show', $termo->estagiario->id_estagiario) }}"
+                                        target="_blank" class="ml-1" title="Ver detalhes do estagiário">
+                                        <i class="fas fa-external-link-alt"></i>
+                                    </a>
+                                </li>
+                                <li class="list-group-item"><strong>Unidade Concedente:</strong>
+                                    {{ $termo->empresa->nome_empresa }}
+                                    <a href="{{ route('empresas.show', $termo->empresa->id_empresa) }}" target="_blank"
+                                        class="ml-1" title="Ver detalhes da empresa">
+                                        <i class="fas fa-external-link-alt"></i>
+                                    </a>
+                                </li>
+                                <li class="list-group-item"><strong>Instituição de Ensino:</strong>
+                                    {{ $termo->escola->nome_escola }}
+                                    <a href="{{ route('escolas.show', $termo->escola->id_escola) }}" target="_blank"
+                                        class="ml-1" title="Ver detalhes da instituição">
+                                        <i class="fas fa-external-link-alt"></i>
+                                    </a>
+                                </li>
+                                <li class="list-group-item"><strong>Supervisor:</strong>
+                                    {{ $termo->supervisor->nome_supervisor }}
+                                    <a href="{{ route('supervisores.index', $termo->supervisor->id_supervisor) }}"
+                                        target="_blank" class="ml-1" title="Ver detalhes do supervisor">
+                                        <i class="fas fa-external-link-alt"></i>
+                                    </a>
+                                </li>
+                                <li class="list-group-item"><strong>Orientador:</strong> {{ $termo->nome_orientador }}</li>
+                                <li class="list-group-item"><strong>Cargo do Orientador:</strong>
+                                    {{ $termo->cargo_orientador }}</li>
+                                <li class="list-group-item"><strong>Descrição das Atividades:</strong>
+                                    {{ $termo->desc_atividades }}</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <div class="card-body">
+                            <h5 class="card-title text-primary">Detalhes do Estágio</h5>
+                            <ul class="list-group list-group-flush">
+                                <li class="list-group-item">
+                                    <strong>Data de Início:</strong>
+                                    {{ \Carbon\Carbon::parse($termo->data_inicio_estagio)->format('d/m/Y') }}
+                                </li>
+                                <li class="list-group-item">
+                                    <strong>Data de Término:</strong>
+                                    {{ \Carbon\Carbon::parse($termo->data_fim_estagio)->format('d/m/Y') }}
+                                </li>
+                                <li class="list-group-item">
+                                    <strong>Horário de Estágio:</strong> {{ $termo->horario }}
+                                </li>
+                                @if ($termo->local)
+                                    <li class="list-group-item">
+                                        <strong>Local de Estágio:</strong>
+                                        {{ $termo->local->descricao }}
+                                    </li>
+                                @endif
+                                @if ($termo->lotacao)
+                                    <li class="list-group-item">
+                                        <strong>Lotação:</strong>
+                                        {{ $termo->lotacao }}
+                                    </li>
+                                @endif
+                                <li class="list-group-item">
+                                    <strong>Valor da Bolsa:</strong> R$
+                                    {{ number_format($termo->valor_bolsa, 2, ',', '.') }}
+                                </li>
+                                <li class="list-group-item">
+                                    <strong>Auxílio Transporte:</strong> R$
+                                    {{ number_format($termo->auxilio_transporte, 2, ',', '.') }}
+                                </li>
+                                <li class="list-group-item">
+                                    <strong>Saldo de Recesso Disponível:</strong>
+                                    {{ (int) ($termo->saldo_recesso ?? 0) }} dia(s)
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @php
+                // Nomes
+                $nomeEstagiario = $termo->estagiario->nome_estagiario ?? $termo->estagiario->nome ?? null;
+                $nomeRepEmpresa = $termo->empresa->representante
+                    ?? $termo->empresa->nome_representante
+                    ?? $termo->empresa->representante_legal
+                    ?? null;
+                $nomeRepEscola = $termo->escola->representante
+                    ?? $termo->escola->nome_representante
+                    ?? $termo->escola->representante_legal
+                    ?? null;
+
+                // E-mails
+                $emailEstagiario = $termo->estagiario->email ?? $termo->estagiario->email_estagiario ?? null;
+                $emailEmpresa = $termo->empresa->email ?? $termo->empresa->email_empresa ?? null;
+                $emailEscola = $termo->escola->email ?? $termo->escola->email_escola ?? null;
+            @endphp
+            <div class="row">
+                <div class="col-12 mb-3">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body">
+                            <h5 class="card-title text-primary mb-3">Contatos de E-mail</h5>
+                            <ul class="list-group list-group-flush">
+                                <li class="list-group-item d-flex justify-content-between align-items-center flex-wrap">
+                                    <div class="mb-2 mb-sm-0">
+                                        <div>
+                                            <strong>Estagiário:</strong>
+                                            @if(!empty($nomeEstagiario))
+                                                <span>{{ $nomeEstagiario }}</span>
+                                            @endif
+                                        </div>
+                                        <div>
+                                            <strong>E-mail:</strong>
+                                            @if(!empty($emailEstagiario))
+                                                <span class="text-monospace">{{ $emailEstagiario }}</span>
+                                            @else
+                                                <span class="text-muted">E-mail não informado.</span>
+                                            @endif
+                                        </div>
+                                    </div>
+                                    <button type="button" class="btn btn-outline-primary btn-sm"
+                                            @if(empty($emailEstagiario)) disabled @endif
+                                            data-email="{{ $emailEstagiario }}"
+                                            onclick="copyEmailToClipboard(this.dataset.email, this)">
+                                        <i class="fas fa-copy"></i> Copiar
+                                    </button>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center flex-wrap">
+                                    <div class="mb-2 mb-sm-0">
+                                        <div>
+                                            <strong>Unidade Concedente (Representante):</strong>
+                                            @if(!empty($nomeRepEmpresa))
+                                                <span>{{ $nomeRepEmpresa }}</span>
+                                            @endif
+                                        </div>
+                                        <div>
+                                            <strong>E-mail:</strong>
+                                            @if(!empty($emailEmpresa))
+                                                <span class="text-monospace">{{ $emailEmpresa }}</span>
+                                            @else
+                                                <span class="text-muted">E-mail não informado.</span>
+                                            @endif
+                                        </div>
+                                    </div>
+                                    <button type="button" class="btn btn-outline-primary btn-sm"
+                                            @if(empty($emailEmpresa)) disabled @endif
+                                            data-email="{{ $emailEmpresa }}"
+                                            onclick="copyEmailToClipboard(this.dataset.email, this)">
+                                        <i class="fas fa-copy"></i> Copiar
+                                    </button>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center flex-wrap">
+                                    <div class="mb-2 mb-sm-0">
+                                        <div>
+                                            <strong>Instituição de Ensino (Representante):</strong>
+                                            @if(!empty($nomeRepEscola))
+                                                <span>{{ $nomeRepEscola }}</span>
+                                            @endif
+                                        </div>
+                                        <div>
+                                            <strong>E-mail:</strong>
+                                            @if(!empty($emailEscola))
+                                                <span class="text-monospace">{{ $emailEscola }}</span>
+                                            @else
+                                                <span class="text-muted">E-mail não informado.</span>
+                                            @endif
+                                        </div>
+                                    </div>
+                                    <button type="button" class="btn btn-outline-primary btn-sm"
+                                            @if(empty($emailEscola)) disabled @endif
+                                            data-email="{{ $emailEscola }}"
+                                            onclick="copyEmailToClipboard(this.dataset.email, this)">
+                                        <i class="fas fa-copy"></i> Copiar
+                                    </button>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>            
+        </div>
+    </div>
+
+    <!-- Histórico de Concessões de Recesso -->
+    @if(Auth::user()->nivel == 'admin' || Auth::user()->nivel == 'operador' || Auth::user()->nivel == 'empresa')
+        <div class="card shadow-sm mb-4">
+            <div class="card-header text-white d-flex justify-content-between align-items-center"
+                style="background-color: #0f766e;">
+                <div>
+                    <i class="fas fa-history me-2"></i>
+                    <strong>Histórico de Concessões de Recesso</strong>
+                </div>
+                @php $concessoesAtivas = $termo->concessoesRecesso->where('status', 'ativo'); @endphp
+                <span class="badge bg-light text-dark">{{ $concessoesAtivas->count() }} registro(s)</span>
+            </div>
+            <div class="card-body">
+                @if($concessoesAtivas->count() > 0)
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Data Concessão</th>
+                                    <th>Período</th>
+                                    <th>Dias</th>
+                                    <th>Usuário</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($concessoesAtivas->sortByDesc('data_concessao') as $concessao)
+                                    <tr>
+                                        <td>{{ $concessao->data_concessao->format('d/m/Y H:i') }}</td>
+                                        <td>{{ $concessao->data_inicio_recesso->format('d/m/Y') }} a {{ $concessao->data_fim_recesso->format('d/m/Y') }}</td>
+                                        <td><span class="badge bg-info">{{ $concessao->total_dias }} dia(s)</span></td>
+                                        <td class="small">{{ $concessao->usuario->name ?? 'N/A' }}</td>
+                                        <td class="d-flex gap-2">
+                                            <!-- Botão para abrir/imprimir o PDF desta concessão -->
+                                            <a href="{{ route('termos.recesso.pdf', $concessao->id_concessao) }}" target="_blank"
+                                               class="btn btn-sm btn-outline-danger" title="Abrir PDF do Recesso">
+                                                <i class="fas fa-file-pdf"></i> PDF
+                                            </a>
+                                            @if(Auth::user()->nivel == 'admin' || Auth::user()->nivel == 'operador')
+                                                <button type="button" class="btn btn-sm btn-outline-danger"
+                                                    data-bs-toggle="modal" data-bs-target="#modalExcluirConcessao{{ $concessao->id_concessao }}">
+                                                    <i class="fas fa-trash"></i> Excluir
+                                                </button>
+                                            @else
+                                                <button type="button" class="btn btn-sm btn-outline-secondary"
+                                                    data-bs-toggle="modal" data-bs-target="#modalSolicitarExclusao{{ $concessao->id_concessao }}">
+                                                    <i class="fas fa-info-circle"></i> Excluir
+                                                </button>
+                                            @endif
+                                        </td>
+                                    </tr>
+
+                                    <!-- Modal de confirmação de exclusão -->
+                                        @if(Auth::user()->nivel == 'admin' || Auth::user()->nivel == 'operador')
+                                            <div class="modal fade" id="modalExcluirConcessao{{ $concessao->id_concessao }}" tabindex="-1" aria-hidden="true">
+                                                <div class="modal-dialog">
+                                                    <div class="modal-content">
+                                                        <div class="modal-header">
+                                                            <h5 class="modal-title">Excluir Concessão de Recesso</h5>
+                                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                        </div>
+                                                        <form action="{{ route('termos.recesso.excluir', $concessao->id_concessao) }}" method="POST">
+                                                            @csrf
+                                                            @method('DELETE')
+                                                            <div class="modal-body">
+                                                                <p>Tem certeza que deseja excluir esta concessão?</p>
+                                                                <ul class="mb-3">
+                                                                    <li><strong>Período:</strong> {{ $concessao->data_inicio_recesso->format('d/m/Y') }} a {{ $concessao->data_fim_recesso->format('d/m/Y') }}</li>
+                                                                    <li><strong>Dias:</strong> {{ $concessao->total_dias }}</li>
+                                                                </ul>
+                                                                <div class="alert alert-info">
+                                                                    <i class="fas fa-info-circle"></i> Os dias serão devolvidos ao saldo de recesso do estagiário.
+                                                                </div>
+                                                            </div>
+                                                            <div class="modal-footer">
+                                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                                                <button type="submit" class="btn btn-danger">
+                                                                    <i class="fas fa-trash"></i> Confirmar Exclusão
+                                                                </button>
+                                                            </div>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        @else
+                                            <!-- Modal informativo para Empresa -->
+                                            <div class="modal fade" id="modalSolicitarExclusao{{ $concessao->id_concessao }}" tabindex="-1" aria-hidden="true">
+                                                <div class="modal-dialog">
+                                                    <div class="modal-content">
+                                                        <div class="modal-header">
+                                                            <h5 class="modal-title">Solicitar Exclusão</h5>
+                                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            <p>Para excluir uma concessão de recesso, por favor solicite à equipe <strong>EBCP</strong>.</p>
+                                                            <ul class="mb-3">
+                                                                <li><strong>Período:</strong> {{ $concessao->data_inicio_recesso->format('d/m/Y') }} a {{ $concessao->data_fim_recesso->format('d/m/Y') }}</li>
+                                                                <li><strong>Dias:</strong> {{ $concessao->total_dias }}</li>
+                                                            </ul>
+                                                            <div class="alert alert-secondary">
+                                                                <i class="fas fa-envelope"></i> Entre em contato pelos canais habituais informando o período e o motivo.
+                                                            </div>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Entendi</button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        @endif
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                @else
+                    <p class="text-muted mb-0"><i class="fas fa-info-circle"></i> Nenhuma concessão de recesso registrada ainda.</p>
+                @endif
+            </div>
+        </div>
+    @endif
+
+    <!-- Modal para rescindir o contrato -->
+    <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Rescindir Contrato</h5>
+                    <button type="button" data-dismiss="modal" aria-label="Close" style="border: none; background: none;">
+                        <span aria-hidden="true" style="font-weight: bold; font-size: 150%;">✕</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form action="{{ route('rescisoes.store', $termo->id_termo) }}" method="POST" id="simpleForm">
+                        @csrf
+                        <input type="hidden" name="fk_id_termo" value="{{ $termo->id_termo }}">
+                        <div class="form-group">
+                            <label for="data_rescisao">Data da Rescisão</label>
+                            <input type="date" class="form-control" id="data_rescisao" name="data_rescisao" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="motivo">Motivo</label>
+                            <textarea class="form-control" id="motivo" name="motivo" rows="3" required
+                                placeholder="Descreva o motivo da rescisão"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+                    <button type="submit" class="btn btn-primary" form="simpleForm">Enviar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (Auth::user()->nivel == 'admin' || Auth::user()->nivel == 'operador')
+    <!-- Modal ZapSign -->
+    <div class="modal fade" id="zapSignModalShow" tabindex="-1"
+        aria-labelledby="zapSignModalShowLabel" aria-hidden="true">
+        <div class="modal-dialog modal-md">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="zapSignModalShowLabel">
+                        <i class="fas fa-file-signature me-2"></i>
+                        Enviar para Assinatura ZapSign
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-break">
+                    <p>Deseja enviar este termo para assinatura eletrônica via ZapSign?</p>
+                    <p><strong>Termo:</strong> {{ $termo->numero_termo }}/{{ $termo->ano_termo }}</p>
+                    <p><strong>Estagiário:</strong> {{ $termo->estagiario->nome_estagiario }}</p>
+                    @if($termo->estagiario->email)
+                        <p><strong>Email:</strong> {{ $termo->estagiario->email }}</p>
+                    @else
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            Atenção: Este estagiário não possui email cadastrado!
+                        </div>
+                    @endif
+
+                    <hr class="my-2">
+                    <p class="mb-1">
+                        <strong>Destinatários</strong>
+                        <span class="text-muted small">(clique nas setas para reordenar)</span>
+                    </p>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-bordered mb-2 table-recipients"
+                            style="font-size: 9pt " id="tabelaDestinatariosShow">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="width: 50px;">Ordem</th>
+                                    <th style="width: 120px;">Tipo</th>
+                                    <th>Nome</th>
+                                    <th style="width: 35%;">E-mail</th>
+                                    <th style="width: 20%;">Representante</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbodyDestinatariosShow">
+                                <tr data-ordem="1" data-tipo="estagiario">
+                                    <td class="text-center">
+                                        <button type="button" class="btn btn-sm btn-link p-0"
+                                            onclick="moverLinhaShow(this, -1)"
+                                            title="Mover para cima">
+                                            <i class="fas fa-arrow-up text-primary"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-link p-0"
+                                            onclick="moverLinhaShow(this, 1)"
+                                            title="Mover para baixo">
+                                            <i class="fas fa-arrow-down text-primary"></i>
+                                        </button>
+                                    </td>
+                                    <td><i class="fas fa-user text-primary me-1"></i> Estagiário</td>
+                                    <td>{{ $termo->estagiario->nome_estagiario }}</td>
+                                    <td>{{ $termo->estagiario->email ?? '—' }}</td>
+                                    <td>—</td>
+                                </tr>
+                                <tr data-ordem="2" data-tipo="ebcp">
+                                    <td class="text-center">
+                                        <button type="button" class="btn btn-sm btn-link p-0"
+                                            onclick="moverLinhaShow(this, -1)"
+                                            title="Mover para cima">
+                                            <i class="fas fa-arrow-up text-primary"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-link p-0"
+                                            onclick="moverLinhaShow(this, 1)"
+                                            title="Mover para baixo">
+                                            <i class="fas fa-arrow-down text-primary"></i>
+                                        </button>
+                                    </td>
+                                    <td><i class="fas fa-handshake text-info me-1"></i> Ag. Integração
+                                    </td>
+                                    <td>EBCP CONSULTORIA LTDA</td>
+                                    <td>moacirecetista@hotmail.com</td>
+                                    <td>Moacir Aguiar</td>
+                                </tr>
+
+                                {{-- Representantes da Empresa --}}
+                                @php $ordem = 3; @endphp
+                                @if(isset($termo->empresa) && $termo->empresa->representantes->count() > 0)
+                                    @foreach($termo->empresa->representantes as $rep)
+                                        <tr data-ordem="{{ $ordem++ }}" data-tipo="empresa_rep">
+                                            <td class="text-center">
+                                                <button type="button" class="btn btn-sm btn-link p-0"
+                                                    onclick="moverLinhaShow(this, -1)"
+                                                    title="Mover para cima">
+                                                    <i class="fas fa-arrow-up text-primary"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-link p-0"
+                                                    onclick="moverLinhaShow(this, 1)"
+                                                    title="Mover para baixo">
+                                                    <i class="fas fa-arrow-down text-primary"></i>
+                                                </button>
+                                            </td>
+                                            <td><i class="fas fa-building text-secondary me-1"></i> Unidade</td>
+                                            <td>{{ $termo->empresa->nome_empresa }}</td>
+                                            <td>{{ $rep->email }}</td>
+                                            <td>{{ $rep->nome }}</td>
+                                        </tr>
+                                    @endforeach
+                                @elseif(isset($termo->empresa))
+                                    <tr data-ordem="{{ $ordem++ }}" data-tipo="empresa_legado">
+                                        <td class="text-center">
+                                            <button type="button" class="btn btn-sm btn-link p-0"
+                                                onclick="moverLinhaShow(this, -1)"
+                                                title="Mover para cima">
+                                                <i class="fas fa-arrow-up text-primary"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-link p-0"
+                                                onclick="moverLinhaShow(this, 1)"
+                                                title="Mover para baixo">
+                                                <i class="fas fa-arrow-down text-primary"></i>
+                                            </button>
+                                        </td>
+                                        <td><i class="fas fa-building text-secondary me-1"></i> Unidade</td>
+                                        <td>{{ $termo->empresa->nome_empresa }}</td>
+                                        <td>{{ $termo->empresa->email ?? '—' }}</td>
+                                        <td>{{ $termo->empresa->nome_representante ?? '—' }}</td>
+                                    </tr>
+                                @endif
+
+                                {{-- Representantes da Escola --}}
+                                @if(isset($termo->escola) && $termo->escola->representantes->count() > 0)
+                                    @foreach($termo->escola->representantes as $rep)
+                                        <tr data-ordem="{{ $ordem++ }}" data-tipo="escola_rep">
+                                            <td class="text-center">
+                                                <button type="button" class="btn btn-sm btn-link p-0"
+                                                    onclick="moverLinhaShow(this, -1)"
+                                                    title="Mover para cima">
+                                                    <i class="fas fa-arrow-up text-primary"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-link p-0"
+                                                    onclick="moverLinhaShow(this, 1)"
+                                                    title="Mover para baixo">
+                                                    <i class="fas fa-arrow-down text-primary"></i>
+                                                </button>
+                                            </td>
+                                            <td><i class="fas fa-school text-success me-1"></i> Instituição</td>
+                                            <td>{{ $termo->escola->nome_escola }}</td>
+                                            <td>{{ $rep->email }}</td>
+                                            <td>{{ $rep->nome }}</td>
+                                        </tr>
+                                    @endforeach
+                                @elseif(isset($termo->escola))
+                                    <tr data-ordem="{{ $ordem++ }}" data-tipo="escola_legado">
+                                        <td class="text-center">
+                                            <button type="button" class="btn btn-sm btn-link p-0"
+                                                onclick="moverLinhaShow(this, -1)"
+                                                title="Mover para cima">
+                                                <i class="fas fa-arrow-up text-primary"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-link p-0"
+                                                onclick="moverLinhaShow(this, 1)"
+                                                title="Mover para baixo">
+                                                <i class="fas fa-arrow-down text-primary"></i>
+                                            </button>
+                                        </td>
+                                        <td><i class="fas fa-school text-success me-1"></i> Instituição</td>
+                                        <td>{{ $termo->escola->nome_escola }}</td>
+                                        <td>{{ $termo->escola->email ?? '—' }}</td>
+                                        <td>{{ $termo->escola->nome_representante ?? '—' }}</td>
+                                    </tr>
+                                @endif
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="text-muted small mb-0">
+                        <strong>Observação:</strong> Todos os representantes cadastrados nas
+                        Escolas/Empresas serão incluídos automaticamente. O Agente de Integração (EBCP)
+                        também será incluído.
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary"
+                        data-bs-dismiss="modal">Cancelar</button>
+                    <form action="{{ route('termos.enviarZapSign', $termo->id_termo) }}" method="POST"
+                        style="display:inline-block;">
+                        @csrf
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-paper-plane me-1"></i>
+                            Enviar
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
+
+    <!-- Modal Recesso -->
+    <div class="modal fade" id="recessoModal" tabindex="-1" aria-labelledby="recessoModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="recessoModalLabel">
+                        <i class="fas fa-umbrella-beach me-2"></i>
+                        Concessão de Recesso
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    @php
+                        $hoje = \Carbon\Carbon::today();
+                        $inicioContrato = \Carbon\Carbon::parse($termo->data_inicio_estagio);
+                        $diasTrabalhados = max(0, $inicioContrato->diffInDays($hoje));
+                        $recessoAcumulado = (30 * $diasTrabalhados) / 360;
+                        $saldoAtual = (int)($termo->saldo_recesso ?? 30);
+                        $jaUsado = 30 - $saldoAtual;
+                        $recessoDisponivel = max(0, $recessoAcumulado - $jaUsado);
+                        $recessoDisponivelInt = (int) floor($recessoDisponivel);
+                    @endphp
+
+                    <div class="alert alert-info">
+                        <div><strong>Este estagiário tem direito a <span id="diasDisponiveisSpan">{{ $recessoDisponivelInt }}</span> dia(s) de recesso disponíveis hoje.</strong></div>
+                        <hr class="my-2">
+                        <div style="font-size: 0.95rem;">
+                            Cálculo:
+                            <ul class="mb-0">
+                                <li>Base: 30 dias por 360 dias trabalhados</li>
+                                <li>Dias trabalhados desde o início do contrato: <strong>{{ $diasTrabalhados }}</strong></li>
+                                <li>Recesso acumulado = (30 × {{ $diasTrabalhados }}) ÷ 360 = <strong>{{ number_format($recessoAcumulado, 2, ',', '.') }}</strong> dia(s)</li>
+                                <li>Já utilizado: 30 − saldo_recesso ({{ $saldoAtual }}) = <strong>{{ $jaUsado }}</strong> dia(s)</li>
+                                <li>Disponível = acumulado − já utilizado = <strong>{{ number_format($recessoDisponivel, 2, ',', '.') }}</strong> ⇒ considerado <strong>{{ $recessoDisponivelInt }}</strong> dia(s) inteiros</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <form id="formRecesso" action="{{ route('termos.recesso.gerar', $termo->id_termo) }}" method="POST">
+                        @csrf
+                        <div class="row g-3 align-items-end">
+                            <div class="col-sm-4">
+                                <label for="data_inicio_recesso" class="form-label">Início do recesso</label>
+                                <input type="date" class="form-control" id="data_inicio_recesso" name="data_inicio_recesso"
+                                       min="{{ \Carbon\Carbon::parse($termo->data_inicio_estagio)->format('Y-m-d') }}"
+                                       max="{{ \Carbon\Carbon::parse($termo->data_fim_estagio)->format('Y-m-d') }}" required>
+                            </div>
+                            <div class="col-sm-4">
+                                <label for="data_fim_recesso" class="form-label">Fim do recesso</label>
+                                <input type="date" class="form-control" id="data_fim_recesso" name="data_fim_recesso"
+                                       min="{{ \Carbon\Carbon::parse($termo->data_inicio_estagio)->format('Y-m-d') }}"
+                                       max="{{ \Carbon\Carbon::parse($termo->data_fim_estagio)->format('Y-m-d') }}" required>
+                            </div>
+                            <div class="col-sm-4">
+                                <div class="form-text mb-1">Total do intervalo selecionado</div>
+                                <div class="h5 mb-0"><span id="diasIntervaloSpan">0</span> dia(s)</div>
+                                <div id="avisoExcede" class="text-danger small d-none mt-1"><i class="fas fa-exclamation-triangle"></i> Intervalo selecionado excede o disponível.</div>
+                                <div id="avisoConflito" class="text-danger small d-none mt-1"><i class="fas fa-exclamation-triangle"></i> Intervalo selecionado conflita com um recesso já registrado.</div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="btnGerarRecesso" onclick="enviarRecessoNovaGuia()" disabled>
+                        <i class="fas fa-file-pdf me-1"></i>
+                        Gerar PDF e abater saldo
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Função para mover linha na modal da página de detalhes
+        function moverLinhaShow(botao, direcao) {
+            const tr = botao.closest('tr');
+            const tbody = document.getElementById('tbodyDestinatariosShow');
+            const linhas = Array.from(tbody.querySelectorAll('tr'));
+            const indexAtual = linhas.indexOf(tr);
+
+            const novoIndex = indexAtual + direcao;
+
+            if (novoIndex < 0 || novoIndex >= linhas.length) {
+                return;
+            }
+
+            if (direcao === -1) {
+                tbody.insertBefore(tr, linhas[novoIndex]);
+            } else {
+                if (novoIndex + 1 < linhas.length) {
+                    tbody.insertBefore(tr, linhas[novoIndex + 1]);
+                } else {
+                    tbody.appendChild(tr);
+                }
+            }
+
+            atualizarOrdensShow();
+        }
+
+        function atualizarOrdensShow() {
+            const tbody = document.getElementById('tbodyDestinatariosShow');
+            const linhas = tbody.querySelectorAll('tr');
+            linhas.forEach((tr, index) => {
+                tr.setAttribute('data-ordem', index + 1);
+            });
+        }
+
+        function copyEmailToClipboard(email, btn) {
+            if (!email) return;
+            const originalHTML = btn.innerHTML;
+            const setCopied = () => {
+                btn.innerHTML = '<i class="fas fa-check"></i> Copiado!';
+                btn.classList.remove('btn-outline-primary');
+                btn.classList.add('btn-success');
+                setTimeout(() => {
+                    btn.innerHTML = originalHTML;
+                    btn.classList.remove('btn-success');
+                    btn.classList.add('btn-outline-primary');
+                }, 1500);
+            };
+
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(email).then(setCopied).catch(() => fallbackCopy(email, btn, setCopied));
+            } else {
+                fallbackCopy(email, btn, setCopied);
+            }
+        }
+
+        function fallbackCopy(text, btn, onSuccess) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.top = '-9999px';
+            document.body.appendChild(textarea);
+            textarea.focus();
+            textarea.select();
+            try {
+                const successful = document.execCommand('copy');
+                if (successful && typeof onSuccess === 'function') onSuccess();
+            } catch (err) {
+                console.error('Falha ao copiar:', err);
+            }
+            document.body.removeChild(textarea);
+        }
+
+        // ===== Recesso: cálculo do intervalo e validação =====
+        (function() {
+            const inicio = document.getElementById('data_inicio_recesso');
+            const fim = document.getElementById('data_fim_recesso');
+            const diasIntervaloSpan = document.getElementById('diasIntervaloSpan');
+            const avisoExcede = document.getElementById('avisoExcede');
+            const avisoConflito = document.getElementById('avisoConflito');
+            const btnGerar = document.getElementById('btnGerarRecesso');
+            const diasDisponiveis = parseInt(document.getElementById('diasDisponiveisSpan')?.innerText || '0', 10);
+
+            // Lista de concessões ativas para checar conflito no cliente
+            const concessoesAtivas = @json(
+                ($termo->concessoesRecesso->where('status','ativo')->values()->map(fn($c) => [
+                    'inicio' => $c->data_inicio_recesso->format('Y-m-d'),
+                    'fim' => $c->data_fim_recesso->format('Y-m-d')
+                ]))
+            );
+
+            function existeConflito(di, df) {
+                if (!Array.isArray(concessoesAtivas)) return false;
+                const diTime = di.getTime();
+                const dfTime = df.getTime();
+                for (const c of concessoesAtivas) {
+                    const ci = new Date(c.inicio).getTime();
+                    const cf = new Date(c.fim).getTime();
+                    // Sobreposição inclusiva: (di <= cf) && (df >= ci)
+                    if (diTime <= cf && dfTime >= ci) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            function atualizar() {
+                let habilitar = false;
+                let total = 0;
+                let conflito = false;
+                if (inicio && fim && inicio.value && fim.value) {
+                    const di = new Date(inicio.value);
+                    const df = new Date(fim.value);
+                    if (df >= di) {
+                        const diffMs = df.getTime() - di.getTime();
+                        total = Math.floor(diffMs / (1000*60*60*24)) + 1; // Inclusivo
+                        conflito = existeConflito(di, df);
+                        habilitar = total > 0 && total <= diasDisponiveis && !conflito;
+                    }
+                }
+                diasIntervaloSpan && (diasIntervaloSpan.innerText = String(total));
+                if (avisoExcede) {
+                    if (total > diasDisponiveis) {
+                        avisoExcede.classList.remove('d-none');
+                    } else {
+                        avisoExcede.classList.add('d-none');
+                    }
+                }
+                if (avisoConflito) {
+                    if (conflito) {
+                        avisoConflito.classList.remove('d-none');
+                    } else {
+                        avisoConflito.classList.add('d-none');
+                    }
+                }
+                if (btnGerar) btnGerar.disabled = !habilitar;
+            }
+
+            inicio && inicio.addEventListener('change', atualizar);
+            fim && fim.addEventListener('change', atualizar);
+        })();
+
+        // ===== Recesso: enviar via form e abrir em nova guia =====
+        function enviarRecessoNovaGuia() {
+            const form = document.getElementById('formRecesso');
+            if (!form) return;
+            
+            // Mudar action do form temporariamente para abrir em nova guia
+            form.setAttribute('target', '_blank');
+            form.submit();
+            
+            // Fechar modal e recarregar página após envio
+            setTimeout(() => {
+                const modal = bootstrap.Modal.getInstance(document.getElementById('recessoModal'));
+                modal && modal.hide();
+                // Recarregar a página para refletir o saldo atualizado
+                window.location.reload();
+            }, 500);
+        }
+    </script>
+@endsection

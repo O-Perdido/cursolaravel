@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sem Conexão - SIGEBR</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: linear-gradient(135deg, #198754 0%, #20c997 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.5s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .icon {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 30px;
+            background: linear-gradient(135deg, #198754 0%, #20c997 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.05);
+            }
+        }
+
+        .icon svg {
+            width: 60px;
+            height: 60px;
+            fill: white;
+        }
+
+        h1 {
+            font-size: 28px;
+            color: #198754;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+
+        p {
+            font-size: 16px;
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+
+        .btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #198754 0%, #20c997 100%);
+            color: white;
+            padding: 15px 40px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(25, 135, 84, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(25, 135, 84, 0.4);
+        }
+
+        .tips {
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 1px solid #eee;
+        }
+
+        .tips h3 {
+            font-size: 16px;
+            color: #198754;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .tips ul {
+            list-style: none;
+            text-align: left;
+        }
+
+        .tips li {
+            padding: 8px 0;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .tips li::before {
+            content: "✓ ";
+            color: #198754;
+            font-weight: bold;
+            margin-right: 8px;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 30px 20px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+
+            .icon {
+                width: 100px;
+                height: 100px;
+            }
+
+            .icon svg {
+                width: 50px;
+                height: 50px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                <path
+                    d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z" />
+            </svg>
+        </div>
+
+        <h1>Sem Conexão com a Internet</h1>
+        <p>Você está offline no momento. O SIGEBR precisa de uma conexão ativa para funcionar. Verifique sua conexão e
+            tente novamente.</p>
+
+        <a href="javascript:window.location.reload()" class="btn">
+            🔄 Tentar Novamente
+        </a>
+
+        <div class="tips">
+            <h3>Dicas:</h3>
+            <ul>
+                <li>Verifique se o Wi-Fi ou dados móveis estão ativados</li>
+                <li>Tente desativar e ativar o modo avião</li>
+                <li>Verifique se há problemas de conexão com seu provedor</li>
+                <li>Reinicie o aplicativo após reconectar</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // Detecta quando volta online e recarrega automaticamente
+        window.addEventListener('online', function () {
+            setTimeout(function () {
+                window.location.reload();
+            }, 1000);
+        });
+
+        // Mostra indicador quando detecta conexão
+        window.addEventListener('online', function () {
+            document.body.innerHTML += '<div style="position:fixed;top:20px;right:20px;background:#28a745;color:white;padding:15px 25px;border-radius:10px;font-weight:600;z-index:99999;animation:slideDown 0.3s ease-out;">✓ Conexão restaurada! Recarregando...</div>';
+        });
+    </script>
+</body>
+
+</html>

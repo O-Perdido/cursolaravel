@@ -1,0 +1,6 @@
+REGISTRO DE ALTERAÇÕES
+
+
+27/01/2025 - Vinicius:
+* Instalei a Biblioteca para gerar PDF usando o comando "composer require barryvdh/laravel-dompdf", acompanhei o video tutorial: https://www.youtube.com/watch?v=5WbVmMabV0U.
+* Criei o arquivo "resources\views\termos\gerarPdfTermo.blade.php" e comecei o html que vai servir para gerar o PDF.
