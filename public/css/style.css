@@ -23,7 +23,8 @@ main {
     position: sticky;
     top: 0;
     z-index: 1020;
-    background-color: #102e6c; /* Azul Escuro */
+    background-color: #102e6c;
+    /* Azul Escuro */
 }
 
 /* Navbar Customizations */
@@ -40,14 +41,15 @@ main {
     font-size: 2.5rem;
     text-align: left;
     padding-left: 3rem;
-    color: #ffffff; /* Branco */
+    color: #ffffff;
+    /* Branco */
 }
 
 /* Ajustando a posição do dropdown */
 .nav-item.dropdown .dropdown-menu {
     left: auto;
     right: 0;
-    
+
     /*transform: translateX(-50%); /* Move o dropdown mais para a esquerda */
 }
 
@@ -57,59 +59,79 @@ main {
 
 /* Botões */
 .btn-primary {
-    background-color: #102e6c !important; /* Azul Escuro */
-    border-color: #102e6c !important; /* Azul Escuro */
+    background-color: #102e6c !important;
+    /* Azul Escuro */
+    border-color: #102e6c !important;
+    /* Azul Escuro */
 }
 
 .btn-primary:hover {
-    background-color: #19b755 !important; /* Verde */
-    border-color: #19b755 !important; /* Verde */
+    background-color: #19b755 !important;
+    /* Verde */
+    border-color: #19b755 !important;
+    /* Verde */
 }
 
 .btn-secondary {
-    background-color: #19b755 !important; /* Verde */
-    border-color: #19b755 !important; /* Verde */
+    background-color: #19b755 !important;
+    /* Verde */
+    border-color: #19b755 !important;
+    /* Verde */
 }
 
 .btn-secondary:hover {
-    background-color: #102e6c !important; /* Azul Escuro */
-    border-color: #102e6c !important; /* Azul Escuro */
+    background-color: #102e6c !important;
+    /* Azul Escuro */
+    border-color: #102e6c !important;
+    /* Azul Escuro */
 }
 
 .btn-accent {
-    background-color: #ecd00b !important; /* Amarelo */
-    border-color: #ecd00b !important; /* Amarelo */
-    color: #102e6c !important; /* Azul Escuro */
+    background-color: #ecd00b !important;
+    /* Amarelo */
+    border-color: #ecd00b !important;
+    /* Amarelo */
+    color: #102e6c !important;
+    /* Azul Escuro */
 }
 
 .btn-accent:hover {
-    background-color: #19b755 !important; /* Verde */
-    border-color: #19b755 !important; /* Verde */
-    color: #ffffff !important; /* Branco */
+    background-color: #19b755 !important;
+    /* Verde */
+    border-color: #19b755 !important;
+    /* Verde */
+    color: #ffffff !important;
+    /* Branco */
 }
 
 /* Hero Section */
 .bg-light {
-    background-color: #ffffff !important; /* Branco */
-    color: #102e6c !important; /* Azul Escuro */
+    background-color: #ffffff !important;
+    /* Branco */
+    color: #102e6c !important;
+    /* Azul Escuro */
 }
 
 .hero h1 {
     font-size: 2.5rem;
     font-weight: bold;
-    color: #102e6c !important; /* Azul Escuro */
+    color: #102e6c !important;
+    /* Azul Escuro */
 }
 
 .hero p {
     font-size: 1.25rem;
-    color: #19b755 !important; /* Verde */
+    color: #19b755 !important;
+    /* Verde */
 }
 
 /* Footer */
 footer {
     font-size: 0.9rem;
-    background-color: #102e6c; /* Azul Escuro */
-    color: #ffffff; /* Branco */
+    background-color: #102e6c;
+    /* Azul Escuro */
+    color: #ffffff;
+    /* Branco */
     padding: 2rem 0;
 }
 
@@ -141,7 +163,8 @@ footer hr {
     margin: 1.5rem 0;
 }
 
-footer p, footer small {
+footer p,
+footer small {
     margin: 0;
 }
 
