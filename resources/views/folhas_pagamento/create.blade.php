@@ -269,7 +269,7 @@
 
                                 function updateValores() {
                                     let dias = parseInt(diasInput.value) || 0;
-                                    let bolsaMes = (Number(valorBolsa) / 31) * dias;
+                                    let bolsaMes = (Number(valorBolsa) / 30) * dias;
                                     let auxMes;
                                     if (tipoCalculoAuxTransp === 'diario') {
                                         auxMes = Number(valorAuxTransp) * diasUteis;
@@ -407,7 +407,7 @@
                             });
                         @endforeach
 
-                            const totalRegistros = todosRegistros.length;
+                                const totalRegistros = todosRegistros.length;
                         const TAMANHO_LOTE = 50; // Envia 50 registros por vez
                         const totalLotes = Math.ceil(totalRegistros / TAMANHO_LOTE);
 
