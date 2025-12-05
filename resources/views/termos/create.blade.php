@@ -6,6 +6,19 @@
 
     <h1>Adicionar Termo de Estágio</h1>
     <a href="{{ route('termos.index') }}" class="btn btn-secondary mb-3">Voltar</a>
+
+    @if ($errors->any())
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <strong>Erro ao cadastrar termo:</strong>
+            <ul class="mb-0">
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+
     <form action="{{ route('termos.store') }}" method="POST">
         @csrf
         @method('POST')
@@ -14,19 +27,24 @@
             <div class="col-md-6">
                 <div class="form-group" style="position: relative;">
                     <label for="fk_id_estagiario">Selecione o Estagiário</label>
-                    <input type="text" class="form-control" id="estagiario_search" placeholder="Digite para buscar..."
-                        autocomplete="off"
+                    <input type="text" class="form-control @error('fk_id_estagiario') is-invalid @enderror"
+                        id="estagiario_search" placeholder="Digite para buscar..." autocomplete="off"
                         value="@if(isset($id_estagiario) && $id_estagiario){{ optional($estagiarios->firstWhere('id_estagiario', $id_estagiario))->nome_estagiario }}@endif">
 
-                    <select class="form-control mt-2" id="fk_id_estagiario" name="fk_id_estagiario" size="5" required
+                    <select class="form-control mt-2 @error('fk_id_estagiario') is-invalid @enderror" id="fk_id_estagiario"
+                        name="fk_id_estagiario" size="5" required
                         style="display:none; position: absolute; top: 60px; left: 0; width: 100%; z-index: 1050; background: #fff; border: 1px solid #ced4da;">
                         <option value="">Escolha um estagiário</option>
                         @foreach($estagiarios as $estagiario)
-                            <option value="{{ $estagiario->id_estagiario }}" @if(isset($id_estagiario) && $id_estagiario == $estagiario->id_estagiario) selected @endif>
+                            <option value="{{ $estagiario->id_estagiario }}" @if(isset($id_estagiario) && $id_estagiario == $estagiario->id_estagiario) selected
+                            @elseif(old('fk_id_estagiario') == $estagiario->id_estagiario) selected @endif>
                                 {{ $estagiario->nome_estagiario }}
                             </option>
                         @endforeach
                     </select>
+                    @error('fk_id_estagiario')
+                        <div class="invalid-feedback d-block">{{ $message }}</div>
+                    @enderror
                 </div>
 
                 <div class="mb-3" style="position: relative;">

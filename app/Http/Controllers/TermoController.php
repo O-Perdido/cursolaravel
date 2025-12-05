@@ -22,6 +22,7 @@ use Illuminate\Database\QueryException;
 use App\Services\ZapSignService;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Schema;
 
 
 class TermoController extends Controller
@@ -203,19 +204,29 @@ class TermoController extends Controller
             return response()->json([]);
         }
         
-        $vagas = \App\Models\Vaga::where('fk_id_empresa', $empresaId)
-            ->where('status', 'disponivel')
-            ->whereDate('data_termino', '>=', now())
-            ->with('local')
-            ->orderBy('numero_vaga', 'desc')
-            ->get();
-        
-        // Verificar se alguma vaga expirou (alertar no frontend)
-        $vagas->each(function($vaga) {
-            $vaga->expirada = strtotime($vaga->data_termino) < strtotime(date('Y-m-d'));
-        });
-        
-        return response()->json($vagas);
+        try {
+            // Verificar se a tabela tb_vagas existe
+            if (!Schema::hasTable('tb_vagas')) {
+                return response()->json([]);
+            }
+            
+            $vagas = \App\Models\Vaga::where('fk_id_empresa', $empresaId)
+                ->where('status', 'disponivel')
+                ->whereDate('data_termino', '>=', now())
+                ->with('local')
+                ->orderBy('numero_vaga', 'desc')
+                ->get();
+            
+            // Verificar se alguma vaga expirou (alertar no frontend)
+            $vagas->each(function($vaga) {
+                $vaga->expirada = strtotime($vaga->data_termino) < strtotime(date('Y-m-d'));
+            });
+            
+            return response()->json($vagas);
+        } catch (\Exception $e) {
+            // Em caso de erro (tabela não existe, model não existe, etc), retornar array vazio
+            return response()->json([]);
+        }
     }
 
     public function store(Request $request)
@@ -245,6 +256,21 @@ class TermoController extends Controller
             'lotacao' => 'required|string',
             'fk_id_vaga' => 'nullable|integer|exists:tb_vagas,id_vaga',
         ]);
+
+        // Verificar se o estagiário já possui termo ativo (sem rescisão)
+        $termoAtivo = Termo::where('fk_id_estagiario', $validatedData['fk_id_estagiario'])
+            ->whereDoesntHave('rescisao')
+            ->first();
+
+        if ($termoAtivo) {
+            $estagiario = Estagiario::find($validatedData['fk_id_estagiario']);
+            $nomeEstagiario = $estagiario ? $estagiario->nome_estagiario : 'Este estagiário';
+            $numeroTermo = $termoAtivo->numero_termo . '/' . $termoAtivo->ano_termo;
+            
+            return back()
+                ->withErrors(['fk_id_estagiario' => $nomeEstagiario . ' já possui um termo de estágio ativo (Termo nº ' . $numeroTermo . '). É necessário rescindir o termo atual antes de cadastrar um novo.'])
+                ->withInput();
+        }
 
         // Garantir que o local pertence à empresa selecionada (somente se informado)
         if (!empty($validatedData['fk_id_local'])) {
