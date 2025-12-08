@@ -335,11 +335,11 @@ class TermoController extends Controller
         return view('termos.show', compact('termo'));
     }
 
-    public function edit($id)
+    /*public function edit($id)
     {
         $termo = Termo::findOrFail($id);
         return view('termos.edit', compact('termo'));
-    }
+    }*/
 
     public function destroy($id)
     {
