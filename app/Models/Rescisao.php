@@ -15,7 +15,14 @@ class Rescisao extends Model
     protected $primaryKey = 'id_rescisao';
 
     // Permite a atribuição em massa para os campos especificados
-    protected $fillable = ['fk_id_termo', 'data_rescisao', 'motivo'];
+    protected $fillable = [
+        'fk_id_termo',
+        'data_rescisao',
+        'motivo',
+        'zapsign_doc_token',
+        'zapsign_status',
+        'zapsign_enviado_em',
+    ];
 
     public function termo()
     {

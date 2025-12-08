@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use App\Models\Termo;
+use App\Models\Rescisao;
+use App\Models\AlteracaoTermo;
 use App\Models\ZapSignWebhookLog;
 
 class ZapSignWebhookController extends Controller
@@ -49,10 +51,33 @@ class ZapSignWebhookController extends Controller
         }
 
         if ($docToken) {
+            // Tentar identificar o tipo de documento (termo, rescisão ou alteração)
+            $statusClean = trim($status ?? '');
+            $statusFinal = $statusClean ?: 'desconhecido';
+            
             $termo = Termo::where('zapsign_doc_token', $docToken)->first();
             if ($termo) {
-                $termo->zapsign_status = $status ?: ($termo->zapsign_status ?? 'desconhecido');
+                $termo->zapsign_status = $statusFinal;
                 $termo->save();
+                Log::info("Webhook ZapSign: Status '{$statusFinal}' atualizado para Termo ID {$termo->id_termo}");
+            } else {
+                // Verificar se é uma rescisão
+                $rescisao = Rescisao::where('zapsign_doc_token', $docToken)->first();
+                if ($rescisao) {
+                    $rescisao->zapsign_status = $statusFinal;
+                    $rescisao->save();
+                    Log::info("Webhook ZapSign: Status '{$statusFinal}' atualizado para Rescisão ID {$rescisao->id_rescisao}");
+                } else {
+                    // Verificar se é uma alteração
+                    $alteracao = AlteracaoTermo::where('zapsign_doc_token', $docToken)->first();
+                    if ($alteracao) {
+                        $alteracao->zapsign_status = $statusFinal;
+                        $alteracao->save();
+                        Log::info("Webhook ZapSign: Status '{$statusFinal}' atualizado para Alteração ID {$alteracao->id_alteracao}");
+                    } else {
+                        Log::warning("Webhook ZapSign: Documento não encontrado para token {$docToken}");
+                    }
+                }
             }
         }
 

@@ -292,7 +292,7 @@ class EstagiarioController extends Controller
             'comprovante_residencia' => 'required|mimes:jpeg,png,jpg,pdf|max:20480',
             'comprovante_escolar' => 'required|mimes:jpeg,png,jpg,pdf|max:20480',
             'numero_pis' => 'nullable|string',
-            'tipo_chave_pix' => 'nullable|in:CPF,EMAIL,TELEFONE,ALEATORIA',
+            'tipo_chave_pix' => 'required|in:CPF,EMAIL,TELEFONE,ALEATORIA',
             'chave_pix' => 'required|string',
             // Senha do usuário vinculado
             'password' => 'required|min:8|confirmed',
@@ -476,7 +476,7 @@ class EstagiarioController extends Controller
         $estagiario = Estagiario::with('cidade')->findOrFail($id);
 
         if (!$estagiario) {
-            return redirect()->route('estagiario.index')->with('error', 'Estagiário não encontrado');
+            return redirect()->route('estagiarios.index')->with('error', 'Estagiário não encontrado');
         }
 
         $estados = Estado::all();

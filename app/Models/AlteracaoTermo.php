@@ -33,6 +33,9 @@ class AlteracaoTermo extends Model
         'old_valor_bolsa',
         'old_auxilio_transporte',
         'old_desc_atividades',
+        'zapsign_doc_token',
+        'zapsign_status',
+        'zapsign_enviado_em',
     ];
 
     public function termo()

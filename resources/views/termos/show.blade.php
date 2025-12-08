@@ -35,6 +35,18 @@
                         target="_blank">
                         <i class="fas fa-file-pdf"></i> PDF Rescisão
                     </a>
+                    
+                    @if(!$termo->rescisao->zapsign_doc_token)
+                        <button type="button" class="btn btn-success" data-bs-toggle="modal" 
+                            data-bs-target="#zapSignModalRescisao" title="Enviar Rescisão para Assinatura ZapSign">
+                            <i class="fas fa-file-signature"></i> Enviar para ZapSign
+                        </button>
+                    @else
+                        <a href="{{ route('rescisao.statusZapSign', $termo->rescisao->id_rescisao) }}" class="btn btn-secondary"
+                            title="Atualizar status da rescisão no ZapSign">
+                            <i class="fas fa-sync-alt"></i> Atualizar status
+                        </a>
+                    @endif
                 @else
                     <button type="button" class="btn btn-warning" style="color: crimson; font-weight: 900;" data-toggle="modal"
                         data-target="#exampleModal">
@@ -111,7 +123,7 @@
             @if (Auth::user()->nivel == 'admin' || Auth::user()->nivel == 'operador')
             <div class="alert alert-light border d-flex justify-content-between align-items-center mb-4" role="alert">
                 <div>
-                    <h5 class="mb-1">Assinatura ZapSign</h5>
+                    <h5 class="mb-1">Status da assinatura do termo de contrato - ZapSign</h5>
                     <div class="mb-1">
                         <span class="badge bg-{{ $zsClass }}">{{ $zsLabel }}</span>
                         @if(!empty($termo->zapsign_enviado_em))
@@ -143,30 +155,93 @@
                 @php
                     $isVencido = \Carbon\Carbon::parse($termo->data_fim_estagio)->isPast() && !$termo->rescisao;
                 @endphp
-                <div class="alert 
-                        @if($termo->rescisao)
-                            alert-danger
-                        @elseif($isVencido)
-                            alert-warning
-                        @else
-                            alert-success
-                        @endif
-                        d-flex align-items-center" style="margin-top: -25px;" role="alert">
-                    <i class="fas fa-info-circle fa-2x mr-3" style="margin-right: 15px;"></i>
-                    <div>
-                        <h5 class="alert-heading mb-1">Status do Contrato</h5>
-                        @if($termo->rescisao)
-                            <p class="mb-1"><strong>Encerrado</strong></p>
-                            <p class="mb-1"><strong>Data da Rescisão:</strong>
-                                {{ \Carbon\Carbon::parse($termo->rescisao->data_rescisao)->format('d/m/Y') }}</p>
-                            <p class="mb-0"><strong>Motivo:</strong> {{ $termo->rescisao->motivo }}</p>
-                        @elseif($isVencido)
-                            <p class="mb-1"><strong>Contrato Vencido</strong></p>
-                        @else
-                            <p class="mb-1"><strong>Ativo</strong></p>
+                
+                @if($termo->rescisao)
+                    {{-- Card unificado de Rescisão com Status ZapSign --}}
+                    <div class="card border-danger shadow-sm">
+                        <div class="card-header bg-danger text-white">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-ban me-2"></i>Contrato Rescindido
+                                </h5>
+                                @if($termo->rescisao->zapsign_doc_token)
+                                    @php
+                                        $statusMap = [
+                                            'signed' => ['bg-success', 'fas fa-check-circle', 'Assinado'],
+                                            'finished' => ['bg-success', 'fas fa-check-circle', 'Concluído'],
+                                            'concluded' => ['bg-success', 'fas fa-check-circle', 'Concluído'],
+                                            'completed' => ['bg-success', 'fas fa-check-circle', 'Concluído'],
+                                            'assinado' => ['bg-success', 'fas fa-check-circle', 'Assinado'],
+                                            'concluido' => ['bg-success', 'fas fa-check-circle', 'Concluído'],
+                                            'link_aberto' => ['bg-info', 'fas fa-envelope-open', 'Aguardando Assinatura'],
+                                            'waiting_signature' => ['bg-info', 'fas fa-envelope-open', 'Aguardando Assinatura'],
+                                            'enviado' => ['bg-warning text-dark', 'fas fa-paper-plane', 'Enviado para Assinatura'],
+                                            'pending' => ['bg-warning text-dark', 'fas fa-paper-plane', 'Pendente'],
+                                            'desconhecido' => ['bg-secondary', 'fas fa-question-circle', 'Desconhecido']
+                                        ];
+                                        $rawStatus = trim(strtolower($termo->rescisao->zapsign_status ?? 'enviado'));
+                                        $status = $rawStatus ?: 'enviado';
+                                        $statusInfo = $statusMap[$status] ?? $statusMap['desconhecido'];
+                                    @endphp
+                                    <span class="badge {{ $statusInfo[0] }}">
+                                        <i class="{{ $statusInfo[1] }} me-1"></i>{{ $statusInfo[2] }}
+                                    </span>
+                                @endif
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <p class="mb-2">
+                                        <strong><i class="fas fa-calendar me-2 text-danger"></i>Data da Rescisão:</strong><br>
+                                        <span style="margin-left: 24px;">{{ \Carbon\Carbon::parse($termo->rescisao->data_rescisao)->format('d/m/Y') }}</span>
+                                    </p>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <p class="mb-2">
+                                        <strong><i class="fas fa-file-pdf me-2 text-danger"></i>Documento:</strong><br>
+                                        <span style="margin-left: 24px;">
+                                            <a href="{{ route('rescisoes.gerarPdf', $termo->rescisao->id_rescisao) }}" target="_blank" class="link-danger">
+                                                Visualizar PDF <i class="fas fa-external-link-alt ms-1"></i>
+                                            </a>
+                                        </span>
+                                    </p>
+                                </div>
+                            </div>
+                            <p class="mb-0">
+                                <strong><i class="fas fa-info-circle me-2 text-danger"></i>Motivo:</strong><br>
+                                <span style="margin-left: 24px;">{{ $termo->rescisao->motivo }}</span>
+                            </p>
+                        </div>
+                        @if($termo->rescisao->zapsign_doc_token)
+                        <div class="card-footer bg-light d-flex justify-content-between align-items-center">
+                            <small class="text-muted">
+                                <i class="fas fa-signature me-1"></i>
+                                Enviado em: {{ \Carbon\Carbon::parse($termo->rescisao->zapsign_enviado_em)->format('d/m/Y H:i') }}
+                            </small>
+                            <a href="{{ route('rescisao.statusZapSign', $termo->rescisao->id_rescisao) }}" class="btn btn-outline-secondary btn-sm">
+                                <i class="fas fa-sync-alt"></i> Atualizar status
+                            </a>
+                        </div>
                         @endif
                     </div>
-                </div>
+                @elseif($isVencido)
+                    <div class="alert alert-warning d-flex align-items-center" role="alert">
+                        <i class="fas fa-exclamation-triangle fa-2x me-3"></i>
+                        <div>
+                            <h5 class="alert-heading mb-1">Contrato Vencido</h5>
+                            <p class="mb-0">Este contrato de estágio expirou e não foi rescindido. Considere registrar uma rescisão.</p>
+                        </div>
+                    </div>
+                @else
+                    <div class="alert alert-success d-flex align-items-center" role="alert">
+                        <i class="fas fa-check-circle fa-2x me-3"></i>
+                        <div>
+                            <h5 class="alert-heading mb-1">Contrato Ativo</h5>
+                            <p class="mb-0">Este contrato de estágio está ativo e em vigência.</p>
+                        </div>
+                    </div>
+                @endif
             </div>
             <div class="row">
                 <div class="col-md-6 mb-3">
@@ -518,7 +593,7 @@
     <!-- Modal ZapSign -->
     <div class="modal fade" id="zapSignModalShow" tabindex="-1"
         aria-labelledby="zapSignModalShowLabel" aria-hidden="true">
-        <div class="modal-dialog modal-md">
+        <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="zapSignModalShowLabel">
@@ -942,4 +1017,106 @@
             }, 500);
         }
     </script>
+
+    <!-- Modal ZapSign Rescisão -->
+    @if($termo->rescisao)
+        @if(!$termo->rescisao->zapsign_doc_token)
+    <div class="modal fade" id="zapSignModalRescisao" tabindex="-1"
+        aria-labelledby="zapSignModalRescisaoLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="zapSignModalRescisaoLabel">
+                        <i class="fas fa-file-signature me-2"></i>
+                        Enviar Rescisão para Assinatura ZapSign
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-break">
+                    <p>Deseja enviar este termo de rescisão para assinatura eletrônica via ZapSign?</p>
+                    <p><strong>Termo:</strong> {{ $termo->numero_termo }}/{{ $termo->ano_termo }}</p>
+                    <p><strong>Estagiário:</strong> {{ $termo->estagiario->nome_estagiario }}</p>
+                    <p><strong>Data da Rescisão:</strong> {{ \Carbon\Carbon::parse($termo->rescisao->data_rescisao)->format('d/m/Y') }}</p>
+
+                    <hr class="my-2">
+                    <p class="mb-1">
+                        <strong>Destinatários que receberão o documento:</strong>
+                    </p>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-bordered mb-2" style="font-size: 9pt">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="width: 120px;">Tipo</th>
+                                    <th>Nome</th>
+                                    <th style="width: 35%;">E-mail</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><i class="fas fa-user text-primary me-1"></i> Estagiário</td>
+                                    <td>{{ $termo->estagiario->nome_estagiario }}</td>
+                                    <td>{{ $termo->estagiario->email ?? '—' }}</td>
+                                </tr>
+                                <tr>
+                                    <td><i class="fas fa-handshake text-info me-1"></i> Ag. Integração</td>
+                                    <td>EBCP CONSULTORIA LTDA</td>
+                                    <td>moacirecetista@hotmail.com</td>
+                                </tr>
+                                {{-- Representantes da Empresa --}}
+                                @if(isset($termo->empresa) && $termo->empresa->representantes->count() > 0)
+                                    @foreach($termo->empresa->representantes as $rep)
+                                        <tr>
+                                            <td><i class="fas fa-building text-secondary me-1"></i> Concedente</td>
+                                            <td>{{ $rep->nome }}</td>
+                                            <td>{{ $rep->email }}</td>
+                                        </tr>
+                                    @endforeach
+                                @elseif(isset($termo->empresa))
+                                    <tr>
+                                        <td><i class="fas fa-building text-secondary me-1"></i> Concedente</td>
+                                        <td>{{ $termo->empresa->nome_representante ?? $termo->empresa->nome_empresa }}</td>
+                                        <td>{{ $termo->empresa->email ?? '—' }}</td>
+                                    </tr>
+                                @endif
+                                {{-- Representantes da Escola --}}
+                                @if(isset($termo->escola) && $termo->escola->representantes->count() > 0)
+                                    @foreach($termo->escola->representantes as $rep)
+                                        <tr>
+                                            <td><i class="fas fa-school text-success me-1"></i> Instituição</td>
+                                            <td>{{ $rep->nome }}</td>
+                                            <td>{{ $rep->email }}</td>
+                                        </tr>
+                                    @endforeach
+                                @elseif(isset($termo->escola))
+                                    <tr>
+                                        <td><i class="fas fa-school text-success me-1"></i> Instituição</td>
+                                        <td>{{ $termo->escola->nome_representante ?? $termo->escola->nome_escola }}</td>
+                                        <td>{{ $termo->escola->email ?? '—' }}</td>
+                                    </tr>
+                                @endif
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="text-muted small mb-0">
+                        <strong>Observação:</strong> Todos os representantes cadastrados receberão o documento para assinatura digital.
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary"
+                        data-bs-dismiss="modal">Cancelar</button>
+                    <form action="{{ route('rescisoes.enviarZapSign', $termo->rescisao->id_rescisao) }}" method="POST"
+                        style="display:inline-block;">
+                        @csrf
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-paper-plane me-1"></i>
+                            Enviar
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+        @endif
+    @endif
 @endsection

@@ -291,6 +291,59 @@
         {!! nl2br(e($alteracao->descricao)) !!}
     </p>
 
+    @if(isset($paraZapSign) && $paraZapSign && isset($signatarios))
+        {{-- Versão dinâmica para ZapSign --}}
+        <div style="margin-top: 30px; padding: 8px 12px; background-color: #f8f9fa; border-left: 3px solid #0d6efd;">
+            <p style="margin: 0 0 5px 0; color: #0d6efd; font-size: 11px; font-weight: bold;">
+                📋 ASSINATURAS DIGITAIS
+            </p>
+            <p style="margin: 0 0 5px 0; font-size: 9px; line-height: 1.45;">
+                Este documento será assinado digitalmente através da plataforma ZapSign em conformidade com a Lei nº
+                14.063/2020.
+            </p>
+            <p style="margin: 5px 0 3px 0; font-size: 9px; font-weight: bold;">Signatários:</p>
+            <ol style="margin: 0; padding-left: 15px; font-size: 9px; line-height: 1.5;">
+                @foreach($signatarios as $index => $signatario)
+                    <li>
+                        <strong>{{ $signatario['tipo'] }}</strong>
+                        @if(!empty($signatario['nome']))
+                            - {{ $signatario['nome'] }}
+                        @endif
+                    </li>
+                @endforeach
+            </ol>
+        </div>
+
+        {{-- Espaço reservado para as assinaturas do ZapSign --}}
+        <div style="margin-top: 180px;"></div>
+    @else
+        {{-- Versão estática padrão (para impressão/download normal) --}}
+        <table style="padding-top: 100px; width: 100%;">
+            <tr>
+                <td style="text-align: center;">______________________________</td>
+                <td></td>
+                <td style="text-align: center;">______________________________</td>
+            </tr>
+            <tr>
+                <td style="text-align: center;">Pela Concedente</td>
+                <td></td>
+                <td style="text-align: center;">Pela Instituição de Ensino</td>
+            </tr>
+        </table>
+        <table style="padding-top: 100px; width: 100%;">
+            <tr>
+                <td style="text-align: center;">______________________________</td>
+                <td></td>
+                <td style="text-align: center;">______________________________</td>
+            </tr>
+            <tr>
+                <td style="text-align: center;">Estagiário/Representante Legal</td>
+                <td></td>
+                <td style="text-align: center;">EBCP Consultoria <br> (Agente de Integração)</td>
+            </tr>
+        </table>
+    @endif
+
 </body>
 
 </html>

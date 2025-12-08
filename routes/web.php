@@ -192,6 +192,12 @@ Route::middleware(['auth'])->group(function () {
         //Rota para gerar o PDF da rescisao
         Route::get('/rescisao/{id}', [RescisaoController::class, 'gerarPdf'])->name('rescisoes.gerarPdf');
 
+        // Rota para enviar rescisão para ZapSign
+        Route::post('/rescisao/{id}/enviar-zapsign', [RescisaoController::class, 'enviarParaZapSign'])->name('rescisoes.enviarZapSign');
+
+        // Rota para verificar status da rescisão no ZapSign
+        Route::get('/rescisao/{id}/status-zapsign', [RescisaoController::class, 'verificarStatusZapSign'])->name('rescisao.statusZapSign');
+
 
         //ROTAS para alterações de termos
 
@@ -207,6 +213,12 @@ Route::middleware(['auth'])->group(function () {
 
         // Rota para excluir uma alteracao de termo específico
         Route::delete('/termos/{id}/alteracoes/{id_alteracao}', [AlteracaoTermoController::class, 'destroy'])->name('alteracao.destroy');
+
+        // Rota para enviar alteração para ZapSign
+        Route::post('/termos/{id}/alteracoes/{id_alteracao}/enviar-zapsign', [AlteracaoTermoController::class, 'enviarParaZapSign'])->name('alteracao.enviarZapSign');
+
+        // Rota para verificar status da alteração no ZapSign
+        Route::get('/termos/{id}/alteracoes/{id_alteracao}/status-zapsign', [AlteracaoTermoController::class, 'verificarStatusZapSign'])->name('alteracao.statusZapSign');
 
 
         // Rotas para folhas de pagamento        

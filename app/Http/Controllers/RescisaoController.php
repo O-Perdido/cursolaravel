@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Termo;
 use App\Models\Rescisao;
+use App\Models\Ebcp;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Services\ZapSignService;
 
 class RescisaoController extends Controller
 {
@@ -41,6 +43,223 @@ class RescisaoController extends Controller
         return $pdf->stream('TRE ' . $rescisao->termo->id_termo . '-' . \Carbon\Carbon::parse($rescisao->termo->data)->format('Y') . '-' . $rescisao->termo->estagiario->nome_estagiario . '.pdf');
         //return $pdf->download('TCE'.'.pdf');
 
+    }
+
+    /**
+     * Enviar rescisão para assinatura no ZapSign
+     */
+    public function enviarParaZapSign($id)
+    {
+        try {
+            $rescisao = Rescisao::with(['termo.estagiario', 'termo.empresa', 'termo.escola'])->findOrFail($id);
+            $termo = $rescisao->termo;
+            $zapSignService = new ZapSignService();
+
+            // Buscar EBCP para o PDF
+            $ebcp = EBCP::findOrFail(1);
+            $linklogo = public_path('images/logo_pdf_padrao.png');
+
+            // Preparar signatários completos
+            $signatarios = [];
+            $signatariosParaPdf = [];
+            
+            // 1. Representantes da Unidade Concedente (Empresa)
+            if ($termo->empresa && $termo->empresa->representantes->count() > 0) {
+                foreach ($termo->empresa->representantes as $rep) {
+                    $signatarios[] = [
+                        'name' => $rep->nome,
+                        'email' => $rep->email,
+                    ];
+                    $signatariosParaPdf[] = [
+                        'nome' => $rep->nome,
+                        'tipo' => 'Pela Concedente'
+                    ];
+                }
+            }
+
+            // 2. Representantes da Instituição de Ensino (Escola)
+            if ($termo->escola && $termo->escola->representantes->count() > 0) {
+                foreach ($termo->escola->representantes as $rep) {
+                    $signatarios[] = [
+                        'name' => $rep->nome,
+                        'email' => $rep->email,
+                    ];
+                    $signatariosParaPdf[] = [
+                        'nome' => $rep->nome,
+                        'tipo' => 'Pela Instituição de Ensino'
+                    ];
+                }
+            }
+            
+            // 3. Estagiário
+            if ($termo->estagiario) {
+                $signatarios[] = [
+                    'name' => $termo->estagiario->nome_estagiario,
+                    'email' => $termo->estagiario->email ?? null,
+                    'phone_number' => $termo->estagiario->numero_celular ?? null,
+                ];
+                $signatariosParaPdf[] = [
+                    'nome' => $termo->estagiario->nome_estagiario,
+                    'tipo' => 'Estagiário/Representante Legal'
+                ];
+            }
+
+            // 4. Agente de Integração (EBCP)
+            $signatarios[] = [
+                'name' => 'Moacir Aguiar',
+                'email' => 'moacirecetista@hotmail.com',
+            ];
+            $signatariosParaPdf[] = [
+                'nome' => $ebcp->nome_ebcp,
+                'tipo' => 'Agente de Integração'
+            ];
+
+            // Gerar PDF com signatários
+            $pdf = Pdf::loadView('termos.gerarPdfRescisao', [
+                'rescisao' => $rescisao,
+                'linklogo' => $linklogo,
+                'paraZapSign' => true,
+                'signatarios' => $signatariosParaPdf
+            ])->setPaper([0, 0, 595.28, 841.89], 'portrait');
+
+            // Converter para base64
+            $pdfOutput = $pdf->output();
+            $pdfBase64 = base64_encode($pdfOutput);
+            $numPages = $this->contarPaginasPDF($pdfOutput);
+
+            $documentName = "Termo de Rescisão {$termo->numero_termo}/{$termo->ano_termo} - {$termo->estagiario->nome_estagiario}";
+
+            // Enviar para ZapSign
+            $resultado = $zapSignService->criarDocumentoBase64($pdfBase64, $documentName, $signatarios);
+
+            if ($resultado['success']) {
+                $docToken = $resultado['data']['token'];
+                $signers = $resultado['data']['signers'] ?? [];
+
+                // Posicionar assinaturas
+                if (count($signers) > 0) {
+                    $emailToToken = [];
+                    foreach ($signers as $signer) {
+                        $emailToToken[$signer['email']] = $signer['token'];
+                    }
+                    
+                    $signersOrdenados = [];
+                    foreach ($signatarios as $sig) {
+                        $email = $sig['email'] ?? null;
+                        if ($email && isset($emailToToken[$email])) {
+                            $signersOrdenados[] = [
+                                'token' => $emailToToken[$email],
+                                'email' => $email
+                            ];
+                        }
+                    }
+                    
+                    $rubricas = $this->calcularPosicoesAssinaturas($signersOrdenados, $numPages);
+                    $zapSignService->posicionarAssinaturas($docToken, $rubricas);
+                }
+
+                // Salvar dados ZapSign
+                $rescisao->zapsign_doc_token = $docToken;
+                $rescisao->zapsign_status = 'enviado';
+                $rescisao->zapsign_enviado_em = now();
+                $rescisao->save();
+
+                return redirect()->back()->with('success', 'Rescisão enviada para assinatura no ZapSign com sucesso!');
+            }
+
+            return redirect()->back()->with('error', 'Erro ao enviar documento: ' . $resultado['message']);
+
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Erro ao processar solicitação: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Calcular posições dinâmicas das assinaturas
+     */
+    private function calcularPosicoesAssinaturas(array $signers, int $numPages = 1)
+    {
+        $rubricas = [];
+        $totalSigners = count($signers);
+        $page = max(0, $numPages - 1);
+        
+        $signatureWidth = 19.55;
+        $signatureHeight = 9.42;
+        $columns = min(2, max(1, $totalSigners));
+        $gapBetweenColumns = 30.0;
+        $leftFirstColumn = 1.0;
+        $verticalGap = 0.5;
+        $lineHeight = $signatureHeight + $verticalGap;
+        $startBottom = 4.0;
+        
+        foreach ($signers as $index => $signer) {
+            $row = intdiv($index, $columns);
+            $col = $index % $columns;
+            
+            $posLeft = $leftFirstColumn + ($col * ($signatureWidth + $gapBetweenColumns));
+            $posBottom = $startBottom + ($row * $lineHeight);
+            
+            if ($posLeft + $signatureWidth > 100.0) {
+                $posLeft = max(0.0, 100.0 - $signatureWidth);
+            }
+            if ($posBottom + $signatureHeight > 100.0) {
+                $posBottom = max(0.0, 100.0 - $signatureHeight);
+            }
+            
+            $rubricas[] = [
+                'page' => $page,
+                'relative_position_bottom' => $posBottom,
+                'relative_position_left' => $posLeft,
+                'relative_size_x' => $signatureWidth,
+                'relative_size_y' => $signatureHeight,
+                'type' => 'signature',
+                'signer_token' => $signer['token']
+            ];
+        }
+        
+        return $rubricas;
+    }
+
+    /**
+     * Contar número de páginas do PDF
+     */
+    private function contarPaginasPDF(string $pdfContent): int
+    {
+        $count = preg_match_all("/\/Page\W/", $pdfContent, $matches);
+        return max(1, $count);
+    }
+
+    /**
+     * Verificar status da rescisão no ZapSign
+     */
+    public function verificarStatusZapSign($id)
+    {
+        try {
+            $rescisao = Rescisao::findOrFail($id);
+            
+            if (!$rescisao->zapsign_doc_token) {
+                return redirect()->back()->with('warning', 'Esta rescisão não foi enviada para o ZapSign ainda.');
+            }
+
+            $zapSignService = new ZapSignService();
+            $resultado = $zapSignService->detalharDocumento($rescisao->zapsign_doc_token);
+
+            if ($resultado['success']) {
+                $data = $resultado['data'];
+                $status = strtolower($data['status'] ?? 'desconhecido');
+
+                // Persistir status para refletir nos detalhes
+                $rescisao->zapsign_status = $status;
+                $rescisao->save();
+
+                return redirect()->back()->with('success', "Status da rescisão: {$status}");
+            }
+
+            return redirect()->back()->with('error', 'Erro ao verificar status: ' . $resultado['message']);
+
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Erro ao verificar status: ' . $e->getMessage());
+        }
     }
 
 }
