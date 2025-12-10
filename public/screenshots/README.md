@@ -113,23 +113,67 @@ Depois de capturar, adicionar texto:
 
 ## Salvando Screenshots
 
-1. Salvar arquivos como:
-   ```
-   public/screenshots/screenshot-1-login.png
-   public/screenshots/screenshot-2-dashboard.png
-   public/screenshots/screenshot-3-contratos.png
-   public/screenshots/screenshot-4-perfil.png
-   public/screenshots/screenshot-5-folha.png
-   public/screenshots/screenshot-6-mobile.png
-   ```
+### 📱 Seus Screenshots Atuais → Nomes Corretos:
 
-2. Validar:
-   - Formato: PNG ou JPG ✓
-   - Tamanho: 1080x1920 ✓
-   - Tamanho arquivo: < 1MB cada ✓
-   - Quantidade: 2-8 ✓
+Renomeie suas 6 imagens para:
 
-3. Estas imagens serão usadas na Play Store durante upload do APK
+**Print 1 (Login):**
+```
+screenshot-1-login.png
+```
+*Descrição para Play Store: "Login seguro com autenticação de usuário"*
+
+**Print 2 (Dashboard/Bem-vindo):**
+```
+screenshot-2-dashboard.png
+```
+*Descrição para Play Store: "Dashboard personalizado por perfil de acesso"*
+
+**Print 3 (Meus Contratos - Lista):**
+```
+screenshot-3-contratos.png
+```
+*Descrição para Play Store: "Visualize seus contratos de estágio em tempo real"*
+
+**Print 4 (Meus Documentos):**
+```
+screenshot-4-documentos.png
+```
+*Descrição para Play Store: "Gerencie e atualize seus documentos"*
+
+**Print 5 (Dashboard Estagiário - Cards):**
+```
+screenshot-5-perfil.png
+```
+*Descrição para Play Store: "Acesso rápido a dados pessoais e contratos"*
+
+**Print 6 (Histórico Recessos / Folha):**
+```
+screenshot-6-folha.png
+```
+*Descrição para Play Store: "Controle de recesso e recibos de pagamento"*
+
+### ✅ Checklist Final:
+
+- [ ] Todos os 6 arquivos renomeados
+- [ ] Formato: PNG ou JPG ✓
+- [ ] Resolução: 1080x1920 (ou similar mobile) ✓
+- [ ] Tamanho arquivo: < 1MB cada ✓
+- [ ] Salvos em: `public/screenshots/` ✓
+
+### 🎯 Resultado:
+
+```
+public/screenshots/
+├── screenshot-1-login.png
+├── screenshot-2-dashboard.png
+├── screenshot-3-contratos.png
+├── screenshot-4-documentos.png
+├── screenshot-5-perfil.png
+└── screenshot-6-folha.png
+```
+
+3. Estas imagens serão enviadas na Play Store durante upload do APK
 
 ---
 
