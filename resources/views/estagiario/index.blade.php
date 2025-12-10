@@ -35,13 +35,13 @@
                         <i class="fas fa-plus me-1"></i> Adicionar Estagiário
                     </a>
                     <!--<button id="copyLinkButton" class="btn btn-primary btn-sm">Compartilhar Link</button>-->
-                    <button id="copyLinkButtonTeste" class="btn btn-primary btn-sm">Compartilhar link teste</button>
+                    <button id="copyLinkButtonTeste" class="btn btn-primary btn-sm">Copiar link para cadastro</button>
                     <span id="copyMessage" style="display:none; margin-left: 10px;">Link copiado</span>
                     <span id="copyMessageTeste" style="display:none; margin-left: 10px;">Link copiado</span>
                 </div>
                 <script>
-                            /*document.getElementById('copyLinkButton').addEventListener('click', function () {
-                                var link = "{{ route('novo-estagiario-create') }}";
+                                /*document.getElementById('copyLinkButton').addEventListener('click', function () {
+                                    var link = "{{ route('novo-estagiario-create') }}";
                     navigator.clipboard.writeText(link).then(function () {
                         var message = document.getElementById('copyMessage');
                         message.style.display = 'inline';
@@ -49,7 +49,7 @@
                             message.style.display = 'none';
                         }, 5000);
                     });
-                            });*/
+                                });*/
 
                     // Botão para copiar o link da versão AJAX (teste)
                     document.getElementById('copyLinkButtonTeste').addEventListener('click', function () {
