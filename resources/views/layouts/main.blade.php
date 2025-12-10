@@ -105,18 +105,18 @@
     </div>
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-dark shadow-sm text-center">
-        <div class="container align-items-center" style=" ">
-            <div class="d-flex align-items-center">
-                <a href="/" class="navbar-brand d-flex align-items-center">
-                    <img src="{{ asset('images/logo_branca_sem_fundo.png') }}" alt="Logo" height="50"
+        <div class="container-fluid align-items-center px-2 px-md-3">
+            <div class="d-flex align-items-center flex-grow-1">
+                <a href="/" class="navbar-brand d-flex align-items-center" style="margin: 0;">
+                    <img src="{{ asset('images/logo_branca_sem_fundo.png') }}" alt="Logo" height="45"
                         class="d-inline-block align-center">
-                    <span class="text-wrap d-inline-block align-middle" style="font-size: 2.5rem; margin-left: 25px;">
+                    <span class="d-none d-sm-inline" style="margin-left: 15px;">
                         @guest
-                            <img src="{{ asset('images/sige_logo_branco.png') }}" alt="" height="60"
+                            <img src="{{ asset('images/sige_logo_branco.png') }}" alt="" height="50"
                                 style="margin-bottom: 5px;">
                         @endguest
                         @auth
-                            <img src="{{ asset('images/sige_logo_branco.png') }}" alt="" height="60"
+                            <img src="{{ asset('images/sige_logo_branco.png') }}" alt="" height="50"
                                 style="margin-bottom: 5px;">
                         @endauth
                     </span>
@@ -132,22 +132,29 @@
             @auth
                 <!-- SE O USUARIO LOGADO FOR EMPRESA MOSTRA TAMBÉM O NOME COMPLETO DO SISTEMA (só em telas grandes) -->
                 @if (Auth::user()->nivel == 'empresa' || Auth::user()->nivel == 'estagiario')
-                    <div class="d-flex align-items-center justify-content-between gap-4 w-100">
-                        <h1 class="text-white text-center d-none d-lg-block mb-0"
-                            style="font-family: Asthoria, sans-serif; font-size:2rem;">
+                    <div class="d-none d-lg-flex align-items-center justify-content-between gap-4">
+                        <h1 class="text-white text-center mb-0" style="font-family: Asthoria, sans-serif; font-size:2rem;">
                             Sistema de Gestão de Estágios
                         </h1>
                         <div class="d-flex align-items-center gap-3">
-                            <a href="{{ route('/') }}" class="btn btn-outline-light d-flex align-items-center gap-2 shadow-sm"
+                            <a href="{{ route('/') }}"
+                                class="btn btn-outline-light btn-sm d-flex align-items-center gap-2 shadow-sm"
                                 style="font-weight: 500;">
                                 <i class="fas fa-home"></i>
                                 INÍCIO
                             </a>
-                            <span class="text-white-50 small d-none d-lg-block" style="font-size: 1rem;">
+                            <span class="text-white-50 small" style="font-size: 1rem;">
                                 {{ Auth::user()->name }}
                             </span>
                         </div>
                     </div>
+                    <!-- Botão INÍCIO para mobile ao lado do hambúrguer -->
+                    <a href="{{ route('/') }}"
+                        class="btn btn-outline-light btn-sm d-lg-none me-2 d-flex align-items-center gap-2"
+                        style="font-weight: 500;">
+                        <i class="fas fa-home"></i>
+                        Início
+                    </a>
                 @endif
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
                     aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
