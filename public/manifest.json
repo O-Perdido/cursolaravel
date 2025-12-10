@@ -1,7 +1,7 @@
 {
     "name": "SIGEBR - EBCP Sistema de Gestão de Estágios",
     "short_name": "SIGEBR - EBCP",
-    "description": "Sistema de Gestão de Estágios Brasileiros da EBCP",
+    "description": "Sistema completo de gestão de estágios da EBCP. Gerencie contratos, folhas de pagamento, assinaturas digitais e acompanhe recesso de estagiários em uma plataforma integrada e segura.",
     "start_url": "/",
     "display": "standalone",
     "background_color": "#ffffff",
