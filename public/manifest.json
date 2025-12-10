@@ -1,4 +1,5 @@
 {
+    "id": "br.com.ebcp.sigebr",
     "name": "SIGEBR - EBCP Sistema de Gestão de Estágios",
     "short_name": "SIGEBR - EBCP",
     "description": "Sistema completo de gestão de estágios da EBCP. Gerencie contratos, folhas de pagamento, assinaturas digitais e acompanhe recesso de estagiários em uma plataforma integrada e segura.",
@@ -56,6 +57,44 @@
             "sizes": "512x512",
             "type": "image/png",
             "purpose": "any maskable"
+        }
+    ],
+    "screenshots": [
+        {
+            "src": "/screenshots/screenshot-1-login.png",
+            "sizes": "1080x1920",
+            "type": "image/png",
+            "form_factor": "narrow"
+        },
+        {
+            "src": "/screenshots/screenshot-2-dashboard.png",
+            "sizes": "1080x1920",
+            "type": "image/png",
+            "form_factor": "narrow"
+        },
+        {
+            "src": "/screenshots/screenshot-3-contratos.png",
+            "sizes": "1080x1920",
+            "type": "image/png",
+            "form_factor": "narrow"
+        },
+        {
+            "src": "/screenshots/screenshot-4-documentos.png",
+            "sizes": "1080x1920",
+            "type": "image/png",
+            "form_factor": "narrow"
+        },
+        {
+            "src": "/screenshots/screenshot-5-perfil.png",
+            "sizes": "1080x1920",
+            "type": "image/png",
+            "form_factor": "narrow"
+        },
+        {
+            "src": "/screenshots/screenshot-6-folha.png",
+            "sizes": "1080x1920",
+            "type": "image/png",
+            "form_factor": "narrow"
         }
     ],
     "shortcuts": [

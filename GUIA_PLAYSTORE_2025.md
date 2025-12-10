@@ -2,15 +2,17 @@
 
 ## 📋 Checklist de Preparação
 
-### ✓ Fase 1: Validação PWA (Hoje)
+### ✅ Fase 1: Validação PWA (Hoje)
 
 - [x] Description do manifest.json melhorada (132+ chars)
 - [x] Privacy policy criada em `public/privacy.html`
 - [x] Manifest.json com ícones (já possui 8 tamanhos)
 - [x] Service Worker implementado
 - [x] App funcionando em HTTPS (Laragon)
+- [x] ID único adicionado ao manifest (`br.com.ebcp.sigebr`)
+- [x] Screenshots configurados no manifest
 
-**Próximo:** Validar em https://www.pwabuilder.com/
+**Próximo:** Validar novamente em https://www.pwabuilder.com/
 
 ---
 
@@ -26,6 +28,8 @@
    - ✅ Service Worker: 100%
    - ✅ HTTPS: ✓
    - ✅ Icons: ✓
+   - ✅ Screenshots: ✓ (adicionados ao manifest)
+   - ✅ ID: ✓ (br.com.ebcp.sigebr)
    
 5. Se alguma validação falhar, me avise para corrigir
 
