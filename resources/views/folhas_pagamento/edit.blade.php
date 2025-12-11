@@ -22,6 +22,29 @@
         </div>
     @endif
 
+    <style>
+        .modal-desconto {
+            position: fixed;
+            z-index: 9999;
+            left: 0;
+            top: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content-desconto {
+            background: #fff;
+            padding: 20px 20px 15px 20px;
+            border-radius: 8px;
+            min-width: 250px;
+            box-shadow: 0 2px 10px #0002;
+        }
+    </style>
+
     <!-- Botão Voltar e Salvar no topo -->
     <div class="mb-3 d-flex justify-content-between">
         <a href="{{ route('folhas.index') }}" class="btn btn-secondary">
@@ -181,28 +204,6 @@
                                             id="btn_salvar_descontos_{{ $conteudo->id }}">Salvar</button>
                                     </div>
                                 </div>
-                                <style>
-                                    .modal-desconto {
-                                        position: fixed;
-                                        z-index: 9999;
-                                        left: 0;
-                                        top: 0;
-                                        width: 100vw;
-                                        height: 100vh;
-                                        background: rgba(0, 0, 0, 0.3);
-                                        display: flex;
-                                        align-items: center;
-                                        justify-content: center;
-                                    }
-
-                                    .modal-content-desconto {
-                                        background: #fff;
-                                        padding: 20px 20px 15px 20px;
-                                        border-radius: 8px;
-                                        min-width: 250px;
-                                        box-shadow: 0 2px 10px #0002;
-                                    }
-                                </style>
                                 <script>
                                     (function () {
                                         const span = document.getElementById('descontos_span_{{ $conteudo->id }}');
@@ -215,7 +216,7 @@
                                         span.addEventListener('click', function () {
                                             inputModal.value = parseFloat(input.value || 0).toFixed(2);
                                             modal.style.display = 'flex';
-                                            setTimeout(() => inputModal.focus(), 100);
+                                            setTimeout(() => inputModal.select(), 100);
                                         });
 
                                         closeBtn.addEventListener('click', function () {
@@ -427,7 +428,7 @@
                                 });
                             @endforeach
 
-                                    const totalRegistros = todosRegistros.length;
+                                                    const totalRegistros = todosRegistros.length;
                             const TAMANHO_LOTE = 50; // Envia 50 registros por vez
                             const totalLotes = Math.ceil(totalRegistros / TAMANHO_LOTE);
 
