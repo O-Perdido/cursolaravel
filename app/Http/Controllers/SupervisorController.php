@@ -6,6 +6,7 @@ use App\Models\Supervisor;
 use App\Models\Empresa;
 use Illuminate\Http\Request;
 use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\Auth;
 
 class SupervisorController extends Controller
 {
@@ -14,8 +15,11 @@ class SupervisorController extends Controller
         $query = Supervisor::query();
 
         // Filtros
-
-        if ($request->filled('empresa')) {
+        // Escopo por empresa quando usuário é do nível "empresa"
+        $user = Auth::user();
+        if ($user && $user->nivel === 'empresa') {
+            $query->where('fk_id_empresa', $user->fk_id_empresa);
+        } elseif ($request->filled('empresa')) {
             $query->where('fk_id_empresa', $request->empresa);
         }
 
@@ -47,28 +51,49 @@ class SupervisorController extends Controller
         } else {
             $supervisores = $query->paginate((int) $perPage)->withQueryString();
         }
-        $empresas = Empresa::orderBy('nome_empresa', 'asc')->get();
+        // Lista de empresas para filtros/inputs: usuário empresa só enxerga a própria
+        if ($user && $user->nivel === 'empresa') {
+            $empresas = Empresa::where('id_empresa', $user->fk_id_empresa)->get();
+        } else {
+            $empresas = Empresa::orderBy('nome_empresa', 'asc')->get();
+        }
         return view('supervisores.index', compact('supervisores', 'empresas'));
     }
 
     public function create()
     {
-        $empresas = Empresa::all();
+        $user = Auth::user();
+        // Usuário empresa só pode criar para sua própria empresa
+        if ($user && $user->nivel === 'empresa') {
+            $empresas = Empresa::where('id_empresa', $user->fk_id_empresa)->get();
+        } else {
+            $empresas = Empresa::all();
+        }
         return view('supervisores.create', compact('empresas'));
     }
 
     public function store(Request $request)
     {
+        // Sanitiza CPF antes de validar para garantir unicidade correta
+        if ($request->filled('cpf_supervisor')) {
+            $request->merge(['cpf_supervisor' => preg_replace('/\D/', '', $request->cpf_supervisor)]);
+        }
+
         $validatedData = $request->validate([
             'nome_supervisor' => 'required|string',
             'fk_id_empresa' => 'required|integer',
-            'cpf_supervisor' => 'required|string',
+            'cpf_supervisor' => 'required|string|unique:tb_supervisores,cpf_supervisor',
             'area_formacao' => 'nullable|string',
             'tempo_experiencia' => 'nullable|string',
+        ], [
+            'cpf_supervisor.unique' => 'Já existe um supervisor cadastrado com este CPF.',
         ]);
 
-        // Limpar o CPF para garantir que não haja caracteres especiais
-        $validatedData['cpf_supervisor'] = preg_replace('/\D/', '', $validatedData['cpf_supervisor']);
+        // Forçar vínculo à empresa do usuário quando nível for "empresa"
+        $user = Auth::user();
+        if ($user && $user->nivel === 'empresa') {
+            $validatedData['fk_id_empresa'] = $user->fk_id_empresa;
+        }
 
         Supervisor::create($validatedData);
         return redirect()->route('supervisores.index')->with('success', 'Supervisor cadastrado com sucesso!');
@@ -77,25 +102,49 @@ class SupervisorController extends Controller
     public function edit($id)
     {
         $supervisor = Supervisor::find($id);
-        $empresas = Empresa::all();
+        $user = Auth::user();
+        if ($user && $user->nivel === 'empresa') {
+            // Bloquear edição de supervisor de outra empresa
+            if (!$supervisor || $supervisor->fk_id_empresa != $user->fk_id_empresa) {
+                return redirect()->route('supervisores.index')->with('error', 'Acesso negado para este supervisor.');
+            }
+            $empresas = Empresa::where('id_empresa', $user->fk_id_empresa)->get();
+        } else {
+            $empresas = Empresa::all();
+        }
         return view('supervisores.edit', compact('supervisor', 'empresas'));
     }
 
     public function update(Request $request, $id)
     {
+        // Sanitiza CPF antes de validar
+        if ($request->filled('cpf_supervisor')) {
+            $request->merge(['cpf_supervisor' => preg_replace('/\D/', '', $request->cpf_supervisor)]);
+        }
+
         $request->validate([
             'nome_supervisor' => 'required|string',
             'fk_id_empresa' => 'required|integer',
-            'cpf_supervisor' => 'required|string',
+            'cpf_supervisor' => 'required|string|unique:tb_supervisores,cpf_supervisor,' . $id . ',id_supervisor',
             'area_formacao' => 'nullable|string',
             'tempo_experiencia' => 'nullable|string',
+        ], [
+            'cpf_supervisor.unique' => 'Já existe um supervisor cadastrado com este CPF.',
         ]);
 
-        // Limpar o CPF para garantir que não haja caracteres especiais
-        $request->merge(['cpf_supervisor' => preg_replace('/\D/', '', $request->cpf_supervisor)]);
-
         $supervisor = Supervisor::find($id);
-        $supervisor->update($request->all());
+        $user = Auth::user();
+        if ($user && $user->nivel === 'empresa') {
+            if (!$supervisor || $supervisor->fk_id_empresa != $user->fk_id_empresa) {
+                return redirect()->route('supervisores.index')->with('error', 'Acesso negado para este supervisor.');
+            }
+            // Garantir que o vínculo de empresa não seja alterado para outra empresa
+            $data = $request->all();
+            $data['fk_id_empresa'] = $user->fk_id_empresa;
+            $supervisor->update($data);
+        } else {
+            $supervisor->update($request->all());
+        }
         return redirect()->route('supervisores.index')->with('success', 'Supervisor atualizado com sucesso');
     }
 
@@ -103,6 +152,10 @@ class SupervisorController extends Controller
     {
 
         $supervisor = Supervisor::findOrFail($id);
+        $user = Auth::user();
+        if ($user && $user->nivel === 'empresa' && $supervisor->fk_id_empresa != $user->fk_id_empresa) {
+            return redirect()->route('supervisores.index')->with('error', 'Acesso negado para este supervisor.');
+        }
 
         // Verifica se está vinculado a termos
         if ($supervisor->termos()->exists()) {

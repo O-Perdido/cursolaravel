@@ -115,6 +115,10 @@
             height: 3rem;
         }
 
+        /* Garante que apenas o spinner rotacione, não o texto adjacente */
+        .loading-overlay .spinner-border { animation: spinner-border .75s linear infinite; }
+        .loading-overlay .loading-text { animation: none !important; transform: none !important; }
+
         .terms-checkbox-wrapper {
             display: flex;
             align-items: center;
@@ -220,6 +224,8 @@
                                         <input type="text" class="form-control" id="numero_cpf" name="numero_cpf" required
                                             maxlength="14">
                                         <div class="invalid-feedback" id="cpfError">CPF inválido.</div>
+                                        <div class="invalid-feedback" id="cpfUniqueError" style="display:none;">Já existe um
+                                            estagiário cadastrado com este CPF.</div>
                                     </div>
                                 </div>
                             </div>
@@ -506,10 +512,8 @@
 
     <!-- Loading Overlay -->
     <div id="form-loading" class="loading-overlay">
-        <div class="spinner-border text-primary" role="status">
-            <span class="sr-only">Carregando...</span>
-        </div>
-        <div class="mt-3 text-center">
+        <div class="spinner-border text-primary" role="status" aria-label="Carregando"></div>
+        <div class="mt-3 text-center loading-text">
             <strong>Processando...</strong><br>
             <span class="text-muted">Não feche ou recarregue a página</span>
         </div>
@@ -577,15 +581,15 @@
                     type === 'warning' ? 'alert-warning' : 'alert-info';
 
             container.innerHTML = `
-                                                                        <div class="alert ${alertClass} alert-dismissible fade show" role="alert">
-                                                                            <ul class="mb-0">
-                                                                                ${list.map(m => `<li>${m}</li>`).join('')}
-                                                                            </ul>
-                                                                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                                                                                <span aria-hidden="true">&times;</span>
-                                                                            </button>
-                                                                        </div>
-                                                                    `;
+                                                                            <div class="alert ${alertClass} alert-dismissible fade show" role="alert">
+                                                                                <ul class="mb-0">
+                                                                                    ${list.map(m => `<li>${m}</li>`).join('')}
+                                                                                </ul>
+                                                                                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                                                                    <span aria-hidden="true">&times;</span>
+                                                                                </button>
+                                                                            </div>
+                                                                        `;
 
             // Scroll para o alerta
             container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -807,9 +811,18 @@
 
                         if (!response.ok) {
                             const data = await response.json().catch(() => ({}));
-                            const errors = data.errors ?
-                                Object.values(data.errors).flat() : ['Erro ao enviar o formulário.'];
+                            const errors = data.errors ? Object.values(data.errors).flat() : ['Erro ao enviar o formulário.'];
                             showAlert('alerts', 'danger', errors);
+                            if (data.errors && data.errors.numero_cpf && data.errors.numero_cpf.length) {
+                                const msg = data.errors.numero_cpf[0].toLowerCase();
+                                const cpfEl = document.getElementById('numero_cpf');
+                                cpfEl.classList.add('is-invalid');
+                                if (msg.includes('já existe')) {
+                                    document.getElementById('cpfUniqueError').style.display = 'block';
+                                } else {
+                                    document.getElementById('cpfUniqueError').style.display = 'none';
+                                }
+                            }
                             return;
                         }
 

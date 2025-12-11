@@ -88,7 +88,7 @@ Route::middleware(['auth'])->group(function () {
         // Processar o formulário de cadastro
         Route::post('/supervisores', [SupervisorController::class, 'store'])->name('supervisor.store');
 
-        // Pagina inicial dos estagiarios
+        // Pagina inicial dos supervisores
         Route::get('/supervisores/', [SupervisorController::class, 'index'])->name('supervisores.index');
 
         // Rota para mostrar o formulário de edição de um estagiário
@@ -261,6 +261,16 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/locais', [LocalController::class, 'store'])->name('locais.store');
         Route::put('/locais/{id}', [LocalController::class, 'update'])->name('locais.update');
         Route::delete('/locais/{id}', [LocalController::class, 'destroy'])->name('locais.destroy');
+    });
+
+    // Rotas de supervisores para usuários EMPRESA (escopo próprio)
+    Route::middleware(['nivel:empresa'])->group(function () {
+        Route::get('/meus-supervisores', [SupervisorController::class, 'index'])->name('empresa.supervisores.index');
+        Route::get('/meus-supervisores/create', [SupervisorController::class, 'create'])->name('empresa.supervisores.create');
+        Route::post('/meus-supervisores', [SupervisorController::class, 'store'])->name('empresa.supervisores.store');
+        Route::get('/meus-supervisores/{id}/edit', [SupervisorController::class, 'edit'])->name('empresa.supervisores.edit');
+        Route::put('/meus-supervisores/{id}', [SupervisorController::class, 'update'])->name('empresa.supervisores.update');
+        Route::delete('/meus-supervisores/{id}', [SupervisorController::class, 'destroy'])->name('empresa.supervisores.destroy');
     });
 
     // Rotas para folhas de pagamento

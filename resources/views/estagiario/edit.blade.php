@@ -40,8 +40,12 @@
                 </div>
                 <div class="form-group mb-2">
                     <label for="numero_cpf">CPF</label>
-                    <input type="text" id="numero_cpf" name="numero_cpf" class="form-control"
-                        value="{{ old('numero_cpf', $estagiario->numero_cpf) }}">
+                    <input type="text" id="numero_cpf" name="numero_cpf"
+                        class="form-control @error('numero_cpf') is-invalid @enderror"
+                        value="{{ old('numero_cpf', $estagiario->numero_cpf) }}" required>
+                    @error('numero_cpf')
+                        <div class="invalid-feedback" style="display:block;">{{ $message }}</div>
+                    @enderror
                 </div>
                 <div class="form-group mb-2">
                     <label for="data_nascimento">Data de Nascimento</label>

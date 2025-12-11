@@ -377,7 +377,11 @@
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label for="numero_cpf">CPF</label>
-                                <input type="text" class="form-control" id="numero_cpf" name="numero_cpf" required>
+                                <input type="text" class="form-control @error('numero_cpf') is-invalid @enderror"
+                                    id="numero_cpf" name="numero_cpf" value="{{ old('numero_cpf') }}" required>
+                                @error('numero_cpf')
+                                    <div class="invalid-feedback" style="display:block;">{{ $message }}</div>
+                                @enderror
                                 <div class="invalid-feedback" id="cpfError" style="display: none;">CPF inválido.</div>
                             </div>
                         </div>

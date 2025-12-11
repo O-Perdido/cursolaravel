@@ -39,6 +39,15 @@
         <div class="col col-md-4">
             <div class="card text-center" style="margin-bottom: 10px;">
                 <div class="card-body">
+                    <h5 class="card-title">Supervisores</h5>
+                    <p class="card-text">Gerencie os supervisores da sua empresa.</p>
+                    <a href="{{ route('empresa.supervisores.index') }}" class="btn btn-primary">Ver Supervisores</a>
+                </div>
+            </div>
+        </div>
+        <div class="col col-md-4">
+            <div class="card text-center" style="margin-bottom: 10px;">
+                <div class="card-body">
                     <h5 class="card-title">Termos de Contrato</h5>
                     <p class="card-text">Visualize os contratos da sua empresa.</p>
                     <a href="{{ route('termos.index') }}" class="btn btn-primary">Ver Termos</a>
@@ -162,10 +171,10 @@
                 cache.forEach(l => {
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
-                                <td>${l.descricao ?? ''}</td>
-                                <td class="text-end">
-                                    <button class="btn btn-sm btn-outline-primary" data-action="editar" data-id="${l.id_local}">Editar</button>
-                                </td>`;
+                                    <td>${l.descricao ?? ''}</td>
+                                    <td class="text-end">
+                                        <button class="btn btn-sm btn-outline-primary" data-action="editar" data-id="${l.id_local}">Editar</button>
+                                    </td>`;
                     body.appendChild(tr);
                 });
             }

@@ -88,6 +88,11 @@ class EstagiarioController extends Controller
 
     public function store(Request $request)
     {
+        // Sanitiza CPF antes de validar para garantir unicidade correta
+        if ($request->filled('numero_cpf')) {
+            $request->merge(['numero_cpf' => preg_replace('/\D/', '', $request->numero_cpf)]);
+        }
+
         // Validar os dados recebidos
 
         $request->validate([
@@ -121,6 +126,8 @@ class EstagiarioController extends Controller
             'numero_pis' => 'nullable|string',
             'tipo_chave_pix' => 'nullable|in:CPF,EMAIL,TELEFONE,ALEATORIA',
             'chave_pix' => 'required|string',
+        ], [
+            'numero_cpf.unique' => 'Já existe um estagiário cadastrado com este CPF.',
         ]);
 
         // Processar arquivos (se existirem)
@@ -170,6 +177,11 @@ class EstagiarioController extends Controller
 
     public function novoEstagiarioStore(Request $request)
     {
+        // Sanitiza CPF antes de validar
+        if ($request->filled('numero_cpf')) {
+            $request->merge(['numero_cpf' => preg_replace('/\D/', '', $request->numero_cpf)]);
+        }
+
         // Validar os dados recebidos
 
         $request->validate([
@@ -203,6 +215,8 @@ class EstagiarioController extends Controller
             'numero_pis' => 'nullable|string',
             'tipo_chave_pix' => 'nullable|in:CPF,EMAIL,TELEFONE,ALEATORIA',
             'chave_pix' => 'required|string',
+        ], [
+            'numero_cpf.unique' => 'Já existe um estagiário cadastrado com este CPF.',
         ]);
 
         // Processar arquivos (se existirem)
@@ -262,6 +276,11 @@ class EstagiarioController extends Controller
     // NOVO: Store via AJAX – retorna JSON com dados do estagiário criado
     public function novoEstagiarioAjaxStore(Request $request)
     {
+        // Sanitiza CPF antes de validar
+        if ($request->filled('numero_cpf')) {
+            $request->merge(['numero_cpf' => preg_replace('/\D/', '', $request->numero_cpf)]);
+        }
+
         $request->validate([
             'nome_estagiario' => 'required|string|max:255',
             'numero_cpf' => [
@@ -296,6 +315,8 @@ class EstagiarioController extends Controller
             'chave_pix' => 'required|string',
             // Senha do usuário vinculado
             'password' => 'required|min:8|confirmed',
+        ], [
+            'numero_cpf.unique' => 'Já existe um estagiário cadastrado com este CPF.',
         ]);
 
         $result = DB::transaction(function () use ($request) {
@@ -524,6 +545,10 @@ class EstagiarioController extends Controller
 
     public function update(Request $request, $id)
     {
+        // Sanitiza CPF antes de validar
+        if ($request->filled('numero_cpf')) {
+            $request->merge(['numero_cpf' => preg_replace('/\D/', '', $request->numero_cpf)]);
+        }
         // Encontrar o estagiário pelo ID
         $estagiario = Estagiario::find($id);
 
@@ -556,6 +581,8 @@ class EstagiarioController extends Controller
             'numero_pis' => 'nullable|string|max:255',
             'tipo_chave_pix' => 'nullable|in:CPF,EMAIL,TELEFONE,ALEATORIA',
             'chave_pix' => 'nullable|string|max:255',
+        ], [
+            'numero_cpf.unique' => 'Já existe um estagiário cadastrado com este CPF.',
         ]);
 
 
