@@ -319,7 +319,16 @@
                             </script>
                             <li class="nav-item dropdown" style="vertical-align: middle;">
                                 <a class="nav-link" href="{{ route('vagas.index') }}" id="navbarDropdownVagas" role="button">
-                                    <i class="fa-solid fa-clipboard-list fa-2x"></i><br>
+                                    <span class="position-relative d-inline-block">
+                                        <i class="fa-solid fa-clipboard-list fa-2x"></i>
+                                        @if(isset($vagasAbertasCount) && $vagasAbertasCount > 0)
+                                            <span
+                                                class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                                                style="font-size:0.7em;">
+                                                {{ $vagasAbertasCount }}
+                                            </span>
+                                        @endif
+                                    </span><br>
                                     <small>Vagas</small>
                                 </a>
                                 <ul class="dropdown-menu" aria-labelledby="navbarDropdownVagas">

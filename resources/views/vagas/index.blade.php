@@ -118,6 +118,12 @@
                                     title="Editar">
                                     <i class="fas fa-edit"></i>
                                 </a>
+                                @if((Auth::user()->nivel == 'admin' || Auth::user()->nivel == 'operador') && $vaga->status == 'disponivel' && !$vaga->fk_id_termo)
+                                    <a href="{{ route('termos.create', ['empresa_id' => $vaga->fk_id_empresa, 'vaga_id' => $vaga->id_vaga]) }}"
+                                        class="btn btn-info btn-sm" title="Preencher Vaga (gerar termo)">
+                                        <i class="fas fa-file-pen"></i>
+                                    </a>
+                                @endif
                                 @if(!$vaga->fk_id_termo)
                                     <form action="{{ route('vagas.destroy', $vaga->id_vaga) }}" method="POST"
                                         style="display:inline-block" onsubmit="return confirm('Confirma a exclusão desta vaga?')">

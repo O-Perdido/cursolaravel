@@ -19,6 +19,12 @@
         </div>
     @endif
 
+    @php
+        $prefillEmpresaId = old('fk_id_empresa') ?? request('empresa_id');
+        $prefillVagaId = old('fk_id_vaga') ?? request('vaga_id');
+        $prefillEmpresaNome = $prefillEmpresaId ? optional($empresas->firstWhere('id_empresa', $prefillEmpresaId))->nome_empresa : '';
+    @endphp
+
     <form action="{{ route('termos.store') }}" method="POST">
         @csrf
         @method('POST')
@@ -28,11 +34,14 @@
                 <div class="mb-3" style="position: relative;">
                     <label for="fk_id_empresa" class="form-label">Selecione a Unidade Concedente</label>
                     <input type="text" class="form-control" id="empresa_search" placeholder="Digite para buscar..."
-                        autocomplete="off">
+                        autocomplete="off" value="{{ $prefillEmpresaNome }}">
                     <select class="form-control mt-2" id="fk_id_empresa" name="fk_id_empresa" size="5" required
+                        data-prefill-empresa="{{ $prefillEmpresaId }}" data-prefill-vaga="{{ $prefillVagaId }}"
                         style="display:none; position: absolute; top: 60px; left: 0; width: 100%; z-index: 1050; background: #fff; border: 1px solid #ced4da;">
                         @foreach($empresas as $empresa)
-                            <option value="{{ $empresa->id_empresa }}">{{ $empresa->nome_empresa }}</option>
+                            <option value="{{ $empresa->id_empresa }}" @if((old('fk_id_empresa') ?? request('empresa_id')) == $empresa->id_empresa) selected @endif>
+                                {{ $empresa->nome_empresa }}
+                            </option>
                         @endforeach
                     </select>
                 </div>
@@ -323,7 +332,7 @@
                 hideVagaSelect();
                 vagaContainer.style.display = 'none';
             }
-            async function loadVagasByEmpresa(idEmpresa) {
+            async function loadVagasByEmpresa(idEmpresa, preselectVagaId = null) {
                 resetVagaField();
                 if (!idEmpresa) return;
                 try {
@@ -337,6 +346,13 @@
                         vagaContainer.style.display = 'block';
                         vagaSearch.disabled = false;
                         populateVagaOptions('');
+                        if (preselectVagaId) {
+                            const opt = vagaSelect.querySelector(`option[value="${preselectVagaId}"]`);
+                            if (opt) {
+                                vagaSelect.value = preselectVagaId;
+                                vagaSelect.dispatchEvent(new Event('change'));
+                            }
+                        }
                     }
                 } catch (e) {
                     console.error('Erro ao carregar vagas:', e);
@@ -393,6 +409,7 @@
                 if (vaga.supervisor && vaga.supervisor.id_supervisor) {
                     if (supervisorSelect) {
                         supervisorSelect.value = vaga.supervisor.id_supervisor;
+                        supervisorSelect.dispatchEvent(new Event('input'));
                     }
                     if (supervisorSearch) {
                         supervisorSearch.value = vaga.supervisor.nome_supervisor || '';
@@ -493,7 +510,18 @@
                     limparCamposVaga();
                 });
                 // Caso já venha selecionado (ex.: edição ou fluxo pré-preenchido)
-                if (empresaSelect.value) {
+                const prefillEmpresaId = empresaSelect.dataset.prefillEmpresa;
+                const prefillVagaId = empresaSelect.dataset.prefillVaga;
+                if (prefillEmpresaId) {
+                    empresaSelect.value = prefillEmpresaId;
+                    const selected = empresaSelect.options[empresaSelect.selectedIndex];
+                    if (selected) {
+                        const empresaSearch = document.getElementById('empresa_search');
+                        if (empresaSearch) empresaSearch.value = selected.text;
+                    }
+                    loadLocaisByEmpresa(prefillEmpresaId);
+                    loadVagasByEmpresa(prefillEmpresaId, prefillVagaId);
+                } else if (empresaSelect.value) {
                     loadLocaisByEmpresa(empresaSelect.value);
                     loadVagasByEmpresa(empresaSelect.value);
                 } else {
