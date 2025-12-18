@@ -49,10 +49,13 @@ class VagaController extends Controller
         $user = Auth::user();
         $empresaId = $user->nivel === 'empresa' ? $user->fk_id_empresa : $request->input('fk_id_empresa');
         $request->merge(['fk_id_empresa' => $empresaId]);
+        
+        $temEstagiario = $request->input('tem_estagiario_definido') === 'sim' ? true : false;
+        $request->merge(['tem_estagiario_definido' => $temEstagiario]);
+        
         $validated = $request->validate([
             'atividades' => 'required|string',
-            'nome_orientador' => 'required|string',
-            'cargo_orientador' => 'required|string',
+            'fk_id_supervisor' => 'required|integer|exists:tb_supervisores,id_supervisor',
             'data_inicio' => 'required|date',
             'data_termino' => 'required|date|after:data_inicio',
             'horario' => 'required|string',
@@ -61,6 +64,10 @@ class VagaController extends Controller
             'lotacao' => 'required|string',
             'valor_bolsa' => 'required|numeric',
             'valor_auxilio_transporte' => 'required|numeric',
+            'tem_estagiario_definido' => 'required|boolean',
+            'nome_estagiario' => 'nullable|string|max:150',
+            'contato_whatsapp' => 'nullable|string|max:20',
+            'contato_email' => 'nullable|email',
         ]);
         
         // Validar se data_termino não está no passado
@@ -105,10 +112,13 @@ class VagaController extends Controller
         if ($vaga->fk_id_termo) {
             return back()->withErrors(['msg' => 'Não é possível editar vaga vinculada a termo.']);
         }
+        
+        $temEstagiario = $request->input('tem_estagiario_definido') === 'sim' || $request->input('tem_estagiario_definido') === '1' ? true : false;
+        $request->merge(['tem_estagiario_definido' => $temEstagiario]);
+        
         $validated = $request->validate([
             'atividades' => 'required|string',
-            'nome_orientador' => 'required|string',
-            'cargo_orientador' => 'required|string',
+            'fk_id_supervisor' => 'required|integer|exists:tb_supervisores,id_supervisor',
             'data_inicio' => 'required|date',
             'data_termino' => 'required|date|after:data_inicio',
             'horario' => 'required|string',
@@ -116,6 +126,10 @@ class VagaController extends Controller
             'lotacao' => 'required|string',
             'valor_bolsa' => 'required|numeric',
             'valor_auxilio_transporte' => 'required|numeric',
+            'tem_estagiario_definido' => 'required|boolean',
+            'nome_estagiario' => 'nullable|string|max:150',
+            'contato_whatsapp' => 'nullable|string|max:20',
+            'contato_email' => 'nullable|email',
         ]);
         
         // Validar se data_termino não está no passado
@@ -148,5 +162,47 @@ class VagaController extends Controller
             ->orderBy('descricao')
             ->get(['id_local as id', 'descricao']);
         return response()->json($locais);
+    }
+
+    // AJAX: lista de supervisores por empresa
+    public function getSupervisoresPorEmpresa(Request $request)
+    {
+        $request->validate([
+            'empresa_id' => 'required|exists:tb_empresas,id_empresa'
+        ]);
+        $supervisores = \App\Models\Supervisor::where('fk_id_empresa', $request->input('empresa_id'))
+            ->orderBy('nome_supervisor')
+            ->get(['id_supervisor as id', 'nome_supervisor']);
+        return response()->json($supervisores);
+    }
+
+    // AJAX: obter informações da vaga (incluindo dados do estagiário)
+    public function getVagaInfo(Request $request, $id)
+    {
+        $request->validate([
+            'vaga_id' => 'nullable|integer|exists:tb_vagas,id_vaga'
+        ]);
+        
+        $vagaId = $request->input('vaga_id', $id);
+        $vaga = Vaga::find($vagaId);
+        
+        if (!$vaga) {
+            return response()->json(['error' => 'Vaga não encontrada'], 404);
+        }
+        
+        return response()->json([
+            'id_vaga' => $vaga->id_vaga,
+            'nome_estagiario' => $vaga->nome_estagiario,
+            'contato_whatsapp' => $vaga->contato_whatsapp,
+            'contato_email' => $vaga->contato_email,
+            'tem_estagiario_definido' => $vaga->tem_estagiario_definido,
+            'fk_id_supervisor' => $vaga->fk_id_supervisor,
+            'data_inicio' => $vaga->data_inicio,
+            'data_termino' => $vaga->data_termino,
+            'horario' => $vaga->horario,
+            'lotacao' => $vaga->lotacao,
+            'valor_bolsa' => $vaga->valor_bolsa,
+            'valor_auxilio_transporte' => $vaga->valor_auxilio_transporte,
+        ]);
     }
 }

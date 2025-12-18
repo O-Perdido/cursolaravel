@@ -50,22 +50,30 @@
                                 required {{ $vaga->fk_id_termo ? 'readonly' : '' }}>{{ old('atividades', $vaga->atividades) }}</textarea>
                         </div>
 
-                        <!-- Nome do Orientador -->
-                        <div class="mb-3">
-                            <label for="nome_orientador" class="form-label">Nome do Orientador <span
-                                    class="text-danger">*</span></label>
-                            <input type="text" name="nome_orientador" id="nome_orientador"
-                                class="form-control form-control-sm" required
-                                value="{{ old('nome_orientador', $vaga->nome_orientador) }}" {{ $vaga->fk_id_termo ? 'readonly' : '' }}>
-                        </div>
-
-                        <!-- Cargo do Orientador -->
-                        <div class="mb-3">
-                            <label for="cargo_orientador" class="form-label">Cargo do Orientador <span
-                                    class="text-danger">*</span></label>
-                            <input type="text" name="cargo_orientador" id="cargo_orientador"
-                                class="form-control form-control-sm" required
-                                value="{{ old('cargo_orientador', $vaga->cargo_orientador) }}" {{ $vaga->fk_id_termo ? 'readonly' : '' }}>
+                        <!-- Supervisor -->
+                        <div class="mb-3" style="position: relative;">
+                            <label for="fk_id_supervisor" class="form-label">Supervisor <span class="text-danger">*</span></label>
+                            <div class="d-flex gap-2">
+                                <div class="flex-grow-1" style="position: relative;">
+                                    <input type="text" class="form-control form-control-sm" id="supervisor_search"
+                                        placeholder="Digite para buscar..." autocomplete="off" 
+                                        value="{{ $vaga->supervisor->nome_supervisor ?? '' }}" 
+                                        {{ $vaga->fk_id_termo ? 'readonly' : '' }}>
+                                    <select class="form-control form-control-sm mt-2" id="fk_id_supervisor" name="fk_id_supervisor" size="5" required
+                                        {{ $vaga->fk_id_termo ? 'disabled' : '' }}
+                                        style="display:none; position: absolute; top: 60px; left: 0; width: 100%; z-index: 1050; background: #fff; border: 1px solid #ced4da;">
+                                        <option value="">Escolha um supervisor</option>
+                                    </select>
+                                </div>
+                                @if(!$vaga->fk_id_termo)
+                                    <a href="{{ route('empresa.supervisores.create') }}" class="btn btn-outline-success btn-sm" title="Novo Supervisor" target="_blank">
+                                        <i class="fas fa-plus"></i>
+                                    </a>
+                                @endif
+                            </div>
+                            @if($vaga->fk_id_termo)
+                                <input type="hidden" name="fk_id_supervisor" value="{{ $vaga->fk_id_supervisor }}">
+                            @endif
                         </div>
 
                         <!-- Datas -->
@@ -91,6 +99,40 @@
                             <input type="text" name="horario" id="horario" class="form-control form-control-sm" required
                                 value="{{ old('horario', $vaga->horario) }}" {{ $vaga->fk_id_termo ? 'readonly' : '' }}>
                         </div>
+
+                        @php($nivel = auth()->user()->nivel ?? null)
+                        @if($nivel === 'empresa')
+                        <!-- Estagiário definido (opcional, só empresa) -->
+                        <div class="mb-3">
+                            <label class="form-label d-block">Esta vaga já tem estagiário definido?</label>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="tem_estagiario_definido" id="vaga_com_estagiario" value="sim" {{ old('tem_estagiario_definido', ($vaga->tem_estagiario_definido ? 'sim' : 'nao')) === 'sim' ? 'checked' : '' }} {{ $vaga->fk_id_termo ? 'disabled' : '' }}>
+                                <label class="form-check-label" for="vaga_com_estagiario">Sim</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="tem_estagiario_definido" id="vaga_sem_estagiario" value="nao" {{ old('tem_estagiario_definido', ($vaga->tem_estagiario_definido ? 'sim' : 'nao')) === 'nao' ? 'checked' : '' }} {{ $vaga->fk_id_termo ? 'disabled' : '' }}>
+                                <label class="form-check-label" for="vaga_sem_estagiario">Não</label>
+                            </div>
+                            <small class="form-text text-muted d-block">Opcional: preencha apenas se já houver um estagiário definido para esta vaga.</small>
+                        </div>
+
+                        <div id="campos_estagiario" class="border rounded p-3 mb-3" style="display: {{ ($vaga->tem_estagiario_definido ? 'block' : 'none') }};">
+                            <div class="mb-2">
+                                <label for="nome_estagiario" class="form-label">Nome do Estagiário</label>
+                                <input type="text" name="nome_estagiario" id="nome_estagiario" class="form-control form-control-sm" value="{{ old('nome_estagiario', $vaga->nome_estagiario) }}" placeholder="Nome completo" {{ $vaga->fk_id_termo ? 'readonly' : '' }}>
+                            </div>
+                            <div class="row g-2">
+                                <div class="col-md-6">
+                                    <label for="contato_whatsapp" class="form-label">WhatsApp</label>
+                                    <input type="text" name="contato_whatsapp" id="contato_whatsapp" class="form-control form-control-sm" value="{{ old('contato_whatsapp', $vaga->contato_whatsapp) }}" placeholder="(00) 00000-0000" {{ $vaga->fk_id_termo ? 'readonly' : '' }}>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="contato_email" class="form-label">Email</label>
+                                    <input type="email" name="contato_email" id="contato_email" class="form-control form-control-sm" value="{{ old('contato_email', $vaga->contato_email) }}" placeholder="email@exemplo.com" {{ $vaga->fk_id_termo ? 'readonly' : '' }}>
+                                </div>
+                            </div>
+                        </div>
+                        @endif
                     </div>
 
                     <!-- Coluna 2 -->
@@ -211,8 +253,66 @@
         @if(!$vaga->fk_id_termo)
             bindMoneyMask('valor_bolsa_mask', 'valor_bolsa');
             bindMoneyMask('valor_auxilio_transporte_mask', 'valor_auxilio_transporte');
+
+            // Carregar supervisores da empresa
+            async function carregarSupervisores() {
+                try {
+                    const resp = await fetch(`{{ route('api.supervisores.por-empresa') }}?empresa_id={{ $vaga->fk_id_empresa }}`);
+                    const dados = await resp.json();
+                    const supervisorSelect = document.getElementById('fk_id_supervisor');
+                    supervisorSelect.innerHTML = '';
+                    const optPadrao = document.createElement('option');
+                    optPadrao.value = '';
+                    optPadrao.textContent = 'Escolha um supervisor';
+                    supervisorSelect.appendChild(optPadrao);
+                    dados.forEach(s => {
+                        const opt = document.createElement('option');
+                        opt.value = s.id;
+                        opt.textContent = s.nome_supervisor;
+                        if (s.id == {{ $vaga->fk_id_supervisor ?? 'null' }}) opt.selected = true;
+                        supervisorSelect.appendChild(opt);
+                    });
+                } catch (e) { console.error(e); }
+            }
+            carregarSupervisores();
+
+            // Filtro do dropdown de Supervisor
+            const supervisorSearch = document.getElementById('supervisor_search');
+            const supervisorSelect = document.getElementById('fk_id_supervisor');
+            supervisorSearch.addEventListener('focus', function () { supervisorSelect.style.display = 'block'; });
+            supervisorSearch.addEventListener('input', function () {
+                const filter = this.value.toUpperCase();
+                const options = supervisorSelect.getElementsByTagName('option');
+                for (let i = 0; i < options.length; i++) {
+                    const txtValue = options[i].textContent || options[i].innerText;
+                    options[i].style.display = (txtValue.toUpperCase().indexOf(filter) > -1 || options[i].value === '') ? '' : 'none';
+                }
+                supervisorSelect.style.display = 'block';
+            });
+            supervisorSelect.addEventListener('change', function () {
+                const selectedOption = this.options[this.selectedIndex];
+                supervisorSearch.value = selectedOption.text;
+                supervisorSelect.style.display = 'none';
+            });
+            document.addEventListener('click', function (event) {
+                if (!supervisorSearch.contains(event.target) && !supervisorSelect.contains(event.target)) {
+                    supervisorSelect.style.display = 'none';
+                }
+            });
         @endif
             @if(!$vaga->fk_id_termo)
+                // Alternar campos do estagiário (empresa)
+                const camposEstagiario = document.getElementById('campos_estagiario');
+                const radioComEstagiario = document.getElementById('vaga_com_estagiario');
+                const radioSemEstagiario = document.getElementById('vaga_sem_estagiario');
+                if (radioComEstagiario && radioSemEstagiario && camposEstagiario) {
+                    function toggleCamposEstagiario() {
+                        camposEstagiario.style.display = radioComEstagiario.checked ? 'block' : 'none';
+                    }
+                    radioComEstagiario.addEventListener('change', toggleCamposEstagiario);
+                    radioSemEstagiario.addEventListener('change', toggleCamposEstagiario);
+                    toggleCamposEstagiario();
+                }
                 // Busca de Local (só ativa se vaga não está vinculada)
                 const localSearch = document.getElementById('local_search');
                 const localSelect = document.getElementById('fk_id_local');

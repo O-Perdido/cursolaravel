@@ -10,8 +10,7 @@ class Vaga extends Model
     protected $fillable = [
         'numero_vaga',
         'atividades',
-        'nome_orientador',
-        'cargo_orientador',
+        'fk_id_supervisor',
         'data_inicio',
         'data_termino',
         'horario',
@@ -27,6 +26,11 @@ class Vaga extends Model
         'publicada_em',
         'remunerada',
         'tipo_vaga',
+        // Campos de estagiário vinculado à vaga (opcionais)
+        'tem_estagiario_definido',
+        'nome_estagiario',
+        'contato_whatsapp',
+        'contato_email',
     ];
 
     public function empresa()
@@ -42,6 +46,11 @@ class Vaga extends Model
     public function termo()
     {
         return $this->belongsTo(Termo::class, 'fk_id_termo', 'id_termo');
+    }
+
+    public function supervisor()
+    {
+        return $this->belongsTo(Supervisor::class, 'fk_id_supervisor', 'id_supervisor');
     }
 
     // Gera número sequencial por empresa/ano

@@ -213,7 +213,7 @@ class TermoController extends Controller
             $vagas = \App\Models\Vaga::where('fk_id_empresa', $empresaId)
                 ->where('status', 'disponivel')
                 ->whereDate('data_termino', '>=', now())
-                ->with('local')
+                ->with(['local', 'supervisor'])
                 ->orderBy('numero_vaga', 'desc')
                 ->get();
             

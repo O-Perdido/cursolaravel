@@ -1,7 +1,6 @@
 <?php
 
-it('returns a successful response', function () {
+it('home redireciona para rota inicial', function () {
     $response = $this->get('/');
-
-    $response->assertStatus(200);
+    $response->assertStatus(302);
 });

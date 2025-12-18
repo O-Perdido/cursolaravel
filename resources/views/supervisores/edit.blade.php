@@ -3,9 +3,15 @@
 @section('title', 'Editar Supervisor')
 
 @section('content')
+@php($isEmpresa = (Auth::user()->nivel ?? '') === 'empresa')
 <h1>Editar Supervisor</h1>
-<a href="{{ route('supervisores.index') }}" class="btn btn-secondary mb-3">Voltar</a>
-<form action="{{ route('supervisores.update', $supervisor->id_supervisor) }}" method="POST">
+<div class="d-flex justify-content-between mb-3">
+    <a href="{{ route($isEmpresa ? 'empresa.supervisores.index' : 'supervisores.index') }}"
+        class="btn btn-secondary">Voltar</a>
+</div>
+<form
+    action="{{ route($isEmpresa ? 'empresa.supervisores.update' : 'supervisores.update', $supervisor->id_supervisor) }}"
+    method="POST">
     @csrf
     @method('PUT')
     <div class="row">

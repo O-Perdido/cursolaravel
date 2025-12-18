@@ -25,6 +25,52 @@
         <div class="row">
             <!-- Coluna 1 -->
             <div class="col-md-6">
+                <div class="mb-3" style="position: relative;">
+                    <label for="fk_id_empresa" class="form-label">Selecione a Unidade Concedente</label>
+                    <input type="text" class="form-control" id="empresa_search" placeholder="Digite para buscar..."
+                        autocomplete="off">
+                    <select class="form-control mt-2" id="fk_id_empresa" name="fk_id_empresa" size="5" required
+                        style="display:none; position: absolute; top: 60px; left: 0; width: 100%; z-index: 1050; background: #fff; border: 1px solid #ced4da;">
+                        @foreach($empresas as $empresa)
+                            <option value="{{ $empresa->id_empresa }}">{{ $empresa->nome_empresa }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <!-- Novo campo: Seleção de vaga (aparece após escolher empresa) -->
+                <div class="mb-3" id="vaga-container" style="position: relative; display: none;">
+                    <label for="fk_id_vaga" class="form-label">Vincular à Vaga (Opcional)</label>
+                    <input type="text" class="form-control" id="vaga_search" placeholder="Digite para buscar..."
+                        autocomplete="off" disabled>
+                    <div class="mt-2">
+                        <select class="form-control" id="fk_id_vaga" name="fk_id_vaga" size="5"
+                            style="display:none; width: 100%; background: #fff; border: 1px solid #ced4da;">
+                            <option value="">Não vincular (preencher manualmente)</option>
+                        </select>
+                    </div>
+                    <div class="d-flex justify-content-end mt-2">
+                        <button type="button" class="btn btn-outline-info btn-sm" id="btnInfoVaga"
+                            title="Informações da vaga" disabled>
+                            <i class="fas fa-info-circle"></i>
+                        </button>
+                    </div>
+                    <small class="form-text text-muted">Selecione uma vaga para preencher automaticamente os campos, ou
+                        deixe em branco para preencher manualmente.</small>
+                </div>
+
+                <div class="mb-3" style="position: relative;">
+                    <label for="fk_id_escola" class="form-label">Selecione a Instituição de Ensino</label>
+                    <input type="text" class="form-control" id="escola_search" placeholder="Digite para buscar..."
+                        autocomplete="off">
+                    <select class="form-control mt-2" id="fk_id_escola" name="fk_id_escola" size="5" required
+                        style="display:none; position: absolute; top: 60px; left: 0; width: 100%; z-index: 1050; background: #fff; border: 1px solid #ced4da;">
+                        <option value="">Escolha uma instituição de ensino</option>
+                        @foreach($escolas as $escola)
+                            <option value="{{ $escola->id_escola }}">{{ $escola->nome_escola }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
                 <div class="form-group" style="position: relative;">
                     <label for="fk_id_estagiario">Selecione o Estagiário</label>
                     <input type="text" class="form-control @error('fk_id_estagiario') is-invalid @enderror"
@@ -45,44 +91,6 @@
                     @error('fk_id_estagiario')
                         <div class="invalid-feedback d-block">{{ $message }}</div>
                     @enderror
-                </div>
-
-                <div class="mb-3" style="position: relative;">
-                    <label for="fk_id_empresa" class="form-label">Selecione a Unidade Concedente</label>
-                    <input type="text" class="form-control" id="empresa_search" placeholder="Digite para buscar..."
-                        autocomplete="off">
-                    <select class="form-control mt-2" id="fk_id_empresa" name="fk_id_empresa" size="5" required
-                        style="display:none; position: absolute; top: 60px; left: 0; width: 100%; z-index: 1050; background: #fff; border: 1px solid #ced4da;">
-                        @foreach($empresas as $empresa)
-                            <option value="{{ $empresa->id_empresa }}">{{ $empresa->nome_empresa }}</option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <!-- Novo campo: Seleção de vaga (aparece após escolher empresa) -->
-                <div class="mb-3" id="vaga-container" style="position: relative; display: none;">
-                    <label for="fk_id_vaga" class="form-label">Vincular à Vaga (Opcional)</label>
-                    <input type="text" class="form-control" id="vaga_search" placeholder="Digite para buscar..."
-                        autocomplete="off" disabled>
-                    <select class="form-control mt-2" id="fk_id_vaga" name="fk_id_vaga" size="5"
-                        style="display:none; position: absolute; top: 60px; left: 0; width: 100%; z-index: 1050; background: #fff; border: 1px solid #ced4da;">
-                        <option value="">Não vincular (preencher manualmente)</option>
-                    </select>
-                    <small class="form-text text-muted">Selecione uma vaga para preencher automaticamente os campos, ou
-                        deixe em branco para preencher manualmente.</small>
-                </div>
-
-                <div class="mb-3" style="position: relative;">
-                    <label for="fk_id_escola" class="form-label">Selecione a Instituição de Ensino</label>
-                    <input type="text" class="form-control" id="escola_search" placeholder="Digite para buscar..."
-                        autocomplete="off">
-                    <select class="form-control mt-2" id="fk_id_escola" name="fk_id_escola" size="5" required
-                        style="display:none; position: absolute; top: 60px; left: 0; width: 100%; z-index: 1050; background: #fff; border: 1px solid #ced4da;">
-                        <option value="">Escolha uma instituição de ensino</option>
-                        @foreach($escolas as $escola)
-                            <option value="{{ $escola->id_escola }}">{{ $escola->nome_escola }}</option>
-                        @endforeach
-                    </select>
                 </div>
 
                 <div class="form-group" style="position: relative;">
@@ -280,6 +288,7 @@
             const vagaContainer = document.getElementById('vaga-container');
             const vagaSearch = document.getElementById('vaga_search');
             const vagaSelect = document.getElementById('fk_id_vaga');
+            const btnInfoVaga = document.getElementById('btnInfoVaga');
             let vagasCache = [];
             let camposOriginais = {}; // Para armazenar valores originais antes de preencher pela vaga
 
@@ -355,8 +364,7 @@
 
                 // Preencher campos com dados da vaga
                 document.getElementById('desc_atividades_fixo').value = vaga.atividades;
-                document.getElementById('nome_orientador_fixo').value = vaga.nome_orientador;
-                document.getElementById('cargo_orientador_fixo').value = vaga.cargo_orientador;
+                // Campos de orientador permanecem livres (não são preenchidos pela vaga)
                 document.getElementById('data_inicio_estagio').value = vaga.data_inicio;
                 document.getElementById('data_fim_estagio_fixo').value = vaga.data_termino;
                 document.getElementById('horario_fixo').value = vaga.horario;
@@ -376,6 +384,18 @@
                     const selectedLocal = localSelect.options[localSelect.selectedIndex];
                     if (selectedLocal) {
                         localSearch.value = selectedLocal.text;
+                    }
+                }
+
+                // Selecionar supervisor automaticamente (se existir na vaga)
+                const supervisorSelect = document.getElementById('fk_id_supervisor_fixo');
+                const supervisorSearch = document.getElementById('supervisor_search');
+                if (vaga.supervisor && vaga.supervisor.id_supervisor) {
+                    if (supervisorSelect) {
+                        supervisorSelect.value = vaga.supervisor.id_supervisor;
+                    }
+                    if (supervisorSearch) {
+                        supervisorSearch.value = vaga.supervisor.nome_supervisor || '';
                     }
                 }
 
@@ -405,7 +425,8 @@
 
             function desabilitarCamposVaga(desabilitar) {
                 const campos = [
-                    'desc_atividades_fixo', 'nome_orientador_fixo', 'cargo_orientador_fixo',
+                    'desc_atividades_fixo',
+                    // 'nome_orientador_fixo' e 'cargo_orientador_fixo' permanecem sempre editáveis
                     'data_inicio_estagio', 'data_fim_estagio_fixo', 'horario_fixo',
                     'lotacao', 'valor_bolsa_fixo', 'auxilio_transporte_fixo', 'local_search'
                 ];
@@ -518,15 +539,30 @@
                 });
             }
             if (vagaSelect) {
-                vagaSelect.addEventListener('change', function () {
+                vagaSelect.addEventListener('change', async function () {
                     const selected = vagaSelect.options[vagaSelect.selectedIndex];
                     if (selected && selected.value) {
                         vagaSearch.value = selected.text;
                         const vagaData = JSON.parse(selected.dataset.vaga || '{}');
                         preencherCamposComVaga(vagaData);
+                        // Verificar dados do estagiário antes de mostrar botão
+                        try {
+                            const url = '{{ route('api.vagas.info', ['id' => ':id']) }}'.replace(':id', selected.value);
+                            const resp = await fetch(url, { headers: { 'Accept': 'application/json' } });
+                            if (resp.ok) {
+                                const data = await resp.json();
+                                const hasContacts = !!(data.tem_estagiario_definido && (data.nome_estagiario || data.contato_whatsapp || data.contato_email));
+                                if (btnInfoVaga) btnInfoVaga.disabled = !hasContacts;
+                            } else {
+                                if (btnInfoVaga) btnInfoVaga.disabled = true;
+                            }
+                        } catch (e) {
+                            if (btnInfoVaga) btnInfoVaga.disabled = true;
+                        }
                     } else {
                         vagaSearch.value = 'Não vincular (preencher manualmente)';
                         limparCamposVaga();
+                        if (btnInfoVaga) btnInfoVaga.disabled = true;
                     }
                     hideVagaSelect();
                 });
@@ -536,7 +572,54 @@
                     hideVagaSelect();
                 }
             });
+
+            // Abrir modal com informações da vaga/estagiário
+            if (btnInfoVaga) {
+                btnInfoVaga.addEventListener('click', async function () {
+                    const selected = vagaSelect.options[vagaSelect.selectedIndex];
+                    if (!selected || !selected.value) return;
+                    try {
+                        const vagaId = selected.value;
+                        const url = '{{ route('api.vagas.info', ['id' => ':id']) }}'.replace(':id', vagaId);
+                        const resp = await fetch(url, { headers: { 'Accept': 'application/json' } });
+                        if (!resp.ok) throw new Error('Falha ao obter informações da vaga');
+                        const data = await resp.json();
+                        document.getElementById('infoNomeEstagiario').textContent = data.nome_estagiario || '-';
+                        document.getElementById('infoWhatsapp').textContent = data.contato_whatsapp || '-';
+                        document.getElementById('infoEmail').textContent = data.contato_email || '-';
+                        const modal = new bootstrap.Modal(document.getElementById('modalInfoVaga'));
+                        modal.show();
+                    } catch (e) {
+                        console.error(e);
+                    }
+                });
+            }
         });
     </script>
+
+    <!-- Modal Info Vaga / Estagiário -->
+    <div class="modal fade" id="modalInfoVaga" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Informações da Vaga</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="infoVagaBody">
+                        <p><strong>Estagiário:</strong> <span id="infoNomeEstagiario">-</span></p>
+                        <p><strong>WhatsApp:</strong> <span id="infoWhatsapp">-</span></p>
+                        <p><strong>Email:</strong> <span id="infoEmail">-</span></p>
+                        <hr>
+                        <p class="text-muted mb-0">Use estes contatos para solicitar que o estagiário se cadastre no SIGE e
+                            liberar a geração do termo.</p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
 @endsection

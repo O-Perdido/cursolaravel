@@ -79,6 +79,12 @@ class SupervisorController extends Controller
             $request->merge(['cpf_supervisor' => preg_replace('/\D/', '', $request->cpf_supervisor)]);
         }
 
+        $user = Auth::user();
+        if ($user && $user->nivel === 'empresa') {
+            // Garante vínculo antes da validação
+            $request->merge(['fk_id_empresa' => $user->fk_id_empresa]);
+        }
+
         $validatedData = $request->validate([
             'nome_supervisor' => 'required|string',
             'fk_id_empresa' => 'required|integer',
@@ -90,13 +96,25 @@ class SupervisorController extends Controller
         ]);
 
         // Forçar vínculo à empresa do usuário quando nível for "empresa"
-        $user = Auth::user();
         if ($user && $user->nivel === 'empresa') {
             $validatedData['fk_id_empresa'] = $user->fk_id_empresa;
         }
 
         Supervisor::create($validatedData);
-        return redirect()->route('supervisores.index')->with('success', 'Supervisor cadastrado com sucesso!');
+
+        // Se for requisição AJAX (modal), retornar JSON
+        if ($request->wantsJson()) {
+            return response()->json([
+                'message' => 'Supervisor cadastrado com sucesso!',
+                'supervisor' => $validatedData
+            ], 201);
+        }
+
+        $routeIndex = ($user && $user->nivel === 'empresa')
+            ? 'empresa.supervisores.index'
+            : 'supervisores.index';
+
+        return redirect()->route($routeIndex)->with('success', 'Supervisor cadastrado com sucesso!');
     }
 
     public function edit($id)
@@ -122,6 +140,12 @@ class SupervisorController extends Controller
             $request->merge(['cpf_supervisor' => preg_replace('/\D/', '', $request->cpf_supervisor)]);
         }
 
+        $user = Auth::user();
+        if ($user && $user->nivel === 'empresa') {
+            // Garante vínculo antes da validação
+            $request->merge(['fk_id_empresa' => $user->fk_id_empresa]);
+        }
+
         $request->validate([
             'nome_supervisor' => 'required|string',
             'fk_id_empresa' => 'required|integer',
@@ -133,7 +157,6 @@ class SupervisorController extends Controller
         ]);
 
         $supervisor = Supervisor::find($id);
-        $user = Auth::user();
         if ($user && $user->nivel === 'empresa') {
             if (!$supervisor || $supervisor->fk_id_empresa != $user->fk_id_empresa) {
                 return redirect()->route('supervisores.index')->with('error', 'Acesso negado para este supervisor.');
@@ -145,7 +168,11 @@ class SupervisorController extends Controller
         } else {
             $supervisor->update($request->all());
         }
-        return redirect()->route('supervisores.index')->with('success', 'Supervisor atualizado com sucesso');
+        $routeIndex = ($user && $user->nivel === 'empresa')
+            ? 'empresa.supervisores.index'
+            : 'supervisores.index';
+
+        return redirect()->route($routeIndex)->with('success', 'Supervisor atualizado com sucesso');
     }
 
     public function destroy($id)
@@ -169,13 +196,19 @@ class SupervisorController extends Controller
                 ->with('error', 'Não é possível excluir este supervisor pois ele está vinculado a uma alteração.');
         }
 
+        // Define a rota antes do try-catch para estar disponível em ambos os blocos
+        $routeIndex = ($user && $user->nivel === 'empresa')
+            ? 'empresa.supervisores.index'
+            : 'supervisores.index';
+
         // Se não houver vínculos, tenta excluir
         try {
             $supervisor->delete();
-            return redirect()->route('supervisores.index')
+
+            return redirect()->route($routeIndex)
                 ->with('success', 'Supervisor excluído com sucesso!');
         } catch (QueryException $e) {
-            return redirect()->route('supervisores.index')
+            return redirect()->route($routeIndex)
                 ->with('error', 'Erro inesperado ao tentar excluir o supervisor.');
         }
 

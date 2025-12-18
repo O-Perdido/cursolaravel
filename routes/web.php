@@ -78,6 +78,10 @@ Route::middleware(['auth'])->group(function () {
 
         // AJAX: Locais por empresa
         Route::get('/api/locais-por-empresa', [App\Http\Controllers\VagaController::class, 'getLocaisPorEmpresa'])->name('api.locais.por-empresa');
+        // AJAX: Supervisores por empresa
+        Route::get('/api/supervisores-por-empresa', [App\Http\Controllers\VagaController::class, 'getSupervisoresPorEmpresa'])->name('api.supervisores.por-empresa');
+        // AJAX: Informações da vaga (incluindo dados do estagiário)
+        Route::get('/api/vagas/{id}/info', [App\Http\Controllers\VagaController::class, 'getVagaInfo'])->name('api.vagas.info');
     });
 
     Route::middleware(['admin_ou_operador'])->group(function () {
