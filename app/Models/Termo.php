@@ -5,6 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property string|null $data_inicio_estagio
+ * @property string|null $data_fim_estagio
+ * @property int|null $saldo_recesso
+ */
 class Termo extends Model
 {
     use HasFactory;

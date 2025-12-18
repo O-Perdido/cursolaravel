@@ -175,7 +175,10 @@ class TermoController extends Controller
             'empresas' => $empresas,
             'escolas' => $escolas
         ])->setPaper([0, 0, 595.28, 841.89], 'landscape');
-        $pdf->getDOMPdf()->set_option('isPhpEnabled', true);
+        $dompdf = $pdf->getDOMPdf();
+        $options = $dompdf->getOptions();
+        $options->set('isPhpEnabled', true);
+        $dompdf->setOptions($options);
 
         return $pdf->stream('relatorio_termos.pdf');
     }
@@ -395,7 +398,7 @@ class TermoController extends Controller
         $pdf = Pdf::loadView('termos.gerarPdfTermo', ['termo' => $termo, 'linklogo' => $linklogo, 'ebcp' => $ebcp])
             ->setPaper([0, 0, 595.28, 841.89], 'portrait');
 
-        return $pdf->stream('TCE ' . $termo->id_termo . '-' . \Carbon\Carbon::parse($termo->data)->format('Y') . '-' . $termo->estagiario->nome_estagiario . '.pdf');
+        return $pdf->stream('TCE ' . $termo->id_termo . '-' . Carbon::parse($termo->data)->format('Y') . '-' . $termo->estagiario->nome_estagiario . '.pdf');
         //return $pdf->download('TCE'.'.pdf');
 
     }
@@ -412,7 +415,7 @@ class TermoController extends Controller
         $pdf = Pdf::loadView('termos.gerarPdfTermo', ['termo' => $termo, 'linklogo' => $linklogo, 'ebcp' => $ebcp])
             ->setPaper([0, 0, 595.28, 841.89], 'portrait');
 
-        return $pdf->download('TCE ' . $termo->id_termo . '-' . \Carbon\Carbon::parse($termo->data)->format('Y') . '-' . $termo->estagiario->nome_estagiario . '.pdf');
+        return $pdf->download('TCE ' . $termo->id_termo . '-' . Carbon::parse($termo->data)->format('Y') . '-' . $termo->estagiario->nome_estagiario . '.pdf');
         //return $pdf->download('TCE'.'.pdf');
 
     }
