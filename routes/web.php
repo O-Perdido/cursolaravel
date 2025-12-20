@@ -395,6 +395,18 @@ Route::middleware(['auth'])->group(function () {
 
         // API para listagem de termos com filtros (modal)
         Route::get('/api/chamados/termos-lista', [ChamadoController::class, 'listarTermosModal'])->name('api.chamados.termos-lista');
+
+        // Visualização e download de anexos
+        Route::get('/chamados/{id}/anexo/{index}/ver', [ChamadoController::class, 'visualizarAnexo'])->name('chamados.anexo.ver');
+        Route::get('/chamados/{id}/anexo/{index}/download', [ChamadoController::class, 'downloadAnexo'])->name('chamados.anexo.download');
+    });
+
+    // Painel de gerenciamento de chamados (apenas admin e operador)
+    Route::middleware(['nivel:admin,operador'])->group(function () {
+        Route::get('/painel/chamados', [ChamadoController::class, 'painel'])->name('chamados.painel');
+        Route::put('/painel/chamados/{id}/status', [ChamadoController::class, 'atualizarStatus'])->name('chamados.atualizar-status');
+        Route::put('/painel/chamados/{id}/responsavel', [ChamadoController::class, 'atribuirResponsavel'])->name('chamados.atribuir-responsavel');
+        Route::post('/painel/chamados/{id}/observacao', [ChamadoController::class, 'adicionarObservacao'])->name('chamados.adicionar-observacao');
     });
 
 

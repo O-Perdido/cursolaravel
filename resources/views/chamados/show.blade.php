@@ -140,7 +140,7 @@
                     @if(Auth::user()->nivel !== 'empresa')
                         <div class="mb-2">
                             <small class="text-muted">Empresa</small>
-                            <p class="mb-0">{{ $chamado->empresa->nome_fantasia }}</p>
+                            <p class="mb-0">{{ $chamado->empresa->nome_empresa }}</p>
                         </div>
                     @endif
 

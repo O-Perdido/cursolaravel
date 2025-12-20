@@ -400,6 +400,25 @@
                                     });
                                 });
                             </script>
+                            <li class="nav-item dropdown" style="vertical-align: middle;">
+                                <a class="nav-link" href="{{ route('chamados.painel') }}" id="navbarDropdownChamados"
+                                    role="button">
+                                    <span class="position-relative d-inline-block">
+                                        <i class="fas fa-headset fa-2x"></i>
+                                        @php
+                                            $chamadosAbertos = \App\Models\Chamado::whereIn('status', ['pendente', 'em_analise', 'em_andamento'])->count();
+                                        @endphp
+                                        @if($chamadosAbertos > 0)
+                                            <span
+                                                class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                                                style="font-size:0.7em;">
+                                                {{ $chamadosAbertos }}
+                                            </span>
+                                        @endif
+                                    </span><br>
+                                    <small>Chamados</small>
+                                </a>
+                            </li>
                         @endif
                         <li class="nav-item d-none d-lg-block" style="vertical-align: middle; height: 100%;">
                             <div class="vr mx-3 bg-white" style="height: 100%; width: 2px"></div>

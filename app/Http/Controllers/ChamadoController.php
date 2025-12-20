@@ -5,10 +5,13 @@ namespace App\Http\Controllers;
 use App\Models\Chamado;
 use App\Models\TipoChamado;
 use App\Models\Termo;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class ChamadoController extends Controller
 {
@@ -151,7 +154,12 @@ class ChamadoController extends Controller
 
         $chamado = $query->findOrFail($id);
 
-        return view('chamados.show', compact('chamado'));
+           // Renderiza view diferente para admin/operador
+           if (in_array($user->nivel, ['admin', 'operador'])) {
+               return view('chamados.detalhes-admin', compact('chamado'));
+           }
+
+           return view('chamados.show', compact('chamado'));
     }
 
     /**
@@ -262,4 +270,185 @@ class ChamadoController extends Controller
 
         return back()->with('success', 'Chamado cancelado com sucesso.');
     }
+
+    /**
+     * Painel de gerenciamento de chamados (admin/operador)
+     */
+    public function painel(Request $request)
+    {
+        $filtro = $request->get('filtro', 'pendente');
+        $busca = $request->get('busca', '');
+        $tipo = $request->get('tipo', '');
+
+        $query = Chamado::with('tipoChamado', 'empresa', 'solicitante', 'responsavel', 'termo.estagiario');
+
+        // Filtrar por status
+        if ($filtro !== 'todos') {
+            $query->where('status', $filtro);
+        }
+
+        // Filtrar por busca (protocolo, empresa ou estagiário)
+        if ($busca) {
+            $query->where(function ($q) use ($busca) {
+                $q->where('protocolo', 'like', "%{$busca}%")
+                    ->orWhereHas('empresa', fn($q) => $q->where('nome_empresa', 'like', "%{$busca}%"))
+                    ->orWhereHas('termo.estagiario', fn($q) => $q->where('nome_estagiario', 'like', "%{$busca}%"));
+            });
+        }
+
+        // Filtrar por tipo
+        if ($tipo) {
+            $query->where('fk_id_tipo_chamado', $tipo);
+        }
+
+        $chamados = $query->orderBy('created_at', 'desc')->paginate(15);
+
+        // Dados estatísticos
+        $stats = [
+            'pendentes' => Chamado::where('status', 'pendente')->count(),
+            'em_analise' => Chamado::where('status', 'em_analise')->count(),
+            'em_andamento' => Chamado::where('status', 'em_andamento')->count(),
+            'concluidos' => Chamado::where('status', 'concluido')->count(),
+            'cancelados' => Chamado::where('status', 'cancelado')->count(),
+        ];
+
+        $tipos = TipoChamado::where('ativo', true)->get();
+        $operadores = User::where('nivel', 'operador')->orWhere('nivel', 'admin')->get();
+
+        return view('chamados.painel', compact('chamados', 'stats', 'tipos', 'operadores', 'filtro', 'busca', 'tipo'));
+    }
+
+    /**
+     * Atualiza o status de um chamado
+     */
+    public function atualizarStatus(Request $request, $id)
+    {
+        $request->validate([
+            'status' => 'required|in:pendente,em_analise,em_andamento,concluido,cancelado',
+        ]);
+
+        $chamado = Chamado::findOrFail($id);
+        $statusAnterior = $chamado->status;
+
+        $chamado->update([
+            'status' => $request->status,
+            'data_conclusao' => in_array($request->status, ['concluido', 'cancelado']) ? now() : null,
+        ]);
+
+        // Log da alteração
+        Log::info("Chamado #{$chamado->protocolo} - Status alterado de '{$statusAnterior}' para '{$request->status}' por " . Auth::user()->name);
+
+        return back()->with('success', "Status do chamado atualizado para '{$request->status}'");
+    }
+
+    /**
+     * Atribui um responsável ao chamado
+     */
+    public function atribuirResponsavel(Request $request, $id)
+    {
+        $request->validate([
+            'fk_id_user_responsavel' => 'nullable|exists:users,id',
+        ]);
+
+        $chamado = Chamado::findOrFail($id);
+        $responsavelAnterior = $chamado->responsavel?->name ?? 'Não atribuído';
+
+        $chamado->update([
+            'fk_id_user_responsavel' => $request->fk_id_user_responsavel,
+        ]);
+
+        $responsavelNovo = $chamado->responsavel?->name ?? 'Não atribuído';
+
+        Log::info("Chamado #{$chamado->protocolo} - Responsável alterado de '{$responsavelAnterior}' para '{$responsavelNovo}' por " . Auth::user()->name);
+
+        return back()->with('success', 'Responsável atualizado com sucesso');
+    }
+
+    /**
+     * Adiciona observação interna ao chamado
+     */
+    public function adicionarObservacao(Request $request, $id)
+    {
+        $request->validate([
+            'observacoes_internas' => 'required|string|max:2000',
+        ]);
+
+        $chamado = Chamado::findOrFail($id);
+        $chamado->update([
+            'observacoes_internas' => $request->observacoes_internas,
+        ]);
+
+        return back()->with('success', 'Observação adicionada com sucesso');
+    }
+
+    /**
+     * Normaliza o caminho salvo do anexo para o disco public
+     */
+    protected function normalizarCaminhoAnexo(string $raw): string
+    {
+        $raw = str_replace('\\', '/', $raw);
+        if (str_starts_with($raw, 'storage/')) {
+            $raw = substr($raw, 8);
+        }
+        $basename = basename($raw);
+        if (!str_starts_with($raw, 'chamados/anexos/')) {
+            $raw = 'chamados/anexos/' . $basename;
+        }
+        return $raw;
+    }
+
+    /**
+     * Visualiza um anexo inline (imagens, pdf, etc.)
+     */
+    public function visualizarAnexo($id, $index)
+    {
+        $user = Auth::user();
+
+        $query = Chamado::query();
+        if ($user->nivel === 'empresa') {
+            $query->where('fk_id_empresa', $user->empresa->id_empresa);
+        }
+        $chamado = $query->findOrFail($id);
+
+        $anexos = is_array($chamado->anexos) ? $chamado->anexos : [];
+        if (!isset($anexos[$index])) {
+            abort(404);
+        }
+
+        $pathRelativo = $this->normalizarCaminhoAnexo((string) $anexos[$index]);
+        if (!Storage::disk('public')->exists($pathRelativo)) {
+            abort(404);
+        }
+
+        $fullPath = Storage::disk('public')->path($pathRelativo);
+        return response()->file($fullPath);
+    }
+
+    /**
+     * Faz o download de um anexo
+     */
+    public function downloadAnexo($id, $index)
+    {
+        $user = Auth::user();
+
+        $query = Chamado::query();
+        if ($user->nivel === 'empresa') {
+            $query->where('fk_id_empresa', $user->empresa->id_empresa);
+        }
+        $chamado = $query->findOrFail($id);
+
+        $anexos = is_array($chamado->anexos) ? $chamado->anexos : [];
+        if (!isset($anexos[$index])) {
+            abort(404);
+        }
+
+        $pathRelativo = $this->normalizarCaminhoAnexo((string) $anexos[$index]);
+        if (!Storage::disk('public')->exists($pathRelativo)) {
+            abort(404);
+        }
+
+        $fullPath = Storage::disk('public')->path($pathRelativo);
+        return response()->download($fullPath);
+    }
 }
+

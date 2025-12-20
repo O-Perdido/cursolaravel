@@ -57,6 +57,13 @@ class Termo extends Model
             'fk_id_vaga',
             'vinculo',
     ];
+
+    protected $casts = [
+        'data_inicio_estagio' => 'date',
+        'data_fim_estagio' => 'date',
+        'data_fim_estagio_fixo' => 'date',
+        'zapsign_enviado_em' => 'datetime',
+    ];
     public function vaga()
     {
         return $this->belongsTo(Vaga::class, 'fk_id_vaga', 'id_vaga');
