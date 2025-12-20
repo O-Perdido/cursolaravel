@@ -20,7 +20,10 @@ class ConfiguracaoController extends Controller
 
         $configuracoes = Configuracao::orderBy('chave')->get();
 
-        return view('configuracoes.index', compact('configuracoes'));
+        // Carregar tipos de chamado para gestão rápida na tela de configurações
+        $tipos = \App\Models\TipoChamado::orderBy('ordem')->orderBy('nome')->get();
+
+        return view('configuracoes.index', compact('configuracoes', 'tipos'));
     }
 
     /**
@@ -35,6 +38,10 @@ class ConfiguracaoController extends Controller
 
         $validated = $request->validate([
             'limite_diario_remessa' => 'required|numeric|min:0',
+            // Configurações do módulo de chamados
+            'chamados_max_anexos' => 'nullable|integer|min:0',
+            'chamados_max_tamanho_anexo_mb' => 'nullable|numeric|min:0',
+            'chamados_permitir_outros_empresa' => 'nullable|boolean',
         ]);
 
         Configuracao::definir(
@@ -42,6 +49,34 @@ class ConfiguracaoController extends Controller
             $validated['limite_diario_remessa'],
             'Limite diário de valor para arquivo de remessa bancária',
             'decimal'
+        );
+
+        // Salvar configurações adicionais do módulo de chamados (se presentes)
+        if ($request->has('chamados_max_anexos')) {
+            Configuracao::definir(
+                'chamados_max_anexos',
+                $validated['chamados_max_anexos'] ?? 0,
+                'Quantidade máxima de anexos por chamado',
+                'numero'
+            );
+        }
+
+        if ($request->has('chamados_max_tamanho_anexo_mb')) {
+            Configuracao::definir(
+                'chamados_max_tamanho_anexo_mb',
+                $validated['chamados_max_tamanho_anexo_mb'] ?? 0,
+                'Tamanho máximo de cada anexo (MB)',
+                'decimal'
+            );
+        }
+
+        // Checkbox pode não vir no request quando desmarcado; garantir persistência
+        $permitirOutros = $request->boolean('chamados_permitir_outros_empresa');
+        Configuracao::definir(
+            'chamados_permitir_outros_empresa',
+            $permitirOutros ? '1' : '0',
+            'Permitir empresas abrirem chamados do tipo "Outros" (genérico)',
+            'boolean'
         );
 
         return redirect()->route('configuracoes.index')->with('success', 'Configurações atualizadas com sucesso!');
