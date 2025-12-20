@@ -17,6 +17,8 @@ use App\Http\Controllers\FolhasTermosController;
 use App\Http\Controllers\LocalController;
 use App\Http\Controllers\EmailVerificationController;
 use App\Http\Controllers\ZapSignWebhookController;
+use App\Http\Controllers\ChamadoController;
+use App\Http\Controllers\TipoChamadoController;
 
 $manutencao = false; // Defina como true para ativar a manutenção
 
@@ -365,6 +367,34 @@ Route::middleware(['auth'])->group(function () {
         // Rotas para configurações do sistema
         Route::get('/configuracoes', [App\Http\Controllers\ConfiguracaoController::class, 'index'])->name('configuracoes.index');
         Route::post('/configuracoes', [App\Http\Controllers\ConfiguracaoController::class, 'update'])->name('configuracoes.update');
+
+        // Rotas para gerenciamento de tipos de chamados (admin)
+        Route::get('/admin/tipos-chamados', [TipoChamadoController::class, 'index'])->name('admin.tipos-chamados.index');
+        Route::get('/admin/tipos-chamados/create', [TipoChamadoController::class, 'create'])->name('admin.tipos-chamados.create');
+        Route::post('/admin/tipos-chamados', [TipoChamadoController::class, 'store'])->name('admin.tipos-chamados.store');
+        Route::get('/admin/tipos-chamados/{id}/edit', [TipoChamadoController::class, 'edit'])->name('admin.tipos-chamados.edit');
+        Route::put('/admin/tipos-chamados/{id}', [TipoChamadoController::class, 'update'])->name('admin.tipos-chamados.update');
+        Route::delete('/admin/tipos-chamados/{id}', [TipoChamadoController::class, 'destroy'])->name('admin.tipos-chamados.destroy');
+    });
+
+    // Rotas de Chamados (acessíveis por empresa, admin e operador)
+    Route::middleware(['nivel:empresa,admin,operador'])->group(function () {
+        Route::get('/chamados', [ChamadoController::class, 'index'])->name('chamados.index');
+        Route::get('/chamados/create', [ChamadoController::class, 'create'])->name('chamados.create');
+        Route::post('/chamados', [ChamadoController::class, 'store'])->name('chamados.store');
+        Route::get('/chamados/{id}', [ChamadoController::class, 'show'])->name('chamados.show');
+        
+        // Empresas podem cancelar seus próprios chamados
+        Route::put('/chamados/{id}/cancelar', [ChamadoController::class, 'cancelar'])->name('chamados.cancelar');
+        
+        // API para buscar termos (usado no Select2)
+        Route::get('/api/chamados/buscar-termos', [ChamadoController::class, 'buscarTermos'])->name('api.chamados.buscar-termos');
+        
+        // API para listar tipos de chamados ativos
+        Route::get('/api/tipos-chamados/ativos', [TipoChamadoController::class, 'tiposAtivos'])->name('api.tipos-chamados.ativos');
+
+        // API para listagem de termos com filtros (modal)
+        Route::get('/api/chamados/termos-lista', [ChamadoController::class, 'listarTermosModal'])->name('api.chamados.termos-lista');
     });
 
 
