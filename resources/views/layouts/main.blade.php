@@ -616,7 +616,8 @@
                             style="margin-top: 0; width: 100%; max-width: 220px;">
                             <span class="fw-normal" style="font-size:1rem;">em parceria com</span>
                             <span class="fw-semibold d-flex flex-column align-items-center" style="font-size:0.8rem;">
-                                <a href="#" target="_blank" class="text-white text-decoration-underline mb-1">João
+                                <a href="https://4strum.github.io/portfolio/" target="_blank"
+                                    class="text-white text-decoration-underline mb-1">João
                                     Pedro
                                     Developer</a>
                                 <span class="mb-1">&amp;</span>
