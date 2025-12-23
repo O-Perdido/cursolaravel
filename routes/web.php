@@ -45,7 +45,9 @@ Route::middleware(['auth'])->group(function () {
 
     // Dashboards específicas por nível
     Route::get('/dashboard/admin', function () {
-        $termos = Termo::with('estagiario')->get();
+        $termos = Termo::with('estagiario')
+            ->whereDoesntHave('rescisao')
+            ->get();
         return view('welcome_admin_operador', compact('termos'));
     })->middleware(['nivel:admin,operador'])->name('welcome.admin');
 
