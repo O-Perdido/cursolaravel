@@ -81,7 +81,7 @@
                     <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalNovoChamado">
                         <i class="fas fa-plus me-1"></i> Abrir Chamado
                     </button>
-                    <a href="{{ route('chamados.index') }}" class="btn btn-primary mt-2">
+                    <a href="{{ route('chamados.index') }}" class="btn btn-primary ms-2">
                         <i class="fas fa-list me-1"></i> Ver Chamados
                     </a>
                 </div>
@@ -185,10 +185,10 @@
                 cache.forEach(l => {
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
-                                        <td>${l.descricao ?? ''}</td>
-                                        <td class="text-end">
-                                            <button class="btn btn-sm btn-outline-primary" data-action="editar" data-id="${l.id_local}">Editar</button>
-                                        </td>`;
+                                                        <td>${l.descricao ?? ''}</td>
+                                                        <td class="text-end">
+                                                            <button class="btn btn-sm btn-outline-primary" data-action="editar" data-id="${l.id_local}">Editar</button>
+                                                        </td>`;
                     body.appendChild(tr);
                 });
             }
