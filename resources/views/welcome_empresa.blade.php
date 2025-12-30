@@ -31,8 +31,22 @@
             <div class="card text-center" style="margin-bottom: 10px;">
                 <div class="card-body">
                     <h5 class="card-title">Vagas de Estágio</h5>
-                    <p class="card-text">Gerencie as vagas da sua empresa.</p>
+                    <p class="card-text">Gerencie aqui a abertura de Vagas.</p>
                     <a href="{{ route('vagas.index') }}" class="btn btn-primary">Ver Vagas</a>
+                </div>
+            </div>
+        </div>
+        <div class="col col-md-4">
+            <div class="card text-center" style="margin-bottom: 10px;">
+                <div class="card-body">
+                    <h5 class="card-title">Chamados</h5>
+                    <p class="card-text">Abra e acompanhe chamados de suporte.</p>
+                    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalNovoChamado">
+                        <i class="fas fa-plus me-1"></i> Abrir Chamado
+                    </button>
+                    <a href="{{ route('chamados.index') }}" class="btn btn-primary ms-2">
+                        <i class="fas fa-list me-1"></i> Ver Chamados
+                    </a>
                 </div>
             </div>
         </div>
@@ -70,20 +84,6 @@
                     <p class="card-text">Gerencie os locais da sua unidade concedente.</p>
                     <button type="button" class="btn btn-primary" data-bs-toggle="modal"
                         data-bs-target="#meusLocaisModal">Gerenciar Locais</button>
-                </div>
-            </div>
-        </div>
-        <div class="col col-md-4">
-            <div class="card text-center" style="margin-bottom: 10px;">
-                <div class="card-body">
-                    <h5 class="card-title">Chamados</h5>
-                    <p class="card-text">Abra e acompanhe chamados de suporte.</p>
-                    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalNovoChamado">
-                        <i class="fas fa-plus me-1"></i> Abrir Chamado
-                    </button>
-                    <a href="{{ route('chamados.index') }}" class="btn btn-primary ms-2">
-                        <i class="fas fa-list me-1"></i> Ver Chamados
-                    </a>
                 </div>
             </div>
         </div>
@@ -185,10 +185,10 @@
                 cache.forEach(l => {
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
-                                                        <td>${l.descricao ?? ''}</td>
-                                                        <td class="text-end">
-                                                            <button class="btn btn-sm btn-outline-primary" data-action="editar" data-id="${l.id_local}">Editar</button>
-                                                        </td>`;
+                                                                <td>${l.descricao ?? ''}</td>
+                                                                <td class="text-end">
+                                                                    <button class="btn btn-sm btn-outline-primary" data-action="editar" data-id="${l.id_local}">Editar</button>
+                                                                </td>`;
                     body.appendChild(tr);
                 });
             }

@@ -63,7 +63,7 @@ class VagaController extends Controller
             'fk_id_empresa' => 'required|exists:tb_empresas,id_empresa',
             'lotacao' => 'required|string',
             'valor_bolsa' => 'required|numeric',
-            'valor_auxilio_transporte' => 'required|numeric',
+            'valor_auxilio_transporte' => 'nullable|numeric',
             'tem_estagiario_definido' => 'required|boolean',
             'nome_estagiario' => 'nullable|string|max:150',
             'contato_whatsapp' => 'nullable|string|max:20',

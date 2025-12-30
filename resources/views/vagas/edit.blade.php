@@ -178,8 +178,7 @@
                                     value="{{ old('valor_bolsa', number_format($vaga->valor_bolsa, 2, '.', '')) }}">
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label for="valor_auxilio_transporte_mask" class="form-label">Auxílio Transporte (R$) <span
-                                        class="text-danger">*</span></label>
+                                <label for="valor_auxilio_transporte_mask" class="form-label">Auxílio Transporte (R$)</label>
                                 <input type="text" name="valor_auxilio_transporte_mask" id="valor_auxilio_transporte_mask"
                                     class="form-control form-control-sm" inputmode="numeric" placeholder="0,00"
                                     value="{{ number_format(old('valor_auxilio_transporte', $vaga->valor_auxilio_transporte), 2, ',', '.') }}"
