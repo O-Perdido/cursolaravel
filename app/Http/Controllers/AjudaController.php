@@ -26,7 +26,7 @@ class AjudaController extends Controller
                 'icon' => 'fa-user-plus',
                 'content' => [
                     'description' => 'Aprenda como fazer seu primeiro acesso ao sistema, criar sua senha e configurar seu perfil.',
-                    'video' => null, // Exemplo: 'https://www.youtube.com/embed/x9QIa5JF72o?si=ZGZ6E3fPCsMJbvAX'
+                    'video' => 'https://www.youtube.com/embed/n9ruKGpLFxM?si=sgDMCikg8aeN4GFf', // Exemplo: 'https://www.youtube.com/embed/x9QIa5JF72o?si=ZGZ6E3fPCsMJbvAX'
                     'steps' => [
                         'Acesse o sistema através do link enviado por e-mail',
                         'Clique em "Primeiro Acesso" na tela de login',
@@ -223,7 +223,7 @@ class AjudaController extends Controller
                         [
                             'question' => 'Como entrar em contato com a equipe?',
                             'answer' => 'Acesse o menu "Suporte" e clique em "Contato".'
-                        ]
+                        ]                
                     ]
                 ]
             ]
