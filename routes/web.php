@@ -461,3 +461,6 @@ Route::post('/login', [AuthController::class, 'loginAttempt'])->name('auth');
 
 // Webhook ZapSign (rota pública)
 Route::post('/webhooks/zapsign', [ZapSignWebhookController::class, 'handle'])->name('webhook.zapsign');
+
+// Central de Ajuda (rota pública)
+Route::get('/ajuda', [App\Http\Controllers\AjudaController::class, 'index'])->name('ajuda');

@@ -634,12 +634,19 @@
                                 Integração e Gestão de Estágios</span> —</div>
                         <div class="text-white-50" style="font-size:0.95rem;">— Todos os direitos reservados —</div>
 
-                        <!-- PWA Install Link -->
                         <div class="mt-3" id="pwa-footer-link" style="display: none;">
                             <button id="install-app-footer" class="btn btn-sm btn-outline-light"
                                 style="border-radius: 20px; padding: 5px 20px; font-size: 0.85rem;">
                                 <i class="fas fa-download"></i> Instalar como Aplicativo
                             </button>
+                        </div>
+
+                        <!-- Link Central de Ajuda -->
+                        <div class="mt-3">
+                            <a href="{{ route('ajuda') }}" class="btn btn-sm btn-outline-light"
+                                style="border-radius: 20px; padding: 5px 20px; font-size: 0.85rem;" target="_blank">
+                                <i class="fas fa-question-circle"></i> Central de Ajuda
+                            </a>
                         </div>
                     </div>
                 </div>
