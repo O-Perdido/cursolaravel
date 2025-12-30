@@ -409,8 +409,8 @@
             carregarSupervisores(@json($empresaSelecionada));
         @endif
 
-                                    // Filtro do dropdown de Supervisor
-                            if (supervisorSearch) {
+                                                        // Filtro do dropdown de Supervisor
+                                                if (supervisorSearch) {
             supervisorSearch.addEventListener('focus', function () {
                 supervisorSelect.style.display = 'block';
             });
@@ -438,10 +438,10 @@
         // Validação de datas
         const dataInicio = document.getElementById('data_inicio');
         const dataTermino = document.getElementById('data_termino');
-        dataInicio.addEventListener('change', function () { dataTermino.min = this.value; });
-        dataTermino.addEventListener('change', function () {
+        dataInicio.addEventListener('focusout', function () { dataTermino.min = this.value; });
+        dataTermino.addEventListener('focusout', function () {
             if (dataInicio.value && this.value < dataInicio.value) {
-                alert('A data de término não pode ser anterior à data de início!');
+                mostrarToast('A data de término não pode ser anterior à data de início!', 'danger');
                 this.value = '';
             }
         });
@@ -504,7 +504,9 @@
     </div>
 
     <!-- Toast Container -->
-    <div id="toastContainer" style="position: fixed; top: 20px; right: 20px; z-index: 9999;"></div>
+    <div id="toastContainer"
+        style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 9999; pointer-events: none;">
+    </div>
 
     <script>
         // Formatar CPF em tempo real
@@ -578,18 +580,20 @@
             const icon = tipo === 'success' ? '✓' : '✕';
 
             const toastHTML = `
-                        <div id="${toastId}" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
-                            <div class="toast-header ${bgColor} text-white">
-                                <strong class="me-auto">${icon} ${tipo === 'success' ? 'Sucesso' : 'Erro'}</strong>
-                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
-                            </div>
-                            <div class="toast-body">${mensagem}</div>
+                    <div id="${toastId}" class="toast" role="alert" aria-live="assertive" aria-atomic="true" style="pointer-events: auto;">
+                        <div class="toast-header ${bgColor} text-white">
+                            <strong class="me-auto">${icon} ${tipo === 'success' ? 'Sucesso' : 'Erro'}</strong>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
                         </div>
-                    `;
+                        <div class="toast-body">${mensagem}</div>
+                    </div>
+                `;
 
             container.insertAdjacentHTML('beforeend', toastHTML);
             const toastEl = document.getElementById(toastId);
-            const toast = new bootstrap.Toast(toastEl);
+            const toast = new bootstrap.Toast(toastEl, {
+                delay: 5000
+            });
             toast.show();
 
             // Remover elemento após desaparecer
