@@ -805,7 +805,9 @@ class FolhaPagamentoController extends Controller
 
         $conteudoFolha = FolhasTermos::where('fk_id_folha', $folha->id_folha_pagamento)->get();
 
-        return view('folhas_pagamento.create', compact('folha', 'conteudoFolha'));
+        $diasPadraoCalculo = \App\Models\Configuracao::obter('dias_padrao_calculo_folha', 30);
+
+        return view('folhas_pagamento.create', compact('folha', 'conteudoFolha', 'diasPadraoCalculo'));
     }
 
     public function edit($id_folha_pagamento)
@@ -814,7 +816,9 @@ class FolhaPagamentoController extends Controller
         $folha = FolhaPagamento::findOrFail($id_folha_pagamento);
         $conteudoFolha = FolhasTermos::where('fk_id_folha', $folha->id_folha_pagamento)->get();
 
-        return view('folhas_pagamento.edit', compact('folha', 'conteudoFolha'));
+        $diasPadraoCalculo = \App\Models\Configuracao::obter('dias_padrao_calculo_folha', 30);
+
+        return view('folhas_pagamento.edit', compact('folha', 'conteudoFolha', 'diasPadraoCalculo'));
     }
 
     public function store(Request $request)

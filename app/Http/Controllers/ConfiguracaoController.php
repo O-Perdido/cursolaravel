@@ -38,6 +38,7 @@ class ConfiguracaoController extends Controller
 
         $validated = $request->validate([
             'limite_diario_remessa' => 'required|numeric|min:0',
+            'dias_padrao_calculo_folha' => 'required|integer|min:1|max:31',
             // Configurações do módulo de chamados
             'chamados_max_anexos' => 'nullable|integer|min:0',
             'chamados_max_tamanho_anexo_mb' => 'nullable|numeric|min:0',
@@ -49,6 +50,13 @@ class ConfiguracaoController extends Controller
             $validated['limite_diario_remessa'],
             'Limite diário de valor para arquivo de remessa bancária',
             'decimal'
+        );
+
+        Configuracao::definir(
+            'dias_padrao_calculo_folha',
+            $validated['dias_padrao_calculo_folha'],
+            'Número de dias padrão usado como base para cálculo proporcional nas folhas de pagamento',
+            'numero'
         );
 
         // Salvar configurações adicionais do módulo de chamados (se presentes)

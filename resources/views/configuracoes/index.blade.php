@@ -28,7 +28,7 @@
                         <ul class="nav nav-tabs" id="configTabs" role="tablist">
                             <li class="nav-item" role="presentation">
                                 <button class="nav-link active" id="remessa-tab" data-bs-toggle="tab" data-bs-target="#remessa" type="button" role="tab" aria-controls="remessa" aria-selected="true">
-                                    <i class="fas fa-money-bill-wave"></i> Remessa Bancária
+                                    <i class="fas fa-money-bill-wave"></i> Folhas de Pagamento
                                 </button>
                             </li>
                             <li class="nav-item" role="presentation">
@@ -45,14 +45,14 @@
 
                                     <div class="mb-4">
                                         <h5 class="text-secondary border-bottom pb-2 mb-3">
-                                            <i class="fas fa-money-bill-wave"></i> Configurações de Remessa Bancária
+                                            <i class="fas fa-money-bill-wave"></i> Configurações de Folhas de Pagamento
                                         </h5>
 
                                         <div class="row">
                                             <div class="col-md-6">
                                                 <div class="mb-3">
                                                     <label for="limite_diario_remessa" class="form-label fw-bold">
-                                                        Limite Diário para Remessas (R$) <span class="text-danger">*</span>
+                                                        Limite para Remessas (R$) <span class="text-danger">*</span>
                                                     </label>
                                                     <input type="number" name="limite_diario_remessa" id="limite_diario_remessa"
                                                         class="form-control @error('limite_diario_remessa') is-invalid @enderror"
@@ -66,6 +66,26 @@
                                                         <i class="fas fa-info-circle"></i> Este valor será usado para dividir
                                                         automaticamente as folhas de pagamento em múltiplos arquivos de remessa
                                                         quando o total ultrapassar este limite.
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="dias_padrao_calculo_folha" class="form-label fw-bold">
+                                                        <i class="fas fa-calculator"></i> Dias Padrão para Cálculo de Folha <span class="text-danger">*</span>
+                                                    </label>
+                                                    <input type="number" name="dias_padrao_calculo_folha" id="dias_padrao_calculo_folha"
+                                                        class="form-control @error('dias_padrao_calculo_folha') is-invalid @enderror"
+                                                        value="{{ old('dias_padrao_calculo_folha', \App\Models\Configuracao::obter('dias_padrao_calculo_folha', 30)) }}"
+                                                        min="1" max="31"
+                                                        required>
+                                                    @error('dias_padrao_calculo_folha')
+                                                        <div class="invalid-feedback">{{ $message }}</div>
+                                                    @enderror
+                                                    <div class="form-text">
+                                                        <i class="fas fa-info-circle"></i>
+                                                        Número de dias usado como base para cálculo proporcional de bolsa e auxílio transporte.
+                                                        Padrão: 30 dias. Ajuste conforme a política da empresa.
                                                     </div>
                                                 </div>
                                             </div>

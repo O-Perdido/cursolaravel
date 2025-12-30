@@ -148,7 +148,7 @@
                                     <input type="number" class="form-control" name="dias_trabalhados_{{ $conteudo->id }}"
                                         value="{{ $conteudo->dias_trabalhados }}"
                                         style="width: 60px; height: 30px; text-align: center; appearance: textfield;" min="0"
-                                        max="30" oninput="if(this.value > 30) this.value=30; if(this.value < 0) this.value=0;">
+                                        max="{{ $diasPadraoCalculo ?? 30 }}" oninput="if(this.value > {{ $diasPadraoCalculo ?? 30 }}) this.value={{ $diasPadraoCalculo ?? 30 }}; if(this.value < 0) this.value=0;">
                                 </div>
                             </td>
                             <td style="text-align: center;">
@@ -279,15 +279,16 @@
                                 const taxaPercentual = @json($conteudo->termo->empresa->taxa_percentual);
                                 const tipoCalculoAuxTransp = @json($folha->tipo_calculo_auxilio_transporte);
                                 const diasUteis = @json($folha->dias_uteis);
+                                const diasPadraoCalculo = @json($diasPadraoCalculo ?? 30);
 
                                 function updateValores() {
                                     let dias = parseInt(diasInput.value) || 0;
-                                    let bolsaMes = (Number(valorBolsa) / 30) * dias;
+                                    let bolsaMes = (Number(valorBolsa) / diasPadraoCalculo) * dias;
                                     let auxMes;
                                     if (tipoCalculoAuxTransp === 'diario') {
                                         auxMes = Number(valorAuxTransp) * diasUteis;
                                     } else {
-                                        auxMes = (Number(valorAuxTransp) / 30) * dias;
+                                        auxMes = (Number(valorAuxTransp) / diasPadraoCalculo) * dias;
                                     }
                                     bolsaMesSpan.textContent = bolsaMes.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                                     auxTranspMesSpan.textContent = auxMes.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
