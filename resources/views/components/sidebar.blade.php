@@ -403,14 +403,7 @@
                     <span class="nav-label">Central de Ajuda</span>
                 </a>
                 <span class="nav-tooltip">Central de Ajuda</span>
-            </li>
-            <li class="nav-item">
-                <a href="#" class="nav-link">
-                    <span class="nav-icon material-symbols-outlined">account_circle</span>
-                    <span class="nav-label">{{ Auth::user()->name }}</span>
-                </a>
-                <span class="nav-tooltip">{{ Auth::user()->name }}</span>
-            </li>
+            </li>            
             <li class="nav-item">
                 <a href="{{ route('logout') }}" class="nav-link">
                     <span class="nav-icon material-symbols-outlined">logout</span>
