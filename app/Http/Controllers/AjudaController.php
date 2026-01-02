@@ -15,124 +15,43 @@ class AjudaController extends Controller
                 'title' => 'Introdução ao Sistema',
                 'icon' => 'fa-home',
                 'content' => [
-                    'description' => 'Bem-vindo à Central de Ajuda do SIGEBR - EBCP. Aqui você encontrará tutoriais, guias e respostas para as principais dúvidas sobre o sistema de gestão de estágios.',
+                    'description' => 'Bem-vindo à Central de Ajuda do SIGEBR - EBCP. Aqui você encontrará tutoriais, guias e respostas para as principais dúvidas sobre o sistema de gestão de estágios. SIGEBR é uma solução exclusiva da EBCP, criada para facilitar o processo de gestão de estágios.',
                     'video' => null,
-                    'images' => []
+                    'images' => [
+                        [
+                            'url' => asset('images/tutorial/painel_sige_ebcp.png'),
+                            'alt' => 'Descrição da imagem'   
+                        ]                        
+                    ]
                 ]
             ],
             [
-                'id' => 'primeiro-acesso',
-                'title' => 'Primeiro Acesso',
+                'id' => 'primeiro-acesso-estagiarios',
+                'title' => 'Primeiro Acesso - Estagiários',
                 'icon' => 'fa-user-plus',
                 'content' => [
-                    'description' => 'Aprenda como fazer seu primeiro acesso ao sistema, criar sua senha e configurar seu perfil.',
-                    'video' => 'https://www.youtube.com/embed/n9ruKGpLFxM?si=sgDMCikg8aeN4GFf', // Exemplo: 'https://www.youtube.com/embed/x9QIa5JF72o?si=ZGZ6E3fPCsMJbvAX'
+                    'description' => 'Aprenda como fazer seu primeiro acesso ao sistema. Se
+                    você é estagiário e já realizou seu cadastro em nossa plataforma, siga os passos abaixo para acessar o sistema pela primeira vez.',
+                    'video' => null, // Exemplo: 'https://www.youtube.com/embed/x9QIa5JF72o?si=ZGZ6E3fPCsMJbvAX'
                     'steps' => [
-                        'Acesse o sistema através do link enviado por e-mail',
-                        'Clique em "Primeiro Acesso" na tela de login',
-                        'Insira seu e-mail cadastrado no sistema',
-                        'Verifique seu e-mail e insira o código de verificação',
-                        'Crie uma senha segura (mínimo 8 caracteres)',
-                        'Complete seu cadastro com as informações solicitadas'
+                        'Após fazer o seu cadastro, você receberá um e-mail de confirmação com um código de verificação.',
+                        'Caso ainda não tenha realizado a confirmação do código, realize o login normalmente com seu e-mail e senha cadastrados. Você será redirecionado para a tela de confirmação do código.',
+                        'Após a confirmação do código você poderá acessar o sistema normalmente.',
+                        'Caso tenha esquecido sua senha, utilize a opção "Redefinir senha" na tela de login para redefini-la.',
+                        'Caso seu e-mail de acesso esteja incorreto ou desatualizado, entre em contato com sua unidade concedente para abrir um chamado no sistema, solicitando a alteração.',                        
                     ],
-                    'images' => []
-                ]
-            ],
-            [
-                'id' => 'cadastro-termos',
-                'title' => 'Cadastro de Termos de Estágio',
-                'icon' => 'fa-file-contract',
-                'content' => [
-                    'description' => 'Como cadastrar e gerenciar termos de estágio no sistema.',
-                    'video' => null,
-                    'steps' => [
-                        'Acesse o menu "Termos de Contrato"',
-                        'Clique no botão "Novo Termo"',
-                        'Preencha os dados do estagiário',
-                        'Informe os dados da empresa concedente',
-                        'Configure valores de bolsa e auxílios',
-                        'Defina as datas de início e término',
-                        'Revise todas as informações',
-                        'Clique em "Salvar" para gerar o termo'
-                    ],
-                    'alert' => [
-                        'type' => 'info',
-                        'text' => 'Após salvar, o termo será enviado automaticamente para assinatura digital via ZapSign.'
+                    'images' => [
+                        [
+                            'url' => asset('images/tutorial/pagina_login_mobile.png'),
+                            'alt' => 'Página de Login do Sistema'   
+                        ]  
                     ]
                 ]
-            ],
+            ],            
             [
-                'id' => 'assinatura-digital',
-                'title' => 'Assinatura Digital de Termos',
-                'icon' => 'fa-pen-fancy',
-                'content' => [
-                    'description' => 'Entenda o processo de assinatura digital dos termos de estágio.',
-                    'video' => null,
-                    'steps' => [
-                        'Após o cadastro, o termo é enviado automaticamente para assinatura',
-                        'Todos os signatários recebem um e-mail com o link',
-                        'Acesse o link e visualize o documento',
-                        'Clique em "Assinar Documento"',
-                        'Confirme sua assinatura eletrônica',
-                        'Aguarde as demais assinaturas'
-                    ],
-                    'alert' => [
-                        'type' => 'warning',
-                        'text' => 'O termo só terá validade após todas as assinaturas necessárias.'
-                    ]
-                ]
-            ],
-            [
-                'id' => 'folha-pagamento',
-                'title' => 'Folha de Pagamento',
-                'icon' => 'fa-money-check-alt',
-                'content' => [
-                    'description' => 'Como criar e processar folhas de pagamento dos estagiários.',
-                    'video' => null,
-                    'steps' => [
-                        'Acesse "Folhas de Pagamento" no menu',
-                        'Clique em "Nova Folha"',
-                        'Selecione o mês de referência',
-                        'Configure os dias úteis do mês',
-                        'Defina o tipo de cálculo do auxílio transporte',
-                        'Adicione os estagiários à folha',
-                        'Informe os dias trabalhados de cada um',
-                        'Revise os cálculos automáticos',
-                        'Finalize a folha para gerar a remessa bancária'
-                    ],
-                    'alert' => [
-                        'type' => 'info',
-                        'text' => 'O sistema calcula automaticamente os valores de bolsa, auxílios e taxa administrativa.'
-                    ]
-                ]
-            ],
-            [
-                'id' => 'recesso',
-                'title' => 'Concessão de Recesso',
-                'icon' => 'fa-umbrella-beach',
-                'content' => [
-                    'description' => 'Como conceder recesso remunerado para estagiários.',
-                    'video' => null,
-                    'steps' => [
-                        'Acesse a tela de detalhes do termo',
-                        'Clique na aba "Recesso"',
-                        'Verifique o saldo disponível de dias',
-                        'Clique em "Conceder Recesso"',
-                        'Informe as datas de início e fim',
-                        'O sistema valida automaticamente o saldo',
-                        'Confirme a concessão',
-                        'Um PDF será gerado para registro'
-                    ],
-                    'alert' => [
-                        'type' => 'warning',
-                        'text' => 'O saldo de recesso é proporcional ao tempo de estágio. Verifique sempre antes de conceder.'
-                    ]
-                ]
-            ],
-            [
-                'id' => 'relatorios',
-                'title' => 'Relatórios e Exportações',
-                'icon' => 'fa-file-excel',
+                'id' => 'atualizar-dados-pessoais-estagiarios',
+                'title' => 'Atualizar Dados Pessoais - Estagiários',
+                'icon' => 'fa-id-card',
                 'content' => [
                     'description' => 'Como gerar relatórios e exportar dados do sistema.',
                     'video' => null,
@@ -160,7 +79,10 @@ class AjudaController extends Controller
                         'Defina requisitos e benefícios',
                         'Escolha a validade da publicação',
                         'Salve e publique a vaga'
-                    ]
+                    ],
+                    'images' => [
+                        
+                    ]                    
                 ]
             ],
             [

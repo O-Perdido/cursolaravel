@@ -346,8 +346,17 @@
             border-radius: 12px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
             max-width: 100%;
+            max-height: 600px;
             height: auto;
-            margin: 1.5rem 0;
+            margin: 1.5rem auto;
+            display: block;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .help-image:hover {
+            transform: scale(1.02);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
         }
 
         /* Scroll to top button */
@@ -442,6 +451,62 @@
 
         .help-sidebar::-webkit-scrollbar-thumb:hover {
             background: #0d2452;
+        }
+
+        /* Modal Tela Cheia para Imagens */
+        .modal-fullscreen-custom {
+            max-width: 100% !important;
+            width: 100% !important;
+            height: 100vh !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+
+        .modal-fullscreen-custom .modal-dialog {
+            max-width: 100% !important;
+            width: 100% !important;
+            height: 100% !important;
+            margin: 0 !important;
+        }
+
+        .modal-fullscreen-custom .modal-content {
+            height: 100% !important;
+            border-radius: 0 !important;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-fullscreen-custom .modal-header {
+            flex-shrink: 0;
+            background: rgba(16, 46, 108, 0.95);
+            color: white;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .modal-fullscreen-custom .modal-header .btn-close {
+            filter: brightness(0) invert(1);
+        }
+
+        .modal-fullscreen-custom .modal-body {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #1a1a1a;
+            padding: 0 !important;
+            overflow: auto;
+        }
+
+        .modal-fullscreen-custom .modal-body img {
+            max-width: 95%;
+            max-height: 95%;
+            object-fit: contain;
+        }
+
+        .modal-fullscreen-custom .modal-footer {
+            flex-shrink: 0;
+            background: rgba(16, 46, 108, 0.95);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
         }
     </style>
 </head>
@@ -550,7 +615,30 @@
 
                     @if (isset($section['content']['images']) && count($section['content']['images']) > 0)
                         @foreach ($section['content']['images'] as $image)
-                            <img src="{{ $image['url'] }}" alt="{{ $image['alt'] ?? '' }}" class="help-image">
+                            <img src="{{ $image['url'] }}" alt="{{ $image['alt'] ?? '' }}" class="help-image" 
+                                data-bs-toggle="modal" data-bs-target="#modalImagem{{ $section['id'] }}{{ $loop->index }}"
+                                title="Clique para abrir em tela cheia">
+
+                            <!-- Modal para visualizar imagem em tela cheia -->
+                            <div class="modal fade modal-fullscreen-custom" id="modalImagem{{ $section['id'] }}{{ $loop->index }}" tabindex="-1">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">{{ $image['alt'] ?? 'Imagem' }}</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <img src="{{ $image['url'] }}" class="img-fluid" 
+                                                alt="{{ $image['alt'] ?? 'Imagem' }}">
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                                <i class="fas fa-times me-2"></i>Fechar
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         @endforeach
                     @endif
                 </section>
