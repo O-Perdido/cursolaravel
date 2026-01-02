@@ -16,7 +16,7 @@ class AjudaController extends Controller
                 'icon' => 'fa-home',
                 'content' => [
                     'description' => 'Bem-vindo à Central de Ajuda do SIGEBR - EBCP. Aqui você encontrará tutoriais, guias e respostas para as principais dúvidas sobre o sistema de gestão de estágios. SIGEBR é uma solução exclusiva da EBCP, criada para facilitar o processo de gestão de estágios.',
-                    'video' => null,
+                    'video' => null, // Exemplo de vídeo introdutório
                     'images' => [
                         [
                             'url' => asset('images/tutorial/painel_sige_ebcp.png'),
@@ -24,6 +24,32 @@ class AjudaController extends Controller
                         ]                        
                     ]
                 ]
+            ],
+            [
+                'id' => 'cadastro-estagiarios',
+                'title' => 'Cadastro de Estagiários',
+                'icon' => 'fa-user-plus',
+                'content' => [
+                    'description' => 'Como realizar o cadastro de estagiários no sistema.',
+                    'video' => 'https://www.youtube.com/embed/G0Q9xe4rdNI',
+                    'steps' => [
+                        'Acesse o link de cadastro que foi enviado para você.',
+                        'Preencha todos os campos obrigatórios com suas informações pessoais.',
+                        'Crie uma senha segura para sua conta.',
+                        'Leia e aceite os termos de uso e a política de privacidade.',
+                        'Clique no botão "Cadastrar" para finalizar o processo.',
+                        'Após o cadastro, você receberá um e-mail com um código de ativação. Use esse código para ativar sua conta.',
+                        'Depois de ativar sua conta, faça login no sistema com seu e-mail e senha cadastrados.',
+                        'Caso tenha esquecido sua senha, utilize a opção "Redefinir senha" na tela de login para redefini-la.',
+                        'Caso seu e-mail de acesso esteja incorreto ou desatualizado, entre em contato com sua unidade concedente para abrir um chamado no sistema, solicitando a alteração.'
+                    ],
+                    'images' => [
+                        [
+                            'url' => asset('images/tutorial/pagina_cadastro_mobile.png'),
+                            'alt' => 'Página de Cadastro do Sistema'   
+                        ]  
+                    ]
+                ]                
             ],
             [
                 'id' => 'primeiro-acesso-estagiarios',
