@@ -74,7 +74,7 @@ class AjudaController extends Controller
                 'icon' => 'fa-id-card',
                 'content' => [
                     'description' => 'Como estagiários podem atualizar seus dados pessoais no sistema.',
-                    'video' => 'https://www.youtube.com/embed/F9j9b4n76fw', //https://youtu.be/F9j9b4n76fw
+                    'video' => 'https://www.youtube.com/embed/PZYCrsRaQhA', //https://youtu.be/PZYCrsRaQhA
                     'steps' => [
                         'Faça login no sistema SIGE utilizando seu e-mail e senha',
                         'Na página inicial, clique em "Ver Perfil Completo" na seção de Dados Pessoais',
@@ -87,24 +87,35 @@ class AjudaController extends Controller
                 ]
             ],
             [
+                'id' => 'gerar-recibo-estagiarios',
+                'title' => 'Gerar Recibo de Bolsa - Estagiários',
+                'icon' => 'fa-file-invoice-dollar',
+                'content' => [
+                    'description' => 'Como estagiários podem gerar recibos de bolsa no sistema.',
+                    'video' => 'https://www.youtube.com/embed/S3jFL5nGiKM', //https://youtube.com/shorts/S3jFL5nGiKM
+                    'steps' => [
+                        'Faça login na plataforma SIGE com seu e-mail e senha',
+                        'Na tela inicial, navegue até a seção "Contratos"',
+                        'Clique no botão "Ver Meus Contratos"',
+                        'No contrato que estiver "Ativo", clique em "Ver Todos os Detalhes"',
+                        'Vá até o final da página e selecione o Mês e o Ano desejados',
+                        'Clique em "Gerar PDF" para visualizar ou baixar o seu recibo'
+                    ],
+                    'images' => []
+                ]
+            ],
+            [
                 'id' => 'vagas',
                 'title' => 'Sistema de Vagas',
                 'icon' => 'fa-briefcase',
                 'content' => [
-                    'description' => 'Como empresas podem publicar vagas de estágio.',
+                    'description' => 'Como empresas podem cadastrar vagas de estágio. Assista ao vídeo tutorial para entender o processo completo de criação e gestão de vagas.',
                     'video' => null,
-                    'steps' => [
-                        'Acesse o menu "Vagas de Estágio"',
-                        'Clique em "Publicar Nova Vaga"',
-                        'Preencha as informações da vaga',
-                        'Defina requisitos e benefícios',
-                        'Escolha a validade da publicação',
-                        'Salve e publique a vaga'
-                    ],
-                    'images' => [
-                        
-                    ]                    
-                ]
+                    'alert' => [
+                        'type' => 'info',
+                        'text' => 'Atualmente, o sistema de vagas não funciona para divulgação externa, somente para controle interno das vagas. A função de divulgação de vagas ainda está sendo desenvolvida.'
+                    ]
+                ]                
             ],
             [
                 'id' => 'chamados',
@@ -114,7 +125,7 @@ class AjudaController extends Controller
                     'description' => 'Como abrir chamados de suporte técnico.',
                     'video' => null,
                     'steps' => [
-                        'Acesse "Suporte" no menu lateral',
+                        'Acesse o módulo de "Chamados" na página inicial do sistema',
                         'Clique em "Abrir Chamado"',
                         'Selecione a categoria do problema',
                         'Descreva detalhadamente sua dúvida ou problema',
@@ -124,7 +135,7 @@ class AjudaController extends Controller
                     ],
                     'alert' => [
                         'type' => 'success',
-                        'text' => 'Nossa equipe responde chamados em até 24 horas úteis.'
+                        'text' => 'Lembre-se de fornecer o máximo de detalhes possível para agilizar o atendimento!'
                     ]
                 ]
             ],
