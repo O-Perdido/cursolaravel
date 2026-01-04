@@ -42,13 +42,7 @@ class AjudaController extends Controller
                         'Depois de ativar sua conta, faça login no sistema com seu e-mail e senha cadastrados.',
                         'Caso tenha esquecido sua senha, utilize a opção "Redefinir senha" na tela de login para redefini-la.',
                         'Caso seu e-mail de acesso esteja incorreto ou desatualizado, entre em contato com sua unidade concedente para abrir um chamado no sistema, solicitando a alteração.'
-                    ],
-                    'images' => [
-                        [
-                            'url' => asset('images/tutorial/pagina_cadastro_mobile.png'),
-                            'alt' => 'Página de Cadastro do Sistema'   
-                        ]  
-                    ]
+                    ],                                         
                 ]                
             ],
             [
@@ -79,14 +73,15 @@ class AjudaController extends Controller
                 'title' => 'Atualizar Dados Pessoais - Estagiários',
                 'icon' => 'fa-id-card',
                 'content' => [
-                    'description' => 'Como gerar relatórios e exportar dados do sistema.',
-                    'video' => null,
+                    'description' => 'Como estagiários podem atualizar seus dados pessoais no sistema.',
+                    'video' => 'https://www.youtube.com/embed/F9j9b4n76fw', //https://youtu.be/F9j9b4n76fw
                     'steps' => [
-                        'Navegue até a listagem desejada (Termos, Estagiários, etc.)',
-                        'Use os filtros para refinar os dados',
-                        'Clique no botão "Exportar"',
-                        'Escolha o formato (Excel ou PDF)',
-                        'O arquivo será baixado automaticamente'
+                        'Faça login no sistema SIGE utilizando seu e-mail e senha',
+                        'Na página inicial, clique em "Ver Perfil Completo" na seção de Dados Pessoais',
+                        'Para documentos, vá até "Meus Documentos" e clique em "Atualizar"',
+                        'Para dados cadastrais, clique no botão "Editar Dados" no topo da página',
+                        'Atualize as informações no formulário (como endereço ou Chave PIX)',
+                        'Clique em "Salvar Alterações" para confirmar a atualização dos dados'
                     ],
                     'images' => []
                 ]
