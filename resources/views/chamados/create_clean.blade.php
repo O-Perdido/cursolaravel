@@ -47,7 +47,7 @@
                     </div>
 
                     <div class="mb-3">
-                        <label for="data_rescisao" class="form-label">Data da Rescisão <span
+                        <label for="data_rescisao" class="form-label">Último dia trabalhado <span
                                 class="text-danger">*</span></label>
                         <input type="date" class="form-control @error('data_rescisao') is-invalid @enderror" id="data_rescisao"
                             name="data_rescisao" value="{{ old('data_rescisao') }}" required>
@@ -178,10 +178,10 @@
                 cpfInput.addEventListener('input', function () {
                     let cpf = this.value.replace(/\D+/g, '').substring(0, 11);
                     if (cpf.length > 0) {
-                        cpf = cpf.substring(0, 3) + '.' + 
-                              (cpf.length > 3 ? cpf.substring(3, 6) : '') + 
-                              (cpf.length > 6 ? '.' + cpf.substring(6, 9) : '') + 
-                              (cpf.length > 9 ? '-' + cpf.substring(9, 11) : '');
+                        cpf = cpf.substring(0, 3) + '.' +
+                            (cpf.length > 3 ? cpf.substring(3, 6) : '') +
+                            (cpf.length > 6 ? '.' + cpf.substring(6, 9) : '') +
+                            (cpf.length > 9 ? '-' + cpf.substring(9, 11) : '');
                     }
                     this.value = cpf;
                 });
@@ -209,13 +209,13 @@
                         itens.forEach(item => {
                             const tr = document.createElement('tr');
                             tr.innerHTML = `
-                            <td><strong>${item.numero}/${item.ano}</strong></td>
-                            <td>${item.estagiario}</td>
-                            <td>${item.cpf}</td>
-                            <td class="text-end">
-                                <button type="button" class="btn btn-sm btn-primary btnSelecionarTermo" data-id="${item.id}" data-texto="${item.text}">Selecionar</button>
-                            </td>
-                        `;
+                                <td><strong>${item.numero}/${item.ano}</strong></td>
+                                <td>${item.estagiario}</td>
+                                <td>${item.cpf}</td>
+                                <td class="text-end">
+                                    <button type="button" class="btn btn-sm btn-primary btnSelecionarTermo" data-id="${item.id}" data-texto="${item.text}">Selecionar</button>
+                                </td>
+                            `;
                             tabelaBody.appendChild(tr);
                         });
                     })

@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                     <div class="mb-3">
                         <label for="data_rescisao" class="form-label">
-                            Data da Rescisão <span class="text-danger">*</span>
+                            Último dia trabalhado <span class="text-danger">*</span>
                         </label>
                         <input type="date" class="form-control @error('data_rescisao') is-invalid @enderror" id="data_rescisao"
                             name="data_rescisao" value="{{ old('data_rescisao') }}" required>
