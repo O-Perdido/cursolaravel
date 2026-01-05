@@ -51,6 +51,17 @@
                     @else
                         <input type="hidden" name="fk_id_empresa" value="{{ $empresaSelecionada }}">
                     @endif
+
+                    <!-- Título da Vaga -->
+                    <div class="mb-3">
+                        <label for="titulo_vaga" class="form-label">Título da Vaga <span
+                                class="text-danger">*</span></label>
+                        <input type="text" name="titulo_vaga" id="titulo_vaga" class="form-control form-control-sm"
+                            value="{{ old('titulo_vaga') }}" required
+                            placeholder="Ex: Assistente Administrativo, Desenvolvedor Web, etc.">
+                        <small class="form-text text-muted">Título ou nome resumido da vaga</small>
+                    </div>
+
                     <!-- Atividades -->
                     <div class="mb-3">
                         <label for="atividades" class="form-label">Atividades <span class="text-danger">*</span></label>
@@ -234,6 +245,32 @@
             const num = parseFloat(cleaned);
             return isNaN(num) ? '' : num.toFixed(2);
         }
+
+        // Máscara de telefone/WhatsApp (XX) XXXXX-XXXX
+        function applyPhoneMask(value) {
+            if (!value) return '';
+            value = value.replace(/\D/g, ''); // Remove tudo que não é dígito
+            value = value.substring(0, 11); // Limita a 11 dígitos
+            if (value.length <= 10) {
+                // Formato (XX) XXXX-XXXX
+                value = value.replace(/(\d{2})(\d)/, '($1) $2');
+                value = value.replace(/(\d{4})(\d)/, '$1-$2');
+            } else {
+                // Formato (XX) XXXXX-XXXX
+                value = value.replace(/(\d{2})(\d)/, '($1) $2');
+                value = value.replace(/(\d{5})(\d)/, '$1-$2');
+            }
+            return value;
+        }
+
+        function bindPhoneMask(inputId) {
+            const input = document.getElementById(inputId);
+            if (!input) return;
+            input.addEventListener('input', function () {
+                this.value = applyPhoneMask(this.value);
+            });
+        }
+
         function bindMoneyMask(maskId, hiddenId) {
             const mask = document.getElementById(maskId);
             const hidden = document.getElementById(hiddenId);
@@ -252,6 +289,7 @@
         }
         bindMoneyMask('valor_bolsa_mask', 'valor_bolsa');
         bindMoneyMask('valor_auxilio_transporte_mask', 'valor_auxilio_transporte');
+        bindPhoneMask('contato_whatsapp');
         // Helpers
         const qs = (s) => document.querySelector(s);
         const nivel = @json(auth()->user()->nivel ?? null);
@@ -409,8 +447,8 @@
             carregarSupervisores(@json($empresaSelecionada));
         @endif
 
-                                                            // Filtro do dropdown de Supervisor
-                                                    if (supervisorSearch) {
+                                                                            // Filtro do dropdown de Supervisor
+                                                                    if (supervisorSearch) {
             supervisorSearch.addEventListener('focus', function () {
                 supervisorSelect.style.display = 'block';
             });
@@ -580,14 +618,14 @@
             const icon = tipo === 'success' ? '✓' : '✕';
 
             const toastHTML = `
-                        <div id="${toastId}" class="toast" role="alert" aria-live="assertive" aria-atomic="true" style="pointer-events: auto;">
-                            <div class="toast-header ${bgColor} text-white">
-                                <strong class="me-auto">${icon} ${tipo === 'success' ? 'Sucesso' : 'Erro'}</strong>
-                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
-                            </div>
-                            <div class="toast-body">${mensagem}</div>
-                        </div>
-                    `;
+                                        <div id="${toastId}" class="toast" role="alert" aria-live="assertive" aria-atomic="true" style="pointer-events: auto;">
+                                            <div class="toast-header ${bgColor} text-white">
+                                                <strong class="me-auto">${icon} ${tipo === 'success' ? 'Sucesso' : 'Erro'}</strong>
+                                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+                                            </div>
+                                            <div class="toast-body">${mensagem}</div>
+                                        </div>
+                                    `;
 
             container.insertAdjacentHTML('beforeend', toastHTML);
             const toastEl = document.getElementById(toastId);

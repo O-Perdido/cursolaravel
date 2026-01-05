@@ -9,6 +9,7 @@ class Vaga extends Model
     protected $primaryKey = 'id_vaga';
     protected $fillable = [
         'numero_vaga',
+        'titulo_vaga',
         'atividades',
         'fk_id_supervisor',
         'data_inicio',

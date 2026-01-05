@@ -36,11 +36,15 @@
                 <div class="row g-3">
                     <!-- Coluna 1 -->
                     <div class="col-md-6">
-                        <!-- Número da vaga (readonly) -->
+
+                        <!-- Título da Vaga -->
                         <div class="mb-3">
-                            <label for="numero_vaga" class="form-label">Número da Vaga</label>
-                            <input type="text" id="numero_vaga" class="form-control form-control-sm"
-                                value="{{ $vaga->numero_vaga }}" readonly>
+                            <label for="titulo_vaga" class="form-label">Título da Vaga <span class="text-danger">*</span></label>
+                            <input type="text" name="titulo_vaga" id="titulo_vaga" class="form-control form-control-sm"
+                                value="{{ old('titulo_vaga', $vaga->titulo_vaga) }}" required
+                                placeholder="Ex: Assistente Administrativo, Desenvolvedor Web, etc."
+                                {{ $vaga->fk_id_termo ? 'readonly' : '' }}>
+                            <small class="form-text text-muted">Título ou nome resumido da vaga</small>
                         </div>
 
                         <!-- Atividades -->
@@ -98,7 +102,11 @@
                             <label for="horario" class="form-label">Horário <span class="text-danger">*</span></label>
                             <input type="text" name="horario" id="horario" class="form-control form-control-sm" required
                                 value="{{ old('horario', $vaga->horario) }}" {{ $vaga->fk_id_termo ? 'readonly' : '' }}>
-                        </div>
+                        </div>                        
+                    </div>
+
+                    <!-- Coluna 2 -->
+                    <div class="col-md-6">
 
                         @php($nivel = auth()->user()->nivel ?? null)
                         @if($nivel === 'empresa')
@@ -133,10 +141,7 @@
                             </div>
                         </div>
                         @endif
-                    </div>
 
-                    <!-- Coluna 2 -->
-                    <div class="col-md-6">
                         <!-- Local -->
                         <div class="mb-3" style="position: relative;">
                             <label for="fk_id_local" class="form-label">Local <small
@@ -198,7 +203,7 @@
                         @if($vaga->fk_id_termo)
                             <div class="alert alert-info alert-sm">
                                 <i class="fas fa-link me-1"></i>
-                                Vaga vinculada ao Termo #{{ $vaga->termo->num_termo ?? '-' }}
+                                Vaga vinculada ao Termo #{{ $vaga->termo->numero_termo ?? 'Sem termo' }}/{{ $vaga->termo->ano_termo ?? '' }}
                             </div>
                         @endif
                     </div>
@@ -235,6 +240,32 @@
             const num = parseFloat(cleaned);
             return isNaN(num) ? '' : num.toFixed(2);
         }
+        
+        // Máscara de telefone/WhatsApp (XX) XXXXX-XXXX
+        function applyPhoneMask(value) {
+            if (!value) return '';
+            value = value.replace(/\D/g, ''); // Remove tudo que não é dígito
+            value = value.substring(0, 11); // Limita a 11 dígitos
+            if (value.length <= 10) {
+                // Formato (XX) XXXX-XXXX
+                value = value.replace(/(\d{2})(\d)/, '($1) $2');
+                value = value.replace(/(\d{4})(\d)/, '$1-$2');
+            } else {
+                // Formato (XX) XXXXX-XXXX
+                value = value.replace(/(\d{2})(\d)/, '($1) $2');
+                value = value.replace(/(\d{5})(\d)/, '$1-$2');
+            }
+            return value;
+        }
+        
+        function bindPhoneMask(inputId) {
+            const input = document.getElementById(inputId);
+            if (!input) return;
+            input.addEventListener('input', function() {
+                this.value = applyPhoneMask(this.value);
+            });
+        }
+        
         function bindMoneyMask(maskId, hiddenId) {
             const mask = document.getElementById(maskId);
             const hidden = document.getElementById(hiddenId);
@@ -252,7 +283,10 @@
         @if(!$vaga->fk_id_termo)
             bindMoneyMask('valor_bolsa_mask', 'valor_bolsa');
             bindMoneyMask('valor_auxilio_transporte_mask', 'valor_auxilio_transporte');
+        @endif
+        bindPhoneMask('contato_whatsapp');
 
+        @if(!$vaga->fk_id_termo)
             // Carregar supervisores da empresa
             async function carregarSupervisores() {
                 try {

@@ -80,10 +80,14 @@
             <thead class="table-light">
                 <tr>
                     <th>Número</th>
+                    <th>Título</th>
+                    @if (Auth::user()->nivel == 'admin' || Auth::user()->nivel == 'operador')
                     <th>Empresa</th>
-                    <th>Local</th>
-                    <th>Atividades</th>
-                    <th>Orientador</th>
+                    @endif
+                    @if (Auth::user()->nivel == 'empresa')
+                    <th>Local</th>                    
+                    @endif                                            
+                    <th>Estagiário</th>                    
                     <th>Período</th>
                     <th>Status</th>
                     <th class="text-center">Ações</th>
@@ -93,10 +97,23 @@
                 @forelse($vagas as $vaga)
                     <tr>
                         <td><strong>{{ $vaga->numero_vaga }}</strong></td>
+                        <td>{{ $vaga->titulo_vaga ?? '-' }}</td>
+                        @if (Auth::user()->nivel == 'admin' || Auth::user()->nivel == 'operador')
                         <td>{{ $vaga->empresa->nome_empresa ?? '-' }}</td>
+                        @endif
+                        @if (Auth::user()->nivel == 'empresa')
                         <td>{{ $vaga->local->descricao ?? '-' }}</td>
-                        <td>{{ Str::limit($vaga->atividades, 50) }}</td>
-                        <td>{{ $vaga->nome_orientador }}</td>
+                        @endif                       
+                        <td>{{ $vaga->termo->estagiario->nome_estagiario ?? 'Não vinculado' }}
+                            @if (Auth::user()->nivel == 'admin' || Auth::user()->nivel == 'operador')
+                            @if($vaga->fk_id_termo)                                              
+                            <a href="{{ route('estagiario.show', $vaga->termo->estagiario->id_estagiario) }}"
+                                        target="_blank" class="ml-1" title="Ver detalhes do estagiário">
+                                        <i class="fas fa-external-link-alt"></i>
+                            </a>
+                            @endif
+                            @endif
+                            </td>
                         <td>
                             <small>
                                 {{ \Carbon\Carbon::parse($vaga->data_inicio)->format('d/m/Y') }} -

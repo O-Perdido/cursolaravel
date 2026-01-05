@@ -54,6 +54,7 @@ class VagaController extends Controller
         $request->merge(['tem_estagiario_definido' => $temEstagiario]);
         
         $validated = $request->validate([
+            'titulo_vaga' => 'required|string|max:150',
             'atividades' => 'required|string',
             'fk_id_supervisor' => 'required|integer|exists:tb_supervisores,id_supervisor',
             'data_inicio' => 'required|date',
@@ -84,7 +85,7 @@ class VagaController extends Controller
                 ->lockForUpdate()
                 ->value('max_seq');
             $seq = ($lastSeq ? intval($lastSeq) : 0) + 1;
-            $numeroVaga = sprintf('%s-%03d', $ano, $seq);
+            $numeroVaga = sprintf('%s-%04d', $ano, $seq);
 
             return Vaga::create(array_merge($validated, [
                 'numero_vaga' => $numeroVaga,
@@ -117,6 +118,7 @@ class VagaController extends Controller
         $request->merge(['tem_estagiario_definido' => $temEstagiario]);
         
         $validated = $request->validate([
+            'titulo_vaga' => 'required|string|max:150',
             'atividades' => 'required|string',
             'fk_id_supervisor' => 'required|integer|exists:tb_supervisores,id_supervisor',
             'data_inicio' => 'required|date',
