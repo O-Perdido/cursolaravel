@@ -129,17 +129,18 @@
             // Array de termos vindo do backend
             const termos = [
                 @foreach ($termos as $termo)
-                                        {
+                                                {
                         id: {{ $termo->id_termo }},
                         numero: '{{ $termo->numero_termo }}',
                         ano: '{{ $termo->ano_termo }}',
                         estagiario: '{{ isset($termo->estagiario) ? e($termo->estagiario->nome_estagiario) : "N/A" }}',
+                        empresa: '{{ isset($termo->empresa) ? e($termo->empresa->nome_empresa) : "N/A" }}',
                         data_fim: '{{ \Carbon\Carbon::parse($termo->data_fim_estagio)->format('Y-m-d') }}',
                         data_fim_formatada: '{{ \Carbon\Carbon::parse($termo->data_fim_estagio)->format('d/m/Y') }}',
                         url: '{{ route('termos.show', $termo->id_termo) }}'
                     },
                 @endforeach
-                        ];
+                            ];
 
             function filtrarTermos() {
                 const dias = parseInt(diasVencimento.value);
@@ -161,18 +162,35 @@
                     termosList.innerHTML = '<li class="list-group-item text-center text-muted"><i class="bi bi-info-circle"></i> Nenhum termo perto de vencer neste período.</li>';
                 } else {
                     filtrados.forEach(termo => {
-                        const li = document.createElement('li');
+                        const li = document.createElement('a');
+                        li.href = termo.url;
                         li.className = 'list-group-item d-flex justify-content-between align-items-center flex-wrap';
+                        li.style.textDecoration = 'none';
+                        li.style.color = 'inherit';
+                        li.style.transition = 'all 0.2s ease';
                         li.innerHTML = `
-                                        <div class="d-flex align-items-center">
-                                            <div>
-                                                <a href="${termo.url}" class="fw-bold text-decoration-none">${termo.numero}/${termo.ano}</a>
-                                                <div class="small text-secondary mb-1">Vencimento: <span class="badge bg-danger">${termo.data_fim_formatada}</span></div>
-                                                <div class="small text-muted" style="font-size: 0.85em;"><i class="bi bi-person"></i> ${termo.estagiario}</div>
-                                            </div>
-                                        </div>
-                                        <a href="${termo.url}" class="btn btn-sm btn-outline-primary mt-2 mt-md-0">Detalhes</a>
-                                    `;
+                                            <div class="d-flex align-items-center" style="width: 100%;">
+                                                <div>
+                                                    <div class="fw-bold text-muted">${termo.empresa}</div>
+                                                    <div class="small text-secondary mb-1">Vencimento: <span class="badge bg-danger">${termo.data_fim_formatada}</span></div>
+                                                    <div class="small text-muted" style="font-size: 0.85em;"><i class="bi bi-person"></i> ${termo.estagiario}</div>
+                                                </div>
+                                            </div>                                            
+                                        `;
+                        
+                        // Animação de hover
+                        li.addEventListener('mouseenter', function() {
+                            this.style.backgroundColor = '#f0f0f0';
+                            this.style.transform = 'translateX(5px)';
+                            this.style.borderLeft = '4px solid #102e6c';
+                        });
+                        
+                        li.addEventListener('mouseleave', function() {
+                            this.style.backgroundColor = '';
+                            this.style.transform = '';
+                            this.style.borderLeft = '';
+                        });
+                        
                         termosList.appendChild(li);
                     });
                 }
