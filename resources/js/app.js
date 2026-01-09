@@ -1,5 +1,6 @@
 import './bootstrap';
 import Inputmask from 'inputmask';
+import './navigation';
 
 
 document.addEventListener('DOMContentLoaded', function () {

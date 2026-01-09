@@ -13,9 +13,9 @@
     <div class="d-flex justify-content-between align-items-center flex-wrap mb-3">
         <h1 class="mb-0">Detalhes do Termo de Estágio</h1>
         <div class="btn-group mt-2 mt-md-0">
-            <a href="{{ route('termos.index') }}" class="btn btn-secondary">
+            <button onclick="window.NavigationHistory?.goBack('{{ route('termos.index') }}')" class="btn btn-secondary" title="Voltar para a página anterior com filtros preservados">
                 <i class="fas fa-arrow-left"></i> Voltar
-            </a>
+            </button>
             <a href="{{ route('termos.gerarPdf', $termo->id_termo) }}" class="btn btn-primary" target="_blank">
                 <i class="fas fa-file-pdf"></i> PDF Termo
             </a>

@@ -211,9 +211,9 @@
 
                 <!-- Botões de ação -->
                 <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
-                    <a href="{{ route('vagas.index') }}" class="btn btn-secondary btn-sm">
+                    <button onclick="window.NavigationHistory?.goBack('{{ route('vagas.index') }}')" class="btn btn-secondary btn-sm" title="Voltar para a página anterior com filtros preservados">
                         <i class="fas fa-times me-1"></i> Cancelar
-                    </a>
+                    </button>
                     @if(!$vaga->fk_id_termo)
                         <button type="submit" class="btn btn-warning btn-sm">
                             <i class="fas fa-save me-1"></i> Atualizar Vaga

@@ -23,9 +23,10 @@
     @endif
 
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <a href="{{ route('folhas.index') }}" class="btn btn-secondary">
+        <button onclick="window.NavigationHistory?.goBack('{{ route('folhas.index') }}')" class="btn btn-secondary"
+            title="Voltar para a página anterior com filtros preservados">
             <i class="fas fa-arrow-left"></i> Voltar
-        </a>
+        </button>
         <div>
             @if (Auth::user()->nivel == 'admin' || Auth::user()->nivel == 'operador')
                 <a href="{{ route('folha_pagamento.prepararRemessa', $folha->id_folha_pagamento) }}" class="btn btn-success">

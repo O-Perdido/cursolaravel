@@ -4,7 +4,8 @@
 
 @section('content')
     <h1>Detalhes do Estagiário</h1>
-    <a href="{{ route('estagiarios.index') }}" class="btn btn-secondary mb-3">Voltar</a>
+    <button onclick="window.NavigationHistory?.goBack('{{ route('estagiarios.index') }}')" class="btn btn-secondary mb-3"
+        title="Voltar para a página anterior com filtros preservados">Voltar</button>
     <div class="card shadow-sm">
         <div class="card-header text-black">
             <h5 class="mb-0">{{ $estagiario->nome_estagiario }}</h5>
@@ -15,14 +16,39 @@
                 <div class="col-md-6">
                     <h6 class="text-muted mb-3">Dados Pessoais</h6>
                     <p class="mb-1"><strong>Nome:</strong> {{ $estagiario->nome_estagiario }}</p>
-                    <p class="mb-1"><strong>CPF:</strong> {{ $estagiario->numero_cpf ? preg_replace('/(\d{3})(\d{3})(\d{3})(\d{2})/', '$1.$2.$3-$4', $estagiario->numero_cpf) : '' }}</p>
+                    <p class="mb-1"><strong>CPF:</strong>
+                        {{ $estagiario->numero_cpf ? preg_replace('/(\d{3})(\d{3})(\d{3})(\d{2})/', '$1.$2.$3-$4', $estagiario->numero_cpf) : '' }}
+                    </p>
                     <p class="mb-1"><strong>Data de Nascimento:</strong> {{ $estagiario->data_nascimento }}</p>
-                    <p class="mb-1"><strong>Telefone:</strong> {{ $estagiario->numero_telefone ? preg_replace('/(\d{2})(\d{4,5})(\d{4})/', '($1) $2-$3', $estagiario->numero_telefone) : '' }}</p>
-                    <p class="mb-1"><strong>Celular:</strong> {{ $estagiario->numero_celular ? preg_replace('/(\d{2})(\d{5})(\d{4})/', '($1) $2-$3', $estagiario->numero_celular) : '' }}</p>
-                    <p class="mb-1"><strong>Email:</strong> {{ $estagiario->email }}</p>
+                    <p class="mb-1"><strong>Telefone:</strong>
+                        {{ $estagiario->numero_telefone ? preg_replace('/(\d{2})(\d{4,5})(\d{4})/', '($1) $2-$3', $estagiario->numero_telefone) : '' }}
+                    </p>
+                    <p class="mb-1"><strong>Celular:</strong>
+                        {{ $estagiario->numero_celular ? preg_replace('/(\d{2})(\d{5})(\d{4})/', '($1) $2-$3', $estagiario->numero_celular) : '' }}
+                        @if($estagiario->numero_celular)
+                            <a href="https://wa.me/55{{ preg_replace('/[^0-9]/', '', $estagiario->numero_celular) }}"
+                                target="_blank"
+                                class="btn btn-success btn-sm ms-2"
+                                title="Abrir WhatsApp">
+                                <i class="fab fa-whatsapp"></i>
+                            </a>
+                        @endif
+                    </p>
+                    <p class="mb-1"><strong>Email:</strong> {{ $estagiario->email }}
+                        @if($estagiario->email)
+                            <button type="button" class="btn btn-outline-primary btn-sm ms-2"
+                                    data-email="{{ $estagiario->email }}"
+                                    onclick="copyEmailToClipboard(this.dataset.email, this)"
+                                    title="Copiar email">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        @endif
+                    </p>
                     <hr class="my-2">
                     <h6 class="text-muted mb-3">Endereço</h6>
-                    <p class="mb-1"><strong>CEP:</strong> {{ $estagiario->numero_cep ? preg_replace('/(\d{5})(\d{3})/', '$1-$2', $estagiario->numero_cep) : '' }}</p>
+                    <p class="mb-1"><strong>CEP:</strong>
+                        {{ $estagiario->numero_cep ? preg_replace('/(\d{5})(\d{3})/', '$1-$2', $estagiario->numero_cep) : '' }}
+                    </p>
                     <p class="mb-1"><strong>Endereço:</strong> {{ $estagiario->endereco }},
                         {{ $estagiario->numero_endereco }}
                     </p>
@@ -69,4 +95,62 @@
             </form>
         </div>
     </div>
+@endsection
+
+@section('scripts')
+<script>
+function copyEmailToClipboard(email, button) {
+    if (!email) return;
+    
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(email).then(function() {
+            // Feedback visual
+            const originalHTML = button.innerHTML;
+            button.innerHTML = '<i class="fas fa-check"></i> Copiado!';
+            button.classList.add('btn-success');
+            button.classList.remove('btn-outline-primary');
+            
+            setTimeout(function() {
+                button.innerHTML = originalHTML;
+                button.classList.remove('btn-success');
+                button.classList.add('btn-outline-primary');
+            }, 2000);
+        }).catch(function(err) {
+            console.error('Erro ao copiar:', err);
+            fallbackCopyTextToClipboard(email);
+        });
+    } else {
+        fallbackCopyTextToClipboard(email);
+    }
+}
+
+function fallbackCopyTextToClipboard(text) {
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+    textArea.style.position = "fixed";
+    textArea.style.top = "0";
+    textArea.style.left = "0";
+    textArea.style.width = "2em";
+    textArea.style.height = "2em";
+    textArea.style.padding = "0";
+    textArea.style.border = "none";
+    textArea.style.outline = "none";
+    textArea.style.boxShadow = "none";
+    textArea.style.background = "transparent";
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    
+    try {
+        const successful = document.execCommand('copy');
+        if (successful) {
+            alert('E-mail copiado: ' + text);
+        }
+    } catch (err) {
+        console.error('Erro ao copiar texto: ', err);
+    }
+    
+    document.body.removeChild(textArea);
+}
+</script>
 @endsection

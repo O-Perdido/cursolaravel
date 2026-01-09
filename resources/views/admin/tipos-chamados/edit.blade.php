@@ -71,9 +71,9 @@
             </div>
 
             <div class="d-flex justify-content-between mt-4">
-                <a href="{{ route('admin.tipos-chamados.index') }}" class="btn btn-secondary">
+                <button onclick="window.NavigationHistory?.goBack('{{ route('admin.tipos-chamados.index') }}')" class="btn btn-secondary" title="Voltar para a página anterior com filtros preservados">
                     <i class="fas fa-arrow-left me-2"></i>Cancelar
-                </a>
+                </button>
                 <button type="submit" class="btn btn-primary">
                     <i class="fas fa-save me-2"></i>Atualizar
                 </button>

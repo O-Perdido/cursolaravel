@@ -176,9 +176,10 @@
                     <h6 class="mb-0">Ações</h6>
                 </div>
                 <div class="card-body">
-                    <a href="{{ route('chamados.index') }}" class="btn btn-secondary w-100 mb-2">
+                    <button onclick="window.NavigationHistory?.goBack('{{ route('chamados.index') }}')"
+                        class="btn btn-secondary w-100 mb-2" title="Voltar para a página anterior com filtros preservados">
                         <i class="fas fa-arrow-left me-2"></i>Voltar
-                    </a>
+                    </button>
 
                     @if(Auth::user()->nivel === 'empresa' && !in_array($chamado->status, ['concluido', 'cancelado']))
                         <form action="{{ route('chamados.cancelar', $chamado->id_chamado) }}" method="POST"

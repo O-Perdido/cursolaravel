@@ -47,9 +47,10 @@
 
     <!-- Botão Voltar e Salvar no topo -->
     <div class="mb-3 d-flex justify-content-between">
-        <a href="{{ route('folhas.index') }}" class="btn btn-secondary">
+        <button onclick="window.NavigationHistory?.goBack('{{ route('folhas.index') }}')" class="btn btn-secondary"
+            title="Voltar para a página anterior com filtros preservados">
             <i class="fas fa-arrow-left"></i> Voltar
-        </a>
+        </button>
         <button type="button" id="btn-salvar-folha-topo" class="btn btn-primary">
             <i class="fas fa-save"></i> Salvar
         </button>
@@ -148,7 +149,8 @@
                                     <input type="number" class="form-control" name="dias_trabalhados_{{ $conteudo->id }}"
                                         value="{{ $conteudo->dias_trabalhados }}"
                                         style="width: 60px; height: 30px; text-align: center; appearance: textfield;" min="0"
-                                        max="{{ $diasPadraoCalculo ?? 30 }}" oninput="if(this.value > {{ $diasPadraoCalculo ?? 30 }}) this.value={{ $diasPadraoCalculo ?? 30 }}; if(this.value < 0) this.value=0;">
+                                        max="{{ $diasPadraoCalculo ?? 30 }}"
+                                        oninput="if(this.value > {{ $diasPadraoCalculo ?? 30 }}) this.value={{ $diasPadraoCalculo ?? 30 }}; if(this.value < 0) this.value=0;">
                                 </div>
                             </td>
                             <td style="text-align: center;">
@@ -429,7 +431,7 @@
                                 });
                             @endforeach
 
-                                                    const totalRegistros = todosRegistros.length;
+                                                        const totalRegistros = todosRegistros.length;
                             const TAMANHO_LOTE = 50; // Envia 50 registros por vez
                             const totalLotes = Math.ceil(totalRegistros / TAMANHO_LOTE);
 

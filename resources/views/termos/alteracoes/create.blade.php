@@ -6,7 +6,8 @@
 
     <h1>Alterar Termo de Estágio - Número: {{ $termo_selecionado->numero_termo }}/{{ $termo_selecionado->ano_termo }}
     </h1>
-    <a href="{{ route('alteracoes.index', $id_termo)}}" class="btn btn-secondary mb-3">Voltar</a>
+    <button onclick="window.NavigationHistory?.goBack('{{ route('alteracoes.index', $id_termo)}}');"
+        class="btn btn-secondary mb-3" title="Voltar para a página anterior com filtros preservados">Voltar</button>
     <form action="{{ route('alteracao.store', $id_termo) }}" method="POST">
         @csrf
         @method('POST')
@@ -82,13 +83,13 @@
                 <div class="form-group">
                     <label for="descricao">Descrição das Alterações</label>
                     <textarea class="form-control" id="descricao" name="descricao" rows="10" required>
-    Cláusula Única:
-        Fica estabelecido as seguintes alterações:
+        Cláusula Única:
+            Fica estabelecido as seguintes alterações:
 
-        a) [Descreva as alterações aqui]
+            a) [Descreva as alterações aqui]
 
-        E, por estarem as partes certas e compromissadas, assinam o presente instrumento de maneira eletrônica na forma da lei 14063/2020 que dispõe sobre assinaturas eletrônicas.
-                                        </textarea>
+            E, por estarem as partes certas e compromissadas, assinam o presente instrumento de maneira eletrônica na forma da lei 14063/2020 que dispõe sobre assinaturas eletrônicas.
+                                            </textarea>
                 </div>
             </div>
 

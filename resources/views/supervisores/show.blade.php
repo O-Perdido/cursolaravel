@@ -4,7 +4,8 @@
 
 @section('content')
     <h1>Detalhes do Supervisor</h1>
-    <a href="{{ route('supervisores.index') }}" class="btn btn-secondary mb-3">Voltar</a> <!-- Botão de Voltar -->
+    <button onclick="window.NavigationHistory?.goBack('{{ route('supervisores.index') }}')" class="btn btn-secondary mb-3"
+        title="Voltar para a página anterior com filtros preservados">Voltar</button>
     <div class="card">
         <div class="card-header">
             {{ $supervisor->nome_supervisor }}

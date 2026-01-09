@@ -29,7 +29,7 @@
     <!--<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">-->
     <script src="https://kit.fontawesome.com/464848a8f8.js" crossorigin="anonymous"></script>
     {{-- Carregar o JavaScript --}}
-    <script src="{{ asset('build/assets/app-DDXejXYp.js') }}" defer></script>
+    <script src="{{ asset('build/assets/app-DpAvhFZP.js') }}" defer></script>
 
     <style>
         /* Estilos específicos para layout com sidebar (apenas desktop) */
@@ -560,13 +560,13 @@
                                         href="https://ebcpconsultoria.com.br/quem-somos/">Sobre Nós</a></li>
                                 <li><a class="text-white" target="_blank"
                                         href="https://ebcpconsultoria.com.br/solucoes-para-empresas/">Serviços</a></li>
-                                        <!-- Link Central de Ajuda -->
-                        <div class="mt-3">
-                            <a href="{{ route('ajuda') }}" class="btn btn-sm btn-outline-light"
-                                style="border-radius: 20px; padding: 5px 20px; font-size: 0.85rem;" target="_blank">
-                                <i class="fas fa-question-circle"></i> Central de Ajuda
-                            </a>
-                        </div>
+                                <!-- Link Central de Ajuda -->
+                                <div class="mt-3">
+                                    <a href="{{ route('ajuda') }}" class="btn btn-sm btn-outline-light"
+                                        style="border-radius: 20px; padding: 5px 20px; font-size: 0.85rem;" target="_blank">
+                                        <i class="fas fa-question-circle"></i> Central de Ajuda
+                                    </a>
+                                </div>
                             @endif
                         @endauth
                         @guest
@@ -574,13 +574,13 @@
                                     href="https://ebcpconsultoria.com.br/quem-somos/">Sobre Nós</a></li>
                             <li><a class="text-white" target="_blank"
                                     href="https://ebcpconsultoria.com.br/solucoes-para-empresas/">Serviços</a></li>
-                                    <!-- Link Central de Ajuda -->
-                        <div class="mt-3">
-                            <a href="{{ route('ajuda') }}" class="btn btn-sm btn-outline-light"
-                                style="border-radius: 20px; padding: 5px 20px; font-size: 0.85rem;" target="_blank">
-                                <i class="fas fa-question-circle"></i> Central de Ajuda
-                            </a>
-                        </div>
+                            <!-- Link Central de Ajuda -->
+                            <div class="mt-3">
+                                <a href="{{ route('ajuda') }}" class="btn btn-sm btn-outline-light"
+                                    style="border-radius: 20px; padding: 5px 20px; font-size: 0.85rem;" target="_blank">
+                                    <i class="fas fa-question-circle"></i> Central de Ajuda
+                                </a>
+                            </div>
                         @endguest
                     </ul>
                 </div>
@@ -635,7 +635,8 @@
                                     Pedro
                                     Developer</a>
                                 <span class="mb-1">&amp;</span>
-                                <a href="https://www.linkedin.com/in/davi-aguiar-b4b738280?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=ios_app" target="_blank" class="text-white text-decoration-underline">Davi Aguiar
+                                <a href="https://www.linkedin.com/in/davi-aguiar-b4b738280?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=ios_app"
+                                    target="_blank" class="text-white text-decoration-underline">Davi Aguiar
                                     Developer</a>
                             </span>
                         </div>

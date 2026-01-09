@@ -5,7 +5,8 @@
 @section('content')
 
     <h1>Adicionar Termo de Estágio</h1>
-    <a href="{{ route('termos.index') }}" class="btn btn-secondary mb-3">Voltar</a>
+    <button onclick="window.NavigationHistory?.goBack('{{ route('termos.index') }}')" class="btn btn-secondary mb-3"
+        title="Voltar para a página anterior com filtros preservados">Voltar</button>
 
     @if ($errors->any())
         <div class="alert alert-danger alert-dismissible fade show" role="alert">

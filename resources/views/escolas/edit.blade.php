@@ -4,7 +4,8 @@
 
 @section('content')
     <h1>Editar Instituição de Ensino</h1>
-    <a href="{{ route('escolas.index') }}" class="btn btn-secondary mb-3">Voltar</a>
+    <button onclick="window.NavigationHistory?.goBack('{{ route('escolas.index') }}')" class="btn btn-secondary mb-3"
+        title="Voltar para a página anterior com filtros preservados">Voltar</button>
     <form action="{{ route('escolas.update', $escola->id_escola) }}" method="POST">
         @csrf
         @method('PUT')

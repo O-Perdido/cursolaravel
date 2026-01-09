@@ -4,7 +4,8 @@
 
 @section('content')
     <h1>Detalhes da Unidade Concedente</h1>
-    <a href="{{ route('empresas.index') }}" class="btn btn-secondary mb-3">Voltar</a>
+    <button onclick="window.NavigationHistory?.goBack('{{ route('empresas.index') }}')" class="btn btn-secondary mb-3"
+        title="Voltar para a página anterior com filtros preservados">Voltar</button>
     <div class="card shadow-sm">
         <div class="card-header text-black">
             <div class="d-flex justify-content-between align-items-center">
@@ -354,12 +355,12 @@
                     locais.forEach(local => {
                         const tr = document.createElement('tr');
                         tr.innerHTML = `
-                                        <td>${local.descricao ?? ''}</td>
-                                        <td class="text-end">
-                                            <button class="btn btn-sm btn-outline-primary me-1" data-action="editar" data-id="${local.id_local}">Editar</button>
-                                            <button class="btn btn-sm btn-outline-danger" data-action="excluir" data-id="${local.id_local}" data-desc="${local.descricao ?? ''}">Excluir</button>
-                                        </td>
-                                    `;
+                                                <td>${local.descricao ?? ''}</td>
+                                                <td class="text-end">
+                                                    <button class="btn btn-sm btn-outline-primary me-1" data-action="editar" data-id="${local.id_local}">Editar</button>
+                                                    <button class="btn btn-sm btn-outline-danger" data-action="excluir" data-id="${local.id_local}" data-desc="${local.descricao ?? ''}">Excluir</button>
+                                                </td>
+                                            `;
                         listaBody.appendChild(tr);
                     });
                 }

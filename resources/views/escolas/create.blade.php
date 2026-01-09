@@ -15,7 +15,8 @@
         </div>
     @endif
     <h1>Adicionar Instituição de Ensino</h1>
-    <a href="{{ route('escolas.index') }}" class="btn btn-secondary mb-3">Voltar</a>
+    <button onclick="window.NavigationHistory?.goBack('{{ route('escolas.index') }}')" class="btn btn-secondary mb-3"
+        title="Voltar para a página anterior com filtros preservados">Voltar</button>
     <form action="{{ route('escolas.store') }}" method="POST">
         @csrf
         <div class="row">

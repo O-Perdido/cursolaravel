@@ -4,7 +4,8 @@
 
 @section('content')
     <h1>Adicionar Unidade Concedente</h1>
-    <a href="{{ route('empresas.index') }}" class="btn btn-secondary mb-3">Voltar</a>
+    <button onclick="window.NavigationHistory?.goBack('{{ route('empresas.index') }}')" class="btn btn-secondary mb-3"
+        title="Voltar para a página anterior com filtros preservados">Voltar</button>
     <form action="{{ route('empresas.store') }}" method="POST">
         @csrf
         @method('POST')
