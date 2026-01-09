@@ -80,10 +80,10 @@
         <div class="col col-md-4">
             <div class="card text-center" style="margin-bottom: 10px;">
                 <div class="card-body">
-                    <h5 class="card-title">Meus Locais</h5>
-                    <p class="card-text">Gerencie os locais da sua unidade concedente.</p>
+                    <h5 class="card-title">Meus Departamentos</h5>
+                    <p class="card-text">Gerencie os seus departamentos.</p>
                     <button type="button" class="btn btn-primary" data-bs-toggle="modal"
-                        data-bs-target="#meusLocaisModal">Gerenciar Locais</button>
+                        data-bs-target="#meusLocaisModal">Gerenciar Departamentos</button>
                 </div>
             </div>
         </div>
@@ -94,12 +94,13 @@
         <div class="modal-dialog modal-lg modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="meusLocaisModalLabel">Meus Locais</h5>
+                    <h5 class="modal-title" id="meusLocaisModalLabel">Meus Departamentos</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <div class="d-flex justify-content-end mb-2">
-                        <button type="button" id="btnNovoMeuLocal" class="btn btn-success btn-sm">Adicionar Local</button>
+                        <button type="button" id="btnNovoMeuLocal" class="btn btn-success btn-sm">Adicionar
+                            Departamento</button>
                     </div>
                     <div id="meusLocaisLoading" class="text-center text-muted py-2" style="display:none;">Carregando...
                     </div>
@@ -114,7 +115,8 @@
                             <tbody id="meusLocaisBody"></tbody>
                         </table>
                     </div>
-                    <div id="meusLocaisVazio" class="alert alert-info py-2" style="display:none;">Nenhum local cadastrado.
+                    <div id="meusLocaisVazio" class="alert alert-info py-2" style="display:none;">Nenhum departamento
+                        cadastrado.
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -124,13 +126,13 @@
         </div>
     </div>
 
-    <!-- Modal: Editar Local (empresa) -->
+    <!-- Modal: Editar Departamento (empresa) -->
     <div class="modal fade" id="editarMeuLocalModal" tabindex="-1" aria-labelledby="editarMeuLocalModalLabel"
         aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="editarMeuLocalModalLabel">Editar Local</h5>
+                    <h5 class="modal-title" id="editarMeuLocalModalLabel">Editar Departamento</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
@@ -185,10 +187,10 @@
                 cache.forEach(l => {
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
-                                                                <td>${l.descricao ?? ''}</td>
-                                                                <td class="text-end">
-                                                                    <button class="btn btn-sm btn-outline-primary" data-action="editar" data-id="${l.id_local}">Editar</button>
-                                                                </td>`;
+                                                                                    <td>${l.descricao ?? ''}</td>
+                                                                                    <td class="text-end">
+                                                                                        <button class="btn btn-sm btn-outline-primary" data-action="editar" data-id="${l.id_local}">Editar</button>
+                                                                                    </td>`;
                     body.appendChild(tr);
                 });
             }
@@ -208,7 +210,7 @@
             function abrirEdicao(local) {
                 editId = local.id_local;
                 editarDesc.value = local.descricao || '';
-                if (modalEditarTitulo) modalEditarTitulo.textContent = 'Editar Local';
+                if (modalEditarTitulo) modalEditarTitulo.textContent = 'Editar Departamento';
                 editarAlert.style.display = 'none';
                 showModal(modalEditarEl);
             }
@@ -216,7 +218,7 @@
             function abrirCriacao() {
                 editId = null;
                 editarDesc.value = '';
-                if (modalEditarTitulo) modalEditarTitulo.textContent = 'Novo Local';
+                if (modalEditarTitulo) modalEditarTitulo.textContent = 'Novo Departamento';
                 editarAlert.style.display = 'none';
                 showModal(modalEditarEl);
             }

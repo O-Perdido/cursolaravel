@@ -82,12 +82,12 @@
                     <th>Número</th>
                     <th>Título</th>
                     @if (Auth::user()->nivel == 'admin' || Auth::user()->nivel == 'operador')
-                    <th>Empresa</th>
+                        <th>Empresa</th>
                     @endif
                     @if (Auth::user()->nivel == 'empresa')
-                    <th>Local</th>                    
-                    @endif                                            
-                    <th>Estagiário</th>                    
+                        <th>Departamento</th>
+                    @endif
+                    <th>Estagiário</th>
                     <th>Período</th>
                     <th>Status</th>
                     <th class="text-center">Ações</th>
@@ -99,21 +99,21 @@
                         <td><strong>{{ $vaga->numero_vaga }}</strong></td>
                         <td>{{ $vaga->titulo_vaga ?? '-' }}</td>
                         @if (Auth::user()->nivel == 'admin' || Auth::user()->nivel == 'operador')
-                        <td>{{ $vaga->empresa->nome_empresa ?? '-' }}</td>
+                            <td>{{ $vaga->empresa->nome_empresa ?? '-' }}</td>
                         @endif
                         @if (Auth::user()->nivel == 'empresa')
-                        <td>{{ $vaga->local->descricao ?? '-' }}</td>
-                        @endif                       
+                            <td>{{ $vaga->local->descricao ?? '-' }}</td>
+                        @endif
                         <td>{{ $vaga->termo->estagiario->nome_estagiario ?? 'Não vinculado' }}
                             @if (Auth::user()->nivel == 'admin' || Auth::user()->nivel == 'operador')
-                            @if($vaga->fk_id_termo)                                              
-                            <a href="{{ route('estagiario.show', $vaga->termo->estagiario->id_estagiario) }}"
-                                        target="_blank" class="ml-1" title="Ver detalhes do estagiário">
+                                @if($vaga->fk_id_termo)
+                                    <a href="{{ route('estagiario.show', $vaga->termo->estagiario->id_estagiario) }}" target="_blank"
+                                        class="ml-1" title="Ver detalhes do estagiário">
                                         <i class="fas fa-external-link-alt"></i>
-                            </a>
+                                    </a>
+                                @endif
                             @endif
-                            @endif
-                            </td>
+                        </td>
                         <td>
                             <small>
                                 {{ \Carbon\Carbon::parse($vaga->data_inicio)->format('d/m/Y') }} -
@@ -135,6 +135,14 @@
                                     title="Editar">
                                     <i class="fas fa-edit"></i>
                                 </a>
+                                <!-- Botão atalho para o termo vinculado -->
+                                @if($vaga->fk_id_termo)
+                                    <a href="{{ route('termos.show', $vaga->fk_id_termo) }}" class="btn btn-info btn-sm"
+                                        title="Ver Termo Vinculado">
+                                        <i class="fas fa-file-contract"></i>
+                                    </a>
+                                @endif
+                                <!-- Botão para preencher a vaga (gerar termo) -->
                                 @if((Auth::user()->nivel == 'admin' || Auth::user()->nivel == 'operador') && $vaga->status == 'disponivel' && !$vaga->fk_id_termo)
                                     <a href="{{ route('termos.create', ['empresa_id' => $vaga->fk_id_empresa, 'vaga_id' => $vaga->id_vaga]) }}"
                                         class="btn btn-info btn-sm" title="Preencher Vaga (gerar termo)">

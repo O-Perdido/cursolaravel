@@ -144,14 +144,14 @@
 
                         <!-- Local -->
                         <div class="mb-3" style="position: relative;">
-                            <label for="fk_id_local" class="form-label">Local <small
+                            <label for="fk_id_local" class="form-label">Departamento <small
                                     class="text-muted">(opcional)</small></label>
                             <input type="text" class="form-control form-control-sm" id="local_search"
                                 placeholder="Digite para buscar..." autocomplete="off" {{ $vaga->fk_id_termo ? 'readonly' : '' }} value="{{ $vaga->local->descricao ?? '' }}">
                             <select class="form-control form-control-sm mt-2" id="fk_id_local" name="fk_id_local" size="5"
                                 {{ $vaga->fk_id_termo ? 'disabled' : '' }}
                                 style="display:none; position: absolute; top: 60px; left: 0; width: 100%; z-index: 1050; background: #fff; border: 1px solid #ced4da;">
-                                <option value="">Escolha um local</option>
+                                <option value="">Escolha um departamento</option>
                                 @foreach($locais as $local)
                                     <option value="{{ $local->id_local }}" {{ old('fk_id_local', $vaga->fk_id_local) == $local->id_local ? 'selected' : '' }}>
                                         {{ $local->descricao }}

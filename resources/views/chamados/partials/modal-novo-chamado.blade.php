@@ -34,16 +34,46 @@
         const select = document.getElementById('tipo_chamado_select');
         const form = document.getElementById('formSelecionarTipo');
 
+        // Verifica se os elementos existem
+        if (!modal) {
+            console.error('❌ Modal #modalNovoChamado não encontrado!');
+            return;
+        }
+        if (!select) {
+            console.error('❌ Select #tipo_chamado_select não encontrado!');
+            return;
+        }
+        if (!form) {
+            console.error('❌ Form #formSelecionarTipo não encontrado!');
+            return;
+        }
+
+        console.log('✅ Modal de chamados inicializado corretamente');
+
         // Carrega tipos de chamados quando o modal é aberto
         modal.addEventListener('show.bs.modal', function () {
-            fetch('{{ route("api.tipos-chamados.ativos") }}')
+            // Adiciona um log para debug
+            console.log('🔍 Carregando tipos de chamado...');
+
+            fetch('{{ route("api.tipos-chamados.ativos") }}', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                },
+                credentials: 'same-origin'
+            })
                 .then(response => {
+                    console.log('📡 Resposta recebida:', response.status, response.statusText);
                     if (!response.ok) {
                         throw new Error('Erro HTTP: ' + response.status);
                     }
                     return response.json();
                 })
                 .then(data => {
+                    console.log('✅ Dados recebidos:', data);
                     select.innerHTML = '<option value="">Selecione...</option>';
                     if (Array.isArray(data) && data.length > 0) {
                         data.forEach(tipo => {
@@ -55,12 +85,13 @@
                             }
                             select.appendChild(option);
                         });
+                        console.log(`✅ ${data.length} tipos de chamado carregados`);
                     } else {
-                        console.warn('Nenhum tipo de chamado encontrado');
+                        console.warn('⚠️ Nenhum tipo de chamado encontrado ou dados inválidos');
                     }
                 })
                 .catch(error => {
-                    console.error('Erro ao carregar tipos de chamado:', error);
+                    console.error('❌ Erro ao carregar tipos de chamado:', error);
                     alert('Erro ao carregar tipos de chamado. Tente novamente.\nDetalhes: ' + error.message);
                 });
         });

@@ -59,6 +59,11 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
+    // Ignora requisições POST, PUT, DELETE (não cacheia formulários)
+    if (request.method !== 'GET') {
+        return;
+    }
+
     // Estratégia: Network First para páginas HTML (sempre atualizado)
     if (request.headers.get('accept').includes('text/html')) {
         event.respondWith(

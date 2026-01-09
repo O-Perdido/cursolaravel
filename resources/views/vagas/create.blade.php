@@ -163,20 +163,20 @@
                 <div class="col-md-6">
                     <!-- Local -->
                     <div class="mb-3" style="position: relative;">
-                        <label for="fk_id_local" class="form-label">Local <small
+                        <label for="fk_id_local" class="form-label">Departamento <small
                                 class="text-muted">(opcional)</small></label>
                         <input type="text" class="form-control form-control-sm" id="local_search"
                             placeholder="Digite para buscar..." autocomplete="off" {{ (isset($empresaSelecionada) && $empresaSelecionada) ? '' : ((auth()->user()->nivel !== 'empresa') ? 'disabled' : '') }}>
                         <select class="form-control form-control-sm mt-2" id="fk_id_local" name="fk_id_local" size="5"
                             style="display:none; position: absolute; top: 60px; left: 0; width: 100%; z-index: 1050; background: #fff; border: 1px solid #ced4da;">
-                            <option value="">Nenhum local selecionado</option>
+                            <option value="">Nenhum departamento selecionado</option>
                             @foreach($locais as $local)
                                 <option value="{{ $local->id_local }}" {{ old('fk_id_local') == $local->id_local ? 'selected' : '' }}>
                                     {{ $local->descricao }}
                                 </option>
                             @endforeach
                         </select>
-                        <small id="local_help" class="form-text text-muted">Se não houver locais, deixe em
+                        <small id="local_help" class="form-text text-muted">Se não houver departamentos, deixe em
                             branco.</small>
                     </div>
 
@@ -317,12 +317,12 @@
                 localSelect.innerHTML = '';
                 const optPadrao = document.createElement('option');
                 optPadrao.value = '';
-                optPadrao.textContent = 'Nenhum local selecionado';
+                optPadrao.textContent = 'Nenhum departamento selecionado';
                 localSelect.appendChild(optPadrao);
                 if (dados.length === 0) {
-                    localHelp.textContent = 'Nenhum local encontrado para esta empresa. Você pode salvar sem local.';
+                    localHelp.textContent = 'Nenhum departamento encontrado para esta empresa. Você pode salvar sem departamento.';
                 } else {
-                    localHelp.textContent = 'Selecione um local ou deixe em branco.';
+                    localHelp.textContent = 'Selecione um departamento ou deixe em branco.';
                     dados.forEach(l => {
                         const opt = document.createElement('option');
                         opt.value = l.id;
@@ -447,8 +447,8 @@
             carregarSupervisores(@json($empresaSelecionada));
         @endif
 
-                                                                                        // Filtro do dropdown de Supervisor
-                                                                                if (supervisorSearch) {
+                                                                                                            // Filtro do dropdown de Supervisor
+                                                                                                    if (supervisorSearch) {
             supervisorSearch.addEventListener('focus', function () {
                 supervisorSelect.style.display = 'block';
             });
@@ -645,14 +645,14 @@
             const icon = tipo === 'success' ? '✓' : '✕';
 
             const toastHTML = `
-                                                    <div id="${toastId}" class="toast" role="alert" aria-live="assertive" aria-atomic="true" style="pointer-events: auto;">
-                                                        <div class="toast-header ${bgColor} text-white">
-                                                            <strong class="me-auto">${icon} ${tipo === 'success' ? 'Sucesso' : 'Erro'}</strong>
-                                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
-                                                        </div>
-                                                        <div class="toast-body">${mensagem}</div>
-                                                    </div>
-                                                `;
+                                                                        <div id="${toastId}" class="toast" role="alert" aria-live="assertive" aria-atomic="true" style="pointer-events: auto;">
+                                                                            <div class="toast-header ${bgColor} text-white">
+                                                                                <strong class="me-auto">${icon} ${tipo === 'success' ? 'Sucesso' : 'Erro'}</strong>
+                                                                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+                                                                            </div>
+                                                                            <div class="toast-body">${mensagem}</div>
+                                                                        </div>
+                                                                    `;
 
             container.insertAdjacentHTML('beforeend', toastHTML);
             const toastEl = document.getElementById(toastId);
