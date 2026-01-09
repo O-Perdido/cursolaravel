@@ -18,7 +18,9 @@ class Supervisor extends Model
         'fk_id_empresa',
         'area_formacao',
         'tempo_experiencia',
-        'cpf_supervisor' // Nova coluna adicionada
+        'cpf_supervisor',
+        'celular_supervisor',
+        'email_supervisor'
     ];
 
     // Definir o relacionamento com a empresa

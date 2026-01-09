@@ -45,6 +45,18 @@
                     <div class="invalid-feedback" style="display:block;">{{ $message }}</div>
                 @enderror
             </div>
+            <div class="form-group mb-2">
+                <label for="celular_supervisor">Número de Celular</label>
+                <input type="tel" class="form-control" id="celular_supervisor" maxlength="15" name="celular_supervisor"
+                    value="{{ old('celular_supervisor', $supervisor->celular_supervisor) }}"
+                    placeholder="(DD) 90000-0000">
+            </div>
+            <div class="form-group mb-2">
+                <label for="email_supervisor">E-mail</label>
+                <input type="email" class="form-control" id="email_supervisor" name="email_supervisor"
+                    value="{{ old('email_supervisor', $supervisor->email_supervisor) }}"
+                    placeholder="email@exemplo.com">
+            </div>
         </div>
         <!-- Formação e Experiência -->
         <div class="col-md-6">
@@ -70,6 +82,28 @@
         const cpfInput = document.getElementById('cpf_supervisor');
         const cpfError = document.getElementById('cpf_error');
         const saveButton = document.getElementById('save_button');
+        const celularInput = document.getElementById('celular_supervisor');
+
+        function mascaraCelular(value) {
+            value = value.replace(/\D/g, '');
+            if (value.length <= 10) {
+                value = value.replace(/(\d{2})(\d)/, '($1) $2');
+                value = value.replace(/(\d{4})(\d)/, '$1-$2');
+            } else {
+                value = value.replace(/(\d{2})(\d)/, '($1) $2');
+                value = value.replace(/(\d{5})(\d)/, '$1-$2');
+            }
+            return value;
+        }
+
+        // Aplicar máscara inicial caso já tenha valor
+        if (celularInput.value) {
+            celularInput.value = mascaraCelular(celularInput.value);
+        }
+
+        celularInput.addEventListener('input', function () {
+            this.value = mascaraCelular(this.value);
+        });
 
         cpfInput.addEventListener('input', function () {
             if (isValidCPF(cpfInput.value)) {

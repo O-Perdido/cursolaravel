@@ -447,8 +447,8 @@
             carregarSupervisores(@json($empresaSelecionada));
         @endif
 
-                                                                            // Filtro do dropdown de Supervisor
-                                                                    if (supervisorSearch) {
+                                                                                        // Filtro do dropdown de Supervisor
+                                                                                if (supervisorSearch) {
             supervisorSearch.addEventListener('focus', function () {
                 supervisorSelect.style.display = 'block';
             });
@@ -524,6 +524,16 @@
                                 duplicado.</div>
                         </div>
                         <div class="form-group mb-3">
+                            <label for="modal_celular_supervisor" class="form-label">Número de Celular</label>
+                            <input type="tel" class="form-control" id="modal_celular_supervisor" maxlength="15"
+                                name="celular_supervisor" placeholder="(DD) 90000-0000">
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="modal_email_supervisor" class="form-label">E-mail</label>
+                            <input type="email" class="form-control" id="modal_email_supervisor" name="email_supervisor"
+                                placeholder="email@exemplo.com">
+                        </div>
+                        <div class="form-group mb-3">
                             <label for="modal_area_formacao" class="form-label">Área de Formação</label>
                             <input type="text" class="form-control" id="modal_area_formacao" name="area_formacao">
                         </div>
@@ -552,6 +562,7 @@
         const cpfStatus = document.getElementById('modalCpfStatus');
         const cpfError = document.getElementById('modalCpfError');
         const btnSalvar = document.getElementById('btnSalvarSupervisor');
+        const celularInput = document.getElementById('modal_celular_supervisor');
 
         function formatarCPF(valor) {
             valor = valor.replace(/\D/g, '');
@@ -561,6 +572,22 @@
             if (valor.length <= 9) return valor.slice(0, 3) + '.' + valor.slice(3, 6) + '.' + valor.slice(6);
             return valor.slice(0, 3) + '.' + valor.slice(3, 6) + '.' + valor.slice(6, 9) + '-' + valor.slice(9);
         }
+
+        function mascaraCelular(value) {
+            value = value.replace(/\D/g, '');
+            if (value.length <= 10) {
+                value = value.replace(/(\d{2})(\d)/, '($1) $2');
+                value = value.replace(/(\d{4})(\d)/, '$1-$2');
+            } else {
+                value = value.replace(/(\d{2})(\d)/, '($1) $2');
+                value = value.replace(/(\d{5})(\d)/, '$1-$2');
+            }
+            return value;
+        }
+
+        celularInput.addEventListener('input', function () {
+            this.value = mascaraCelular(this.value);
+        });
 
         function validarCPF(cpf) {
             cpf = cpf.replace(/\D/g, '');
@@ -618,14 +645,14 @@
             const icon = tipo === 'success' ? '✓' : '✕';
 
             const toastHTML = `
-                                        <div id="${toastId}" class="toast" role="alert" aria-live="assertive" aria-atomic="true" style="pointer-events: auto;">
-                                            <div class="toast-header ${bgColor} text-white">
-                                                <strong class="me-auto">${icon} ${tipo === 'success' ? 'Sucesso' : 'Erro'}</strong>
-                                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
-                                            </div>
-                                            <div class="toast-body">${mensagem}</div>
-                                        </div>
-                                    `;
+                                                    <div id="${toastId}" class="toast" role="alert" aria-live="assertive" aria-atomic="true" style="pointer-events: auto;">
+                                                        <div class="toast-header ${bgColor} text-white">
+                                                            <strong class="me-auto">${icon} ${tipo === 'success' ? 'Sucesso' : 'Erro'}</strong>
+                                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+                                                        </div>
+                                                        <div class="toast-body">${mensagem}</div>
+                                                    </div>
+                                                `;
 
             container.insertAdjacentHTML('beforeend', toastHTML);
             const toastEl = document.getElementById(toastId);

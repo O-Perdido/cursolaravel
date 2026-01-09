@@ -44,6 +44,16 @@
                     <div class="invalid-feedback" style="display:block;">{{ $message }}</div>
                 @enderror
             </div>
+            <div class="form-group mb-2">
+                <label for="celular_supervisor">Número de Celular</label>
+                <input type="tel" class="form-control" id="celular_supervisor" maxlength="15" name="celular_supervisor"
+                    value="{{ old('celular_supervisor') }}" placeholder="(DD) 90000-0000">
+            </div>
+            <div class="form-group mb-2">
+                <label for="email_supervisor">E-mail</label>
+                <input type="email" class="form-control" id="email_supervisor" name="email_supervisor"
+                    value="{{ old('email_supervisor') }}" placeholder="email@exemplo.com">
+            </div>
         </div>
         <!-- Formação e Experiência -->
         <div class="col-md-6">
@@ -125,6 +135,18 @@
                 document.getElementById('save_button').disabled = !cpfValido;
             }
 
+            function mascaraCelular(value) {
+                value = value.replace(/\D/g, '');
+                if (value.length <= 10) {
+                    value = value.replace(/(\d{2})(\d)/, '($1) $2');
+                    value = value.replace(/(\d{4})(\d)/, '$1-$2');
+                } else {
+                    value = value.replace(/(\d{2})(\d)/, '($1) $2');
+                    value = value.replace(/(\d{5})(\d)/, '$1-$2');
+                }
+                return value;
+            }
+
             document.getElementById('cpf_supervisor').addEventListener('input', function () {
                 const cpfValido = validarCPF(this.value);
                 const cpfError = document.getElementById('cpfError');
@@ -136,6 +158,10 @@
                     cpfError.style.display = 'none';
                 }
                 checarCamposValidos();
+            });
+
+            document.getElementById('celular_supervisor').addEventListener('input', function () {
+                this.value = mascaraCelular(this.value);
             });
 
             document.addEventListener('DOMContentLoaded', function () {

@@ -79,6 +79,10 @@ class SupervisorController extends Controller
             $request->merge(['cpf_supervisor' => preg_replace('/\D/', '', $request->cpf_supervisor)]);
         }
 
+        if ($request->filled('celular_supervisor')) {
+            $request->merge(['celular_supervisor' => preg_replace('/\D/', '', $request->celular_supervisor)]);
+        }
+
         $user = Auth::user();
         if ($user && $user->nivel === 'empresa') {
             // Garante vínculo antes da validação
@@ -91,6 +95,8 @@ class SupervisorController extends Controller
             'cpf_supervisor' => 'required|string|unique:tb_supervisores,cpf_supervisor',
             'area_formacao' => 'nullable|string',
             'tempo_experiencia' => 'nullable|string',
+            'celular_supervisor' => 'nullable|string|max:20',
+            'email_supervisor' => 'nullable|email|max:150',
         ], [
             'cpf_supervisor.unique' => 'Já existe um supervisor cadastrado com este CPF.',
         ]);
@@ -140,18 +146,24 @@ class SupervisorController extends Controller
             $request->merge(['cpf_supervisor' => preg_replace('/\D/', '', $request->cpf_supervisor)]);
         }
 
+        if ($request->filled('celular_supervisor')) {
+            $request->merge(['celular_supervisor' => preg_replace('/\D/', '', $request->celular_supervisor)]);
+        }
+
         $user = Auth::user();
         if ($user && $user->nivel === 'empresa') {
             // Garante vínculo antes da validação
             $request->merge(['fk_id_empresa' => $user->fk_id_empresa]);
         }
 
-        $request->validate([
+        $validatedData = $request->validate([
             'nome_supervisor' => 'required|string',
             'fk_id_empresa' => 'required|integer',
             'cpf_supervisor' => 'required|string|unique:tb_supervisores,cpf_supervisor,' . $id . ',id_supervisor',
             'area_formacao' => 'nullable|string',
             'tempo_experiencia' => 'nullable|string',
+            'celular_supervisor' => 'nullable|string|max:20',
+            'email_supervisor' => 'nullable|email|max:150',
         ], [
             'cpf_supervisor.unique' => 'Já existe um supervisor cadastrado com este CPF.',
         ]);
@@ -162,11 +174,10 @@ class SupervisorController extends Controller
                 return redirect()->route('supervisores.index')->with('error', 'Acesso negado para este supervisor.');
             }
             // Garantir que o vínculo de empresa não seja alterado para outra empresa
-            $data = $request->all();
-            $data['fk_id_empresa'] = $user->fk_id_empresa;
-            $supervisor->update($data);
+            $validatedData['fk_id_empresa'] = $user->fk_id_empresa;
+            $supervisor->update($validatedData);
         } else {
-            $supervisor->update($request->all());
+            $supervisor->update($validatedData);
         }
         $routeIndex = ($user && $user->nivel === 'empresa')
             ? 'empresa.supervisores.index'

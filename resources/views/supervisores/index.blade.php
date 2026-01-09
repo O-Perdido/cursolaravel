@@ -141,30 +141,40 @@
                     <th>Área de Formação</th>
                     <th>Tempo de Experiência</th>
                     <th>CPF</th>
+                    <th>Celular</th>
+                    <th>E-mail</th>
                     <th>Ações</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach ($supervisores as $supervisor)
-                    <tr>
-                        <td style="max-width: 300px;">{{ $supervisor->nome_supervisor }}</td>
-                        <td style="max-width: 250px;">{{ $supervisor->empresa->nome_empresa ?? 'N/A' }}</td>
-                        <td style="max-width: 200px;">{{ $supervisor->area_formacao }}</td>
-                        <td style="max-width: 100px;">{{ $supervisor->tempo_experiencia }}</td>
-                        <td>{{ preg_replace('/(\d{3})(\d{3})(\d{3})(\d{2})/', '$1.$2.$3-$4', $supervisor->cpf_supervisor) }}
-                        </td>
-                        <td style="width: 150px;">
-                            <a href="{{ route($isEmpresa ? 'empresa.supervisores.edit' : 'supervisores.edit', $supervisor->id_supervisor) }}"
-                                class="btn btn-sm btn-primary">Editar</a>
-                            <form
-                                action="{{ route($isEmpresa ? 'empresa.supervisores.destroy' : 'supervisores.destroy', $supervisor->id_supervisor) }}"
-                                method="POST" style="display:inline-block;">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="btn btn-sm btn-danger">Excluir</button>
-                            </form>
-                        </td>
-                    </tr>
+                        <tr>
+                            <td style="max-width: 300px;">{{ $supervisor->nome_supervisor }}</td>
+                            <td style="max-width: 250px;">{{ $supervisor->empresa->nome_empresa ?? 'N/A' }}</td>
+                            <td style="max-width: 200px;">{{ $supervisor->area_formacao }}</td>
+                            <td style="max-width: 100px;">{{ $supervisor->tempo_experiencia }}</td>
+                            <td>{{ preg_replace('/(\d{3})(\d{3})(\d{3})(\d{2})/', '$1.$2.$3-$4', $supervisor->cpf_supervisor) }}
+                            </td>
+                            <td>
+                                {{ $supervisor->celular_supervisor
+                    ? preg_replace('/(\d{2})(\d{4,5})(\d{4})/', '($1) $2-$3', $supervisor->celular_supervisor)
+                    : '—' }}
+                            </td>
+                            <td style="max-width: 220px;">
+                                {{ $supervisor->email_supervisor ?: '—' }}
+                            </td>
+                            <td style="width: 150px;">
+                                <a href="{{ route($isEmpresa ? 'empresa.supervisores.edit' : 'supervisores.edit', $supervisor->id_supervisor) }}"
+                                    class="btn btn-sm btn-primary">Editar</a>
+                                <form
+                                    action="{{ route($isEmpresa ? 'empresa.supervisores.destroy' : 'supervisores.destroy', $supervisor->id_supervisor) }}"
+                                    method="POST" style="display:inline-block;">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-sm btn-danger">Excluir</button>
+                                </form>
+                            </td>
+                        </tr>
                 @endforeach
             </tbody>
         </table>
