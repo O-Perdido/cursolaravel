@@ -110,7 +110,15 @@ class AjudaController extends Controller
                 'icon' => 'fa-briefcase',
                 'content' => [
                     'description' => 'Como empresas podem cadastrar vagas de estágio. Assista ao vídeo tutorial para entender o processo completo de criação e gestão de vagas.',
-                    'video' => null,
+                    'video' => 'https://www.youtube.com/embed/O16Fr9WCIMo', //https://youtu.be/O16Fr9WCIMo
+                    'steps' => [
+                        'Faça login no sistema SIGE com seu usuário de unidade concedente',
+                        'No painel principal, localize o card "Vagas de Estágio" e clique em "Ver Vagas"',
+                        'Para criar uma nova oportunidade, clique no botão "Adicionar Vaga" no canto superior direito',
+                        'Preencha o formulário com o título da vaga, descrição das atividades e selecione o supervisor',
+                        'Defina o período (data de início e término), a carga horária detalhada e os valores de bolsa/auxílio',
+                        'Informe se a vaga já possui um estagiário definido (preenchendo os dados de contato) e clique em "Salvar Vaga"'
+                    ],
                     'alert' => [
                         'type' => 'info',
                         'text' => 'Atualmente, o sistema de vagas não funciona para divulgação externa, somente para controle interno das vagas. A função de divulgação de vagas ainda está sendo desenvolvida.'
@@ -123,15 +131,15 @@ class AjudaController extends Controller
                 'icon' => 'fa-headset',
                 'content' => [
                     'description' => 'Como abrir chamados de suporte técnico.',
-                    'video' => null,
+                    'video' => 'https://www.youtube.com/embed/sldvZ11k51c', //https://youtu.be/sldvZ11k51c
                     'steps' => [
-                        'Acesse o módulo de "Chamados" na página inicial do sistema',
-                        'Clique em "Abrir Chamado"',
-                        'Selecione a categoria do problema',
-                        'Descreva detalhadamente sua dúvida ou problema',
-                        'Anexe prints ou arquivos se necessário',
-                        'Envie o chamado',
-                        'Acompanhe o status através do painel'
+                        'Faça login na plataforma SIGE com seu e-mail e senha',
+                        'No painel principal (Dashboard), localize o card central chamado "Chamados"',
+                        'Clique em "Abrir Chamado" para iniciar uma nova solicitação ou em "Ver Chamados" para listar os protocolos existentes',
+                        'Selecione o tipo de chamado (Ex: Rescisão de Contrato, Alteração de Termo ou Problemas com Login)',
+                        'No caso de chamados contratuais, utilize o botão "Buscar Termo" para selecionar o estagiário específico através de filtros',
+                        'Preencha detalhadamente o motivo da solicitação e os dados requeridos (como datas ou descrições de alteração)',
+                        'Clique no botão "Abrir Chamado" para concluir e gerar o protocolo com status "Pendente" para análise'
                     ],
                     'alert' => [
                         'type' => 'success',
@@ -148,19 +156,11 @@ class AjudaController extends Controller
                     'faqs' => [
                         [
                             'question' => 'Como recuperar minha senha?',
-                            'answer' => 'Na tela de login, clique em "Esqueci minha senha". Informe seu e-mail cadastrado e siga as instruções enviadas.'
+                            'answer' => 'Na tela de login, clique em "Redefinir Senha". Informe seu e-mail cadastrado e siga as instruções enviadas.'
                         ],
                         [
                             'question' => 'Posso alterar dados de um termo já assinado?',
-                            'answer' => 'Sim, através do recurso de "Alteração de Termo". O sistema gerará um termo aditivo que também precisará ser assinado.'
-                        ],
-                        [
-                            'question' => 'Como fazer rescisão de um termo?',
-                            'answer' => 'Acesse o termo e clique em "Rescindir Termo". Informe a data de rescisão e o motivo. Um documento de rescisão será gerado automaticamente.'
-                        ],
-                        [
-                            'question' => 'O sistema funciona offline?',
-                            'answer' => 'Sim! O sistema é uma PWA (Progressive Web App) e permite consultas básicas offline. Porém, para salvar dados é necessário estar conectado.'
+                            'answer' => 'Sim, através do recurso de "Alteração de Termo", que pode ser solicitado através de um chamado. O sistema gerará um termo aditivo que também precisará ser assinado.'
                         ],
                         [
                             'question' => 'Posso instalar o sistema no celular?',
@@ -171,12 +171,8 @@ class AjudaController extends Controller
                             'answer' => 'Recomendamos o uso do Google Chrome, Mozilla Firefox, Microsoft Edge ou Safari para melhor experiência.'
                         ],
                         [
-                            'question' => 'Como atualizar o sistema?',
-                            'answer' => 'Acesse o menu "Suporte" e clique em "Atualizar".'
-                        ],
-                        [
                             'question' => 'Como entrar em contato com a equipe?',
-                            'answer' => 'Acesse o menu "Suporte" e clique em "Contato".'
+                            'answer' => 'Acesse as opções de contatos mostradas no rodapé da página.'
                         ]                
                     ]
                 ]
