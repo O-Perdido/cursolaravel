@@ -612,9 +612,47 @@
                         const resp = await fetch(url, { headers: { 'Accept': 'application/json' } });
                         if (!resp.ok) throw new Error('Falha ao obter informações da vaga');
                         const data = await resp.json();
+
                         document.getElementById('infoNomeEstagiario').textContent = data.nome_estagiario || '-';
                         document.getElementById('infoWhatsapp').textContent = data.contato_whatsapp || '-';
                         document.getElementById('infoEmail').textContent = data.contato_email || '-';
+
+                        // Habilita/desabilita botões baseado nos dados
+                        const btnWhatsapp = document.getElementById('btnWhatsapp');
+                        const btnCopiarEmail = document.getElementById('btnCopiarEmail');
+
+                        if (data.contato_whatsapp && data.contato_whatsapp !== '-') {
+                            btnWhatsapp.disabled = false;
+                            btnWhatsapp.onclick = function () {
+                                const numero = data.contato_whatsapp.replace(/\D/g, '');
+                                const mensagem = encodeURIComponent('Olá! Identificamos que você foi selecionado para uma vaga de estágio. Para prosseguir, pedimos que se cadastre no SIGE através do link: https://sigeb.br/novo-estagiario-ajax.');
+                                window.open(`https://wa.me/${numero}?text=${mensagem}`, '_blank');
+                            };
+                        } else {
+                            btnWhatsapp.disabled = true;
+                        }
+
+                        if (data.contato_email && data.contato_email !== '-') {
+                            btnCopiarEmail.disabled = false;
+                            btnCopiarEmail.onclick = function () {
+                                navigator.clipboard.writeText(data.contato_email).then(() => {
+                                    const originalHtml = btnCopiarEmail.innerHTML;
+                                    btnCopiarEmail.innerHTML = '<i class="fas fa-check"></i>';
+                                    btnCopiarEmail.classList.remove('btn-primary');
+                                    btnCopiarEmail.classList.add('btn-success');
+                                    setTimeout(() => {
+                                        btnCopiarEmail.innerHTML = originalHtml;
+                                        btnCopiarEmail.classList.remove('btn-success');
+                                        btnCopiarEmail.classList.add('btn-primary');
+                                    }, 2000);
+                                }).catch(err => {
+                                    alert('Erro ao copiar email: ' + err);
+                                });
+                            };
+                        } else {
+                            btnCopiarEmail.disabled = true;
+                        }
+
                         const modal = new bootstrap.Modal(document.getElementById('modalInfoVaga'));
                         modal.show();
                     } catch (e) {
@@ -636,8 +674,23 @@
                 <div class="modal-body">
                     <div id="infoVagaBody">
                         <p><strong>Estagiário:</strong> <span id="infoNomeEstagiario">-</span></p>
-                        <p><strong>WhatsApp:</strong> <span id="infoWhatsapp">-</span></p>
-                        <p><strong>Email:</strong> <span id="infoEmail">-</span></p>
+
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <p class="mb-0"><strong>WhatsApp:</strong> <span id="infoWhatsapp">-</span></p>
+                            <button type="button" class="btn btn-sm btn-success" id="btnWhatsapp" disabled
+                                title="Abrir WhatsApp">
+                                <i class="fab fa-whatsapp"></i>
+                            </button>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <p class="mb-0"><strong>Email:</strong> <span id="infoEmail">-</span></p>
+                            <button type="button" class="btn btn-sm btn-primary" id="btnCopiarEmail" disabled
+                                title="Copiar email">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+
                         <hr>
                         <p class="text-muted mb-0">Use estes contatos para solicitar que o estagiário se cadastre no SIGE e
                             liberar a geração do termo.</p>
