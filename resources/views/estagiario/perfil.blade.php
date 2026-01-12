@@ -364,11 +364,11 @@
     <div class="modal fade" id="modalDocumento" tabindex="-1" aria-labelledby="modalDocumentoLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
-                <form action="{{ route('estagiario.documento.atualizar') }}" method="POST" enctype="multipart/form-data">
+                <form action="{{ route('estagiario.documento.atualizar') }}" method="POST" enctype="multipart/form-data" id="formAtualizarDocumento">
                     @csrf
                     <div class="modal-header">
                         <h5 class="modal-title" id="modalDocumentoLabel">Atualizar Documento</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" id="btnCloseModal"></button>
                     </div>
                     <div class="modal-body">
                         <input type="hidden" name="campo_documento" id="campoDocumento">
@@ -388,8 +388,8 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                        <button type="submit" class="btn btn-primary">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="btnCancelarDocumento">Cancelar</button>
+                        <button type="submit" class="btn btn-primary" id="btnSubmitDocumento">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-upload me-1" viewBox="0 0 16 16">
                                 <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"/>
                                 <path d="M7.646 1.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 2.707V11.5a.5.5 0 0 1-1 0V2.707L5.354 4.854a.5.5 0 1 1-.708-.708z"/>
@@ -402,12 +402,52 @@
         </div>
     </div>
 
+    <!-- Modal de Loading -->
+    <div class="modal fade" id="modalLoading" tabindex="-1" aria-labelledby="modalLoadingLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border: none; box-shadow: none;">
+                <div class="modal-body text-center p-5">
+                    <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;">
+                        <span class="visually-hidden">Carregando...</span>
+                    </div>
+                    <h5 class="mt-3" id="modalLoadingLabel">Atualizando documento...</h5>
+                    <p class="text-muted small mt-2">Por favor, não feche esta página. Isso pode levar alguns instantes.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         function abrirModalDocumento(campo) {
             document.getElementById('campoDocumento').value = campo;
             const modal = new bootstrap.Modal(document.getElementById('modalDocumento'));
             modal.show();
         }
+
+        // Gerenciar o envio do formulário com modal de loading
+        document.getElementById('formAtualizarDocumento').addEventListener('submit', function(e) {
+            // Desabilitar botões para evitar múltiplos envios
+            document.getElementById('btnSubmitDocumento').disabled = true;
+            document.getElementById('btnCancelarDocumento').disabled = true;
+            document.getElementById('btnCloseModal').disabled = true;
+
+            // Mostrar modal de loading
+            const modalLoading = new bootstrap.Modal(document.getElementById('modalLoading'));
+            modalLoading.show();
+
+            // Permitir que o formulário seja enviado normalmente
+            // O loading modal permanecerá visível até a página recarregar
+        });
+
+        // Se o modal de documento for fechado, reabilitar os botões
+        document.getElementById('modalDocumento').addEventListener('hidden.bs.modal', function() {
+            document.getElementById('btnSubmitDocumento').disabled = false;
+            document.getElementById('btnCancelarDocumento').disabled = false;
+            document.getElementById('btnCloseModal').disabled = false;
+            
+            // Limpar o arquivo selecionado
+            document.getElementById('novoDocumento').value = '';
+        });
     </script>
 
 @endsection
