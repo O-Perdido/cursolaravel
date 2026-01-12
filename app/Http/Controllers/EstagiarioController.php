@@ -649,8 +649,8 @@ class EstagiarioController extends Controller
     {
     $user = Auth::user();
         
-        // Buscar o estagiário pelo email do usuário logado
-        $estagiario = Estagiario::where('email', $user->email)->first();
+        // Buscar o estagiário pela chave estrangeira do usuário
+        $estagiario = Estagiario::find($user->fk_id_estagiario);
         
         if (!$estagiario) {
             return redirect()->route('welcome.estagiario')->with('error', 'Dados do estagiário não encontrados.');
@@ -665,7 +665,7 @@ class EstagiarioController extends Controller
     public function editarPerfil()
     {
     $user = Auth::user();
-        $estagiario = Estagiario::where('email', $user->email)->first();
+        $estagiario = Estagiario::find($user->fk_id_estagiario);
         
         if (!$estagiario) {
             return redirect()->route('welcome.estagiario')->with('error', 'Dados do estagiário não encontrados.');
@@ -682,7 +682,7 @@ class EstagiarioController extends Controller
     public function atualizarPerfil(Request $request)
     {
     $user = Auth::user();
-        $estagiario = Estagiario::where('email', $user->email)->first();
+        $estagiario = Estagiario::find($user->fk_id_estagiario);
         
         if (!$estagiario) {
             return redirect()->route('welcome.estagiario')->with('error', 'Dados do estagiário não encontrados.');
@@ -748,7 +748,7 @@ class EstagiarioController extends Controller
     public function atualizarDocumento(Request $request)
     {
     $user = Auth::user();
-        $estagiario = Estagiario::where('email', $user->email)->first();
+        $estagiario = Estagiario::find($user->fk_id_estagiario);
         
         if (!$estagiario) {
             return redirect()->route('welcome.estagiario')->with('error', 'Dados do estagiário não encontrados.');
@@ -793,7 +793,7 @@ class EstagiarioController extends Controller
     public function contratos()
     {
         $user = Auth::user();
-        $estagiario = Estagiario::where('email', $user->email)->first();
+        $estagiario = Estagiario::find($user->fk_id_estagiario);
         
         if (!$estagiario) {
             return redirect()->route('welcome.estagiario')->with('error', 'Dados do estagiário não encontrados.');
@@ -814,7 +814,7 @@ class EstagiarioController extends Controller
     public function downloadMeuDocumento($campo)
     {
         $user = Auth::user();
-        $estagiario = Estagiario::where('email', $user->email)->first();
+        $estagiario = Estagiario::find($user->fk_id_estagiario);
 
         if (!$estagiario) {
             return redirect()->back()->with('error', 'Estagiário não encontrado.');
@@ -843,7 +843,7 @@ class EstagiarioController extends Controller
     public function verTermo($id)
     {
         $user = Auth::user();
-        $estagiario = Estagiario::where('email', $user->email)->first();
+        $estagiario = Estagiario::find($user->fk_id_estagiario);
         
         if (!$estagiario) {
             return redirect()->route('welcome.estagiario')->with('error', 'Dados do estagiário não encontrados.');
@@ -868,7 +868,7 @@ class EstagiarioController extends Controller
     public function gerarMeuRecibo(Request $request, $id_termo)
     {
         $user = Auth::user();
-        $estagiario = Estagiario::where('email', $user->email)->first();
+        $estagiario = Estagiario::find($user->fk_id_estagiario);
         
         if (!$estagiario) {
             return redirect()->back()->with('error', 'Dados do estagiário não encontrados.');
