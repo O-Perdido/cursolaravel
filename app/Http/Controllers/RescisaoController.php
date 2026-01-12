@@ -8,9 +8,17 @@ use App\Models\Rescisao;
 use App\Models\Ebcp;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Services\ZapSignService;
+use App\Services\AvaliacaoService;
 
 class RescisaoController extends Controller
 {
+    protected $avaliacaoService;
+
+    public function __construct(AvaliacaoService $avaliacaoService)
+    {
+        $this->avaliacaoService = $avaliacaoService;
+    }
+
     public function store(Request $request, $id_termo)
     {
         $validatedData = $request->validate([
@@ -19,11 +27,16 @@ class RescisaoController extends Controller
             'motivo' => 'required'
         ]);
 
-        //Atualiza a data_fim_estagio do termo com a mesma data da rescisão
-        Termo::where('id_termo', $id_termo)
-            ->update(['data_fim_estagio' => $validatedData['data_rescisao']]);
+        $termo = Termo::findOrFail($id_termo);
 
-        Rescisao::create($validatedData);
+        //Atualiza a data_fim_estagio do termo com a mesma data da rescisão
+        $termo->update(['data_fim_estagio' => $validatedData['data_rescisao']]);
+
+        $rescisao = Rescisao::create($validatedData);
+
+        // Gera automaticamente avaliação de finalização ao rescindir
+        $this->avaliacaoService->gerarAvaliacaoFinalizacao($termo);
+
         return redirect('/termos/' . $id_termo . '/show')->with('success', 'Rescisão criada com sucesso!');
     }
 

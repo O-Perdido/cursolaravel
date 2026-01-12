@@ -1,0 +1,256 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Avaliacao;
+use App\Models\Termo;
+use App\Services\AvaliacaoService;
+use App\Services\AvaliacaoPdfService;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+
+class AvaliacaoController extends Controller
+{
+    protected $avaliacaoService;
+    protected $avaliacaoPdfService;
+
+    public function __construct(AvaliacaoService $avaliacaoService, AvaliacaoPdfService $avaliacaoPdfService)
+    {
+        $this->avaliacaoService = $avaliacaoService;
+        $this->avaliacaoPdfService = $avaliacaoPdfService;
+    }
+
+    /**
+     * Lista todas as avaliações (pendentes e respondidas)
+     */
+    public function index(Request $request)
+    {
+        $query = Avaliacao::with(['termo', 'supervisor']);
+
+        // Filtrar por status se especificado, caso contrário mostrar todas
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        // Filtros
+        if ($request->filled('fk_id_termo')) {
+            $query->where('fk_id_termo', $request->fk_id_termo);
+        }
+
+        if ($request->filled('tipo_avaliacao')) {
+            $query->where('tipo_avaliacao', $request->tipo_avaliacao);
+        }
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->whereHas('termo', function ($q) use ($search) {
+                $q->where('numero_termo', 'like', "%{$search}%")
+                  ->orWhereHas('estagiario', function ($q2) use ($search) {
+                      $q2->where('nome', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        $avaliacoes = $query->orderBy('created_at', 'desc')->paginate(15);
+
+        return view('avaliacoes.index', compact('avaliacoes'));
+    }
+
+    /**
+     * Exibe a página com todas as avaliações de um termo específico
+     */
+    public function porTermo(Termo $termo)
+    {
+        $avaliacoes = $termo->avaliacoes()
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
+
+        return view('avaliacoes.por-termo', compact('termo', 'avaliacoes'));
+    }
+
+    /**
+     * Exibe detalhes de uma avaliação (visualização)
+     */
+    public function show(Avaliacao $avaliacao)
+    {
+        return view('avaliacoes.show', compact('avaliacao'));
+    }
+
+    /**
+     * Gera um token de compartilhamento e retorna o link
+     */
+    public function gerarLinkCompartilhamento(Avaliacao $avaliacao)
+    {
+        // Apenas avaliações pendentes podem gerar links
+        if ($avaliacao->status !== 'pendente') {
+            return redirect()->back()->with('error', 'Apenas avaliações pendentes podem gerar links de compartilhamento.');
+        }
+
+        // Se já tem token, retorna o existente; se não, gera novo
+        if (!$avaliacao->token_compartilhamento) {
+            $avaliacao->token_compartilhamento = Avaliacao::gerarTokenCompartilhamento();
+            $avaliacao->save();
+        }
+
+        $link = route('avaliacoes.responder', ['token' => $avaliacao->token_compartilhamento]);
+
+        return response()->json([
+            'link' => $link,
+            'message' => 'Link copiado para a área de transferência'
+        ]);
+    }
+
+    /**
+     * Página de preenchimento da avaliação (acesso público via token)
+     */
+    public function responder($token)
+    {
+        $avaliacao = Avaliacao::where('token_compartilhamento', $token)
+            ->first();
+
+        if (!$avaliacao || !$avaliacao->podeSerAcessada()) {
+            return view('avaliacoes.acesso-negado');
+        }
+
+        // Carrega as questões padrão se ainda não houver questões_respostas
+        if (!$avaliacao->questoes_respostas) {
+            $avaliacao->questoes_respostas = $this->avaliacaoService->obterQuestoesBase();
+        }
+
+        return view('avaliacoes.responder', compact('avaliacao'));
+    }
+
+    /**
+     * Salva as respostas da avaliação
+     */
+    public function salvarRespostas(Request $request, $token)
+    {
+        $avaliacao = Avaliacao::where('token_compartilhamento', $token)
+            ->first();
+
+        if (!$avaliacao || !$avaliacao->podeSerAcessada()) {
+            return response()->json(['error' => 'Acesso negado'], 403);
+        }
+
+        // Valida email do supervisor
+        $request->validate([
+            'email_supervisor' => 'required|email',
+            'respostas' => 'required|array',
+        ]);
+
+        // Processa e salva as respostas
+        $questoes_respostas = $avaliacao->questoes_respostas ?? [];
+        
+        foreach ($questoes_respostas as $index => $questao) {
+            if (isset($request->respostas[$index])) {
+                $questoes_respostas[$index]['resposta'] = $request->respostas[$index];
+            }
+        }
+
+        $avaliacao->update([
+            'questoes_respostas' => $questoes_respostas,
+            'status' => 'respondida',
+            'respondida_em' => now(),
+            'respondida_por' => $request->email_supervisor,
+            'token_compartilhamento' => null, // Invalida o link
+        ]);
+
+        return response()->json([
+            'message' => 'Avaliação respondida com sucesso!',
+        ]);
+    }
+
+    /**
+     * Gera uma avaliação manualmente
+     */
+    public function gerarManual(Request $request)
+    {
+        $request->validate([
+            'fk_id_termo' => 'required|exists:tb_termos,id_termo',
+            'tipo_avaliacao' => 'required|in:seis_meses,finalizacao',
+        ]);
+
+        $termo = Termo::findOrFail($request->fk_id_termo);
+
+        // Verifica se termo está ativo
+        if (!$this->avaliacaoService->termoEstaAtivo($termo)) {
+            return redirect()->back()->with('error', 'Apenas termos ativos podem ter avaliações.');
+        }
+
+        // Verifica se já existe avaliação do tipo pendente
+        $avaliacaoExistente = $termo->avaliacoes()
+            ->where('tipo_avaliacao', $request->tipo_avaliacao)
+            ->where('status', 'pendente')
+            ->first();
+
+        if ($avaliacaoExistente) {
+            return redirect()->back()->with('error', 'Já existe uma avaliação ' . $request->tipo_avaliacao . ' pendente para este termo.');
+        }
+
+        $avaliacao = $this->avaliacaoService->criarAvaliacao(
+            $termo,
+            $request->tipo_avaliacao,
+            $termo->fk_id_supervisor
+        );
+
+        return redirect()->route('avaliacoes.show', $avaliacao)
+            ->with('success', 'Avaliação criada com sucesso!');
+    }
+
+    /**
+     * Limpa/reseta uma avaliação respondida para edição novamente
+     */
+    public function limpar(Avaliacao $avaliacao)
+    {
+        if ($avaliacao->status !== 'respondida') {
+            return redirect()->back()->with('error', 'Apenas avaliações respondidas podem ser limpas.');
+        }
+
+        $avaliacao->update([
+            'status' => 'pendente',
+            'questoes_respostas' => null,
+            'respondida_em' => null,
+            'respondida_por' => null,
+            'token_compartilhamento' => Avaliacao::gerarTokenCompartilhamento(),
+        ]);
+
+        return redirect()->back()->with('success', 'Avaliação limpa e disponível para nova resposta.');
+    }
+
+    /**
+     * Exclui uma avaliação
+     */
+    public function destroy(Avaliacao $avaliacao)
+    {
+        $avaliacao->delete();
+
+        return redirect()->back()->with('success', 'Avaliação removida com sucesso!');
+    }
+
+    /**
+     * Retorna contagem de avaliações pendentes (para navbar)
+     */
+    public function contadorPendentes()
+    {
+        $count = Avaliacao::where('status', 'pendente')->count();
+
+        return response()->json(['count' => $count]);
+    }
+
+    /**
+     * Download do PDF da avaliação (apenas admin/operador via painel)
+     */
+    public function pdf(Avaliacao $avaliacao)
+    {
+        if ($avaliacao->status !== 'respondida') {
+            return redirect()->back()->with('error', 'Somente avaliações respondidas podem gerar PDF.');
+        }
+
+        $response = $this->avaliacaoPdfService->download($avaliacao);
+        if (!$response) {
+            return redirect()->back()->with('error', 'Não foi possível gerar o PDF desta avaliação.');
+        }
+        return $response;
+    }
+}

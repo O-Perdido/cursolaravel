@@ -403,6 +403,19 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/chamados/{id}/anexo/{index}/download', [ChamadoController::class, 'downloadAnexo'])->name('chamados.anexo.download');
     });
 
+    // Rotas de Avaliações (apenas admin e operador)
+    Route::middleware(['nivel:admin,operador'])->group(function () {
+        Route::get('/avaliacoes', [\App\Http\Controllers\AvaliacaoController::class, 'index'])->name('avaliacoes.index');
+        Route::get('/avaliacoes/{avaliacao}', [\App\Http\Controllers\AvaliacaoController::class, 'show'])->name('avaliacoes.show');
+        Route::post('/avaliacoes/{avaliacao}/link-compartilhamento', [\App\Http\Controllers\AvaliacaoController::class, 'gerarLinkCompartilhamento'])->name('avaliacoes.gerar-link');
+        Route::get('/avaliacoes/termo/{termo}', [\App\Http\Controllers\AvaliacaoController::class, 'porTermo'])->name('avaliacoes.por-termo');
+        Route::post('/avaliacoes/gerar-manual', [\App\Http\Controllers\AvaliacaoController::class, 'gerarManual'])->name('avaliacoes.gerar-manual');
+        Route::post('/avaliacoes/{avaliacao}/limpar', [\App\Http\Controllers\AvaliacaoController::class, 'limpar'])->name('avaliacoes.limpar');
+        Route::delete('/avaliacoes/{avaliacao}', [\App\Http\Controllers\AvaliacaoController::class, 'destroy'])->name('avaliacoes.destroy');
+        Route::get('/avaliacoes/contador/pendentes', [\App\Http\Controllers\AvaliacaoController::class, 'contadorPendentes'])->name('avaliacoes.contador');
+        Route::get('/avaliacoes/{avaliacao}/pdf', [\App\Http\Controllers\AvaliacaoController::class, 'pdf'])->name('avaliacoes.pdf');
+    });
+
     // Painel de gerenciamento de chamados (apenas admin e operador)
     Route::middleware(['nivel:admin,operador'])->group(function () {
         Route::get('/painel/chamados', [ChamadoController::class, 'painel'])->name('chamados.painel');
@@ -424,6 +437,13 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
 });
+
+// Rotas públicas de avaliação (sem autenticação)
+Route::get('/avaliacoes/responder/{token}', [\App\Http\Controllers\AvaliacaoController::class, 'responder'])->name('avaliacoes.responder');
+Route::post('/avaliacoes/salvar-respostas/{token}', [\App\Http\Controllers\AvaliacaoController::class, 'salvarRespostas'])->name('avaliacoes.salvar-respostas');
+Route::get('/avaliacoes/sucesso', function () {
+    return view('avaliacoes.sucesso');
+})->name('avaliacoes.sucesso');
 
 
 

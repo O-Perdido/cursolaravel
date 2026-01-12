@@ -18,6 +18,31 @@ A Central de Ajuda é uma página pública de documentação do sistema, criada 
 - ✅ Sumário lateral com navegação suave
 - ✅ Suporte para vídeos do YouTube
 - ✅ Suporte para imagens/prints
+
+## 📚 Módulos Documentados
+
+### 🆕 Avaliações de Estágio
+- **Arquivo**: `AVALIACOES_README.md` (documentação completa)
+- **Guia Rápido**: `AVALIACOES_GUIA_RAPIDO.md`
+- **Testes**: `AVALIACOES_CHECKLIST_TESTES.md`
+- **Acesso**: `/avaliacoes` (Admin/Operador)
+
+**O que é?**
+Sistema de avaliação de desempenho dos estagiários. Avaliações são geradas automaticamente a cada 6 meses e ao término do contrato.
+
+**Principais funcionalidades:**
+- ✅ Geração automática e manual
+- ✅ Link de compartilhamento seguro
+- ✅ Formulário de resposta público
+- ✅ Validação de email do supervisor
+- ✅ Histórico de avaliações por termo
+
+**Para acessar:**
+1. Menu → Avaliações
+2. Ver avaliações pendentes
+3. Clicar em "Link" para compartilhar
+4. Enviar para supervisor
+
 - ✅ Seções com passo a passo
 - ✅ Acordeon para FAQs
 - ✅ Alertas informativos coloridos

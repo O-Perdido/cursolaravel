@@ -420,6 +420,30 @@
                                 </a>
                             </li>
                         @endif
+
+                        <!-- Botão de Avaliações (para admin e operador) -->
+                        @if(Auth::check() && in_array(Auth::user()->nivel, ['admin', 'operador']))
+                            <li class="nav-item dropdown" style="vertical-align: middle;">
+                                <a class="nav-link" href="{{ route('avaliacoes.index') }}" id="navbarDropdownAvaliacoes"
+                                    role="button">
+                                    <span class="position-relative d-inline-block">
+                                        <i class="fas fa-clipboard-list fa-2x"></i>
+                                        @php
+                                            $avaliacoesPendentes = \App\Models\Avaliacao::where('status', 'pendente')->count();
+                                        @endphp
+                                        @if($avaliacoesPendentes > 0)
+                                            <span
+                                                class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-warning"
+                                                style="font-size:0.7em;">
+                                                {{ $avaliacoesPendentes }}
+                                            </span>
+                                        @endif
+                                    </span><br>
+                                    <small>Avaliações</small>
+                                </a>
+                            </li>
+                        @endif
+
                         <li class="nav-item d-none d-lg-block" style="vertical-align: middle; height: 100%;">
                             <div class="vr mx-3 bg-white" style="height: 100%; width: 2px"></div>
                         </li>

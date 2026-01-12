@@ -1,5 +1,32 @@
 REGISTRO DE ALTERAÇÕES
 
+12/01/2026 - GitHub Copilot:
+* Implementei módulo completo de Avaliação de Estágio
+* Criado Model `Avaliacao` com relações e métodos auxiliares
+* Migração de banco de dados com tabela `tb_avaliacoes`
+* Service `AvaliacaoService` com lógica de negócio:
+  - Geração automática de avaliações a cada 6 meses
+  - Validação de termos ativos
+  - Factory de criação com questões padrão
+* Controller `AvaliacaoController` com CRUD completo:
+  - Listagem com filtros (busca, tipo)
+  - Visualização de avaliações
+  - Geração de links de compartilhamento seguros
+  - Página pública de resposta (sem autenticação)
+  - Limpeza/reset de avaliações
+  - Contador para navbar
+* Views responsivas:
+  - Listagem com filtros e paginação
+  - Visualização de avaliações por termo
+  - Formulário de resposta com validação
+  - Páginas de erro e sucesso
+* Job `GerarAvaliacoesAutomaticasJob` agendado diariamente às 02:00
+* Kernel.php configurado para scheduled tasks
+* Rotas protegidas por middleware `nivel:admin,operador`
+* Rotas públicas para resposta via token único
+* Navbar atualizada com botão de Avaliações e badge de contador
+* Documentação completa em `AVALIACOES_README.md`
+* Seeder de teste para criar avaliações fictícias
 
 27/01/2025 - Vinicius:
 * Instalei a Biblioteca para gerar PDF usando o comando "composer require barryvdh/laravel-dompdf", acompanhei o video tutorial: https://www.youtube.com/watch?v=5WbVmMabV0U.

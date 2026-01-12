@@ -56,6 +56,9 @@
                 <a href="{{ route('alteracao.create', $termo->id_termo) }}" class="btn btn-success">
                     <i class="fas fa-plus"></i> Nova Alteração
                 </a>
+                <a href="{{ route('avaliacoes.por-termo', $termo->id_termo) }}" class="btn btn-warning">
+                    <i class="fas fa-star"></i> Avaliações
+                </a>
             @elseif (Auth::user()->nivel == 'empresa')
                 <!-- Empresa: apenas Recesso -->
                 <button type="button" class="btn btn-info" data-bs-toggle="modal"

@@ -6,8 +6,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 /**
+ * @property int $id_termo
+ * @property int $fk_id_supervisor
  * @property string|null $data_inicio_estagio
  * @property string|null $data_fim_estagio
+ * @property string|null $data_fim_estagio_fixo
  * @property int|null $saldo_recesso
  */
 class Termo extends Model
@@ -119,5 +122,10 @@ class Termo extends Model
     public function concessoesRecesso()
     {
         return $this->hasMany(ConcessaoRecesso::class, 'fk_id_termo', 'id_termo');
+    }
+
+    public function avaliacoes()
+    {
+        return $this->hasMany(Avaliacao::class, 'fk_id_termo', 'id_termo');
     }
 }
