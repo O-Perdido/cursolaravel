@@ -1,6 +1,10 @@
 # SIGE – Instruções para Agentes (Copilot)
 
+## Visão Geral
 Essenciais para trabalhar produtivamente neste Laravel 11 (PHP 8.2) rodando em Laragon. Foque em padrões do projeto – não aplique convenções Laravel default onde foram customizadas.
+
+## Sempre Salve um Arquivo de Documentação
+Ao adicionar funcionalidades ou corrigir bugs, crie/atualize um arquivo README específico.
 
 ## Big Picture
 Contratos de estágio (Model `Termo`) geram PDFs e fluxo de assinatura ZapSign. Folhas de pagamento (`FolhaPagamento`) agregam linhas por estagiário (`FolhasTermos`) e exigem salvamento em LOTES. Recesso controla saldo de dias dentro do próprio termo. PWA garante uso offline básico.
