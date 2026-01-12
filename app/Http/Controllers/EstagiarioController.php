@@ -656,7 +656,13 @@ class EstagiarioController extends Controller
             return redirect()->route('welcome.estagiario')->with('error', 'Dados do estagiário não encontrados.');
         }
         
-        return view('estagiario.perfil', compact('estagiario'));
+        // Recarregar do banco para garantir dados frescos (sem cache)
+        $estagiario->refresh();
+        
+        return response(view('estagiario.perfil', compact('estagiario')))
+            ->header('Cache-Control', 'no-cache, no-store, must-revalidate, private')
+            ->header('Pragma', 'no-cache')
+            ->header('Expires', '0');
     }
 
     /**
@@ -747,7 +753,7 @@ class EstagiarioController extends Controller
      */
     public function atualizarDocumento(Request $request)
     {
-    $user = Auth::user();
+        $user = Auth::user();
         $estagiario = Estagiario::find($user->fk_id_estagiario);
         
         if (!$estagiario) {
@@ -766,17 +772,48 @@ class EstagiarioController extends Controller
             'novo_documento' => 'required|file|mimes:jpg,jpeg,png,pdf|max:5120', // 5MB
         ]);
         
-        // Deletar documento antigo se existir
-        if ($estagiario->$campo) {
-            Storage::disk('public')->delete($estagiario->$campo);
-        }
+        // Guardar path antigo ANTES de fazer upload do novo
+        $caminhoAntigo = $estagiario->$campo;
         
         // Upload do novo documento
         $pasta = ($campo === 'foto_documento') ? 'uploads/fotos' : 'uploads/comprovantes';
         $novoPath = $request->file('novo_documento')->store($pasta, 'public');
         
-        // Atualizar no banco
-        $estagiario->update([$campo => $novoPath]);
+        Log::info('Atualizando documento do estagiário', [
+            'id_estagiario' => $estagiario->id_estagiario,
+            'campo' => $campo,
+            'caminho_antigo' => $caminhoAntigo,
+            'caminho_novo' => $novoPath,
+        ]);
+        
+        // Atualizar no banco com o novo path
+        $updateResult = $estagiario->update([$campo => $novoPath]);
+        
+        Log::info('Resultado da atualização no banco', [
+            'id_estagiario' => $estagiario->id_estagiario,
+            'sucesso' => $updateResult,
+        ]);
+        
+        if (!$updateResult) {
+            // Se a atualização falhar, não deletar o arquivo antigo
+            return redirect()->back()->with('error', 'Erro ao atualizar documento. Tente novamente.');
+        }
+        
+        // Recarregar estagiário do banco para confirmar
+        $estagiario->refresh();
+        
+        Log::info('Estagiário recarregado do banco', [
+            'id_estagiario' => $estagiario->id_estagiario,
+            'campo_valor_atual' => $estagiario->$campo,
+        ]);
+        
+        // Só deletar o arquivo antigo DEPOIS que a atualização no banco foi bem-sucedida
+        if ($caminhoAntigo && Storage::disk('public')->exists($caminhoAntigo)) {
+            Storage::disk('public')->delete($caminhoAntigo);
+            Log::info('Arquivo antigo deletado', [
+                'caminho' => $caminhoAntigo,
+            ]);
+        }
         
         $nomeDocumento = match($campo) {
             'foto_documento' => 'Documento de Identidade',
@@ -825,16 +862,36 @@ class EstagiarioController extends Controller
         }
 
         if (!$estagiario->$campo) {
+            Log::warning('Documento não disponível para download', [
+                'id_estagiario' => $estagiario->id_estagiario,
+                'campo' => $campo,
+            ]);
             return redirect()->back()->with('error', 'Arquivo não disponível.');
         }
 
         $filePath = $estagiario->$campo;
+        
+        Log::info('Tentando fazer download do documento', [
+            'id_estagiario' => $estagiario->id_estagiario,
+            'campo' => $campo,
+            'caminho' => $filePath,
+            'existe' => Storage::disk('public')->exists($filePath),
+        ]);
+        
         if (!Storage::disk('public')->exists($filePath)) {
+            Log::error('Arquivo de documento não encontrado no storage', [
+                'id_estagiario' => $estagiario->id_estagiario,
+                'campo' => $campo,
+                'caminho' => $filePath,
+            ]);
             return redirect()->back()->with('error', 'Arquivo não encontrado no servidor.');
         }
 
         $fullPath = Storage::disk('public')->path($filePath);
-        return response()->download($fullPath);
+        
+        // Headers para garantir que não há cache
+        return response()->download($fullPath)
+            ->setCharset('utf-8');
     }
 
     /**
