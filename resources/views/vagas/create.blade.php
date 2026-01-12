@@ -58,7 +58,7 @@
                                 class="text-danger">*</span></label>
                         <input type="text" name="titulo_vaga" id="titulo_vaga" class="form-control form-control-sm"
                             value="{{ old('titulo_vaga') }}" required
-                            placeholder="Ex: Assistente Administrativo, Desenvolvedor Web, etc.">
+                            placeholder="Ex: Estágio em Contabilidade, Estágio em Dev Web, Estágio em Marketing, etc.">
                         <small class="form-text text-muted">Título ou nome resumido da vaga</small>
                     </div>
 
@@ -448,8 +448,8 @@
             carregarSupervisores(@json($empresaSelecionada));
         @endif
 
-                                                                                                                // Filtro do dropdown de Supervisor
-                                                                                                        if (supervisorSearch) {
+                                                                                                                        // Filtro do dropdown de Supervisor
+                                                                                                                if (supervisorSearch) {
             supervisorSearch.addEventListener('focus', function () {
                 supervisorSelect.style.display = 'block';
             });
@@ -646,14 +646,14 @@
             const icon = tipo === 'success' ? '✓' : '✕';
 
             const toastHTML = `
-                                                                            <div id="${toastId}" class="toast" role="alert" aria-live="assertive" aria-atomic="true" style="pointer-events: auto;">
-                                                                                <div class="toast-header ${bgColor} text-white">
-                                                                                    <strong class="me-auto">${icon} ${tipo === 'success' ? 'Sucesso' : 'Erro'}</strong>
-                                                                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
-                                                                                </div>
-                                                                                <div class="toast-body">${mensagem}</div>
-                                                                            </div>
-                                                                        `;
+                                                                                    <div id="${toastId}" class="toast" role="alert" aria-live="assertive" aria-atomic="true" style="pointer-events: auto;">
+                                                                                        <div class="toast-header ${bgColor} text-white">
+                                                                                            <strong class="me-auto">${icon} ${tipo === 'success' ? 'Sucesso' : 'Erro'}</strong>
+                                                                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+                                                                                        </div>
+                                                                                        <div class="toast-body">${mensagem}</div>
+                                                                                    </div>
+                                                                                `;
 
             container.insertAdjacentHTML('beforeend', toastHTML);
             const toastEl = document.getElementById(toastId);
