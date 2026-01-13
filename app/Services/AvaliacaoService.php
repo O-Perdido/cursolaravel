@@ -153,7 +153,8 @@ class AvaliacaoService
      */
     public function gerarAvaliacoesAutomaticas(): int
     {
-        $termos = Termo::whereDoesntHave('rescisao')            
+        $termos = Termo::whereDoesntHave('rescisao')
+            ->where('ano_termo', '>=', 2026)
             ->where('data_inicio_estagio', '<=', Carbon::today()->subMonths(6))
             ->get();
 

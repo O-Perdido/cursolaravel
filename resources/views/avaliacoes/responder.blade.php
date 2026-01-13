@@ -324,7 +324,7 @@
                                                     value="{{ $i }}" required>
                                                 <label for="resp_{{ $index }}_{{ $i }}">
                                                     @if ($i === 1)
-                                                        Insuficiente
+                                                        Muito Ruim
                                                     @elseif ($i === 2)
                                                         Ruim
                                                     @elseif ($i === 3)

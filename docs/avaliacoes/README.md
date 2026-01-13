@@ -165,7 +165,7 @@ As questões são armazenadas em JSON e incluem:
 
 **Tipos de Questões:**
 - `texto_longo` - textarea, resposta livre
-- `escala_1_5` - radio buttons (Insuficiente até Excelente)
+- `escala_1_5` - radio buttons (Muito Ruim até Excelente)
 
 ## Fluxo de Uso
 
