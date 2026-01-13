@@ -4,6 +4,8 @@
 
 @section('content')
 
+    @include('components.modal-sistema')
+
     <style>
         .responder-container {
             max-width: 900px;
@@ -238,9 +240,138 @@
             cursor: pointer;
             font-weight: normal;
         }
+
+        /* Modal de Sucesso */
+        .modal-sucesso {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        .modal-sucesso.ativo {
+            display: flex;
+        }
+
+        .modal-conteudo {
+            background: white;
+            border-radius: 12px;
+            padding: 3rem 2rem;
+            max-width: 500px;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            animation: slideUp 0.4s ease-out;
+        }
+
+        .sucesso-icone {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #28a745 0%, #19b755 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            font-size: 2rem;
+            color: white;
+            animation: popIn 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        .sucesso-titulo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #102e6c;
+            margin-bottom: 0.5rem;
+        }
+
+        .sucesso-mensagem {
+            font-size: 1rem;
+            color: #0a1f4d;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        .sucesso-detalhes {
+            background: #f7f9fc;
+            border-left: 4px solid #19b755;
+            padding: 1rem;
+            border-radius: 4px;
+            margin-bottom: 2rem;
+            font-size: 0.95rem;
+            color: #0a1f4d;
+            text-align: left;
+        }
+
+        .sucesso-detalhes strong {
+            color: #102e6c;
+        }
+
+        .sucesso-redirecionando {
+            font-size: 0.9rem;
+            color: #7f8c8d;
+            margin-top: 1rem;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(30px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes popIn {
+            0% {
+                transform: scale(0);
+            }
+            50% {
+                transform: scale(1.1);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
     </style>
 
     <div class="responder-container">
+        <!-- Modal de Sucesso -->
+        <div class="modal-sucesso" id="modalSucesso">
+            <div class="modal-conteudo">
+                <div class="sucesso-icone">
+                    <i class="fas fa-check"></i>
+                </div>
+                <h2 class="sucesso-titulo">Avaliação Enviada com Sucesso!</h2>
+                <p class="sucesso-mensagem">Seus dados foram registrados com segurança no sistema.</p>
+                <div class="sucesso-detalhes">
+                    <strong>✓ Dados processados</strong><br>
+                    <strong>✓ Confirmação enviada</strong><br>
+                    <strong>✓ Sistema atualizado</strong>
+                </div>
+                <p class="sucesso-redirecionando">
+                    <i class="fas fa-spinner fa-spin"></i> Redirecionando em alguns segundos...
+                </p>
+            </div>
+        </div>
+
         <!-- Header -->
         <div class="form-header">
             <h1>Avaliação de Desempenho do Estagiário</h1>
@@ -248,17 +379,22 @@
             <div class="info-boxes">
                 <div class="info-box">
                     <label>Estagiário</label>
-                    <p>{{ $avaliacao->termo->estagiario->nome }}</p>
+                    <p>{{ $avaliacao->termo->estagiario->nome_estagiario }}</p>
                 </div>
                 <div class="info-box">
-                    <label>Empresa</label>
-                    <p>{{ $avaliacao->termo->empresa->nome }}</p>
+                    <label>Unidade Concedente</label>
+                    <p>{{ $avaliacao->termo->empresa->nome_empresa }}</p>
                 </div>
                 <div class="info-box">
-                    <label>Período</label>
+                    <label>Período Estagiado até essa Avaliação</label>
                     <p>
                         @if ($avaliacao->termo->data_inicio_estagio)
-                            {{ \Carbon\Carbon::parse($avaliacao->termo->data_inicio_estagio)->format('d/m/Y') }}
+                            {{ \Carbon\Carbon::parse($avaliacao->termo->data_inicio_estagio)->format('d/m/Y') }} -
+                            @if ($avaliacao->tipo_avaliacao === 'seis_meses')
+                                {{ \Carbon\Carbon::parse($avaliacao->termo->data_inicio_estagio)->addMonths(6)->format('d/m/Y') }}
+                            @else
+                                {{ \Carbon\Carbon::parse($avaliacao->termo->data_fim_estagio)->format('d/m/Y') }}
+                            @endif
                         @else
                             -
                         @endif
@@ -402,15 +538,20 @@
 
                 if (response.ok) {
                     const result = await response.json();
-                    alert(result.message);
-                    window.location.href = '{{ route("avaliacoes.sucesso") }}';
+                    const modalSucesso = document.getElementById('modalSucesso');
+                    modalSucesso.classList.add('ativo');
+                    
+                    // Redirecionar após 3 segundos
+                    setTimeout(() => {
+                        window.location.href = '{{ route("avaliacoes.sucesso") }}';
+                    }, 3000);
                 } else {
-                    alert('Erro ao enviar avaliação. Tente novamente.');
+                    mostrarErro('Erro ao Enviar', 'Não conseguimos processar sua avaliação. Tente novamente em alguns instantes.');
                     loadingIndicator.style.display = 'none';
                 }
             } catch (error) {
                 console.error('Erro:', error);
-                alert('Erro ao enviar avaliação: ' + error.message);
+                mostrarErro('Erro na Requisição', 'Ocorreu um erro ao enviar os dados: ' + error.message);
                 loadingIndicator.style.display = 'none';
             }
         });

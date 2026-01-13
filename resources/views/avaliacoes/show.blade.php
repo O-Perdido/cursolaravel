@@ -4,6 +4,8 @@
 
 @section('content')
 
+    @include('components.modal-sistema')
+
     <style>
         .avaliacao-container {
             max-width: 1200px;
@@ -609,27 +611,18 @@
                         <a href="{{ route('avaliacoes.pdf', $avaliacao) }}" class="btn btn-primary">
                             <i class="fas fa-file-pdf"></i> Baixar PDF
                         </a>
-                        <form action="{{ route('avaliacoes.limpar', $avaliacao) }}" method="POST" style="display: inline;"
-                            onsubmit="return confirm('Tem certeza que deseja limpar esta avaliação para nova resposta?');">
-                            @csrf
-                            <button type="submit" class="btn btn-warning">
-                                <i class="fas fa-redo"></i> Limpar para Nova Resposta
-                            </button>
-                        </form>
+                        <button class="btn btn-warning" onclick="confirmarlimpar({{ $avaliacao->id_avaliacao }})">
+                            <i class="fas fa-redo"></i> Limpar para Nova Resposta
+                        </button>
                     @endif
 
                     <a href="{{ route('avaliacoes.por-termo', $avaliacao->termo) }}" class="btn btn-secondary">
                         <i class="fas fa-list"></i> Ver Outras Avaliações
                     </a>
 
-                    <form action="{{ route('avaliacoes.destroy', $avaliacao) }}" method="POST" style="display: inline;"
-                        onsubmit="return confirm('Tem certeza que deseja excluir esta avaliação?');">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="btn btn-danger">
-                            <i class="fas fa-trash"></i> Excluir
-                        </button>
-                    </form>
+                    <button class="btn btn-danger" onclick="confirmarExcluir({{ $avaliacao->id_avaliacao }})">
+                        <i class="fas fa-trash"></i> Excluir
+                    </button>
                 </div>
             </div>
         </div>
@@ -704,12 +697,43 @@
                 })
                 .catch(error => {
                     console.error('Erro:', error);
-                    alert('Erro ao gerar link: ' + error.message);
+                    mostrarErro('Erro ao Gerar Link', 'Não conseguimos gerar o link de compartilhamento: ' + error.message);
                     
                     // Restaurar botão
                     btn.disabled = false;
                     btn.innerHTML = originalText;
                 });
+        }
+
+        function confirmarLimpar(avaliacaoId) {
+            mostrarConfirmacao(
+                'Limpar Avaliação',
+                'Tem certeza que deseja limpar esta avaliação para uma nova resposta?',
+                function() {
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = `/avaliacoes/${avaliacaoId}/limpar`;
+                    form.innerHTML = `@csrf`;
+                    document.body.appendChild(form);
+                    form.submit();
+                }
+            );
+        }
+
+        function confirmarExcluir(avaliacaoId) {
+            mostrarConfirmacao(
+                'Excluir Avaliação',
+                'Tem certeza que deseja excluir esta avaliação?',
+                function() {
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = `/avaliacoes/${avaliacaoId}`;
+                    form.innerHTML = `@csrf
+                        @method('DELETE')`;
+                    document.body.appendChild(form);
+                    form.submit();
+                }
+            );
         }
 
         function copiarLink() {
@@ -720,73 +744,18 @@
             // Tentar usar a API moderna primeiro
             if (navigator.clipboard && window.isSecureContext) {
                 navigator.clipboard.writeText(input.value).then(() => {
-                    mostrarMensagemSucesso();
+                    mostrarSucesso('Link Copiado', 'O link foi copiado para a área de transferência com sucesso!');
                 }).catch(err => {
                     // Fallback para método antigo
                     document.execCommand('copy');
-                    mostrarMensagemSucesso();
+                    mostrarSucesso('Link Copiado', 'O link foi copiado para a área de transferência com sucesso!');
                 });
             } else {
                 // Fallback para navegadores antigos
                 document.execCommand('copy');
-                mostrarMensagemSucesso();
+                mostrarSucesso('Link Copiado', 'O link foi copiado para a área de transferência com sucesso!');
             }
         }
-        
-        function mostrarMensagemSucesso() {
-            // Criar toast de sucesso
-            const toast = document.createElement('div');
-            toast.style.cssText = `
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-                color: white;
-                padding: 1rem 1.5rem;
-                border-radius: 8px;
-                box-shadow: 0 4px 16px rgba(40, 167, 69, 0.3);
-                z-index: 9999;
-                display: flex;
-                align-items: center;
-                gap: 0.75rem;
-                font-weight: 600;
-                animation: slideIn 0.3s ease;
-            `;
-            toast.innerHTML = '<i class="fas fa-check-circle"></i> Link copiado para a área de transferência!';
-            document.body.appendChild(toast);
-            
-            // Remover após 3 segundos
-            setTimeout(() => {
-                toast.style.animation = 'slideOut 0.3s ease';
-                setTimeout(() => toast.remove(), 300);
-            }, 3000);
-        }
-        
-        // Adicionar animações CSS
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes slideIn {
-                from {
-                    transform: translateX(400px);
-                    opacity: 0;
-                }
-                to {
-                    transform: translateX(0);
-                    opacity: 1;
-                }
-            }
-            @keyframes slideOut {
-                from {
-                    transform: translateX(0);
-                    opacity: 1;
-                }
-                to {
-                    transform: translateX(400px);
-                    opacity: 0;
-                }
-            }
-        `;
-        document.head.appendChild(style);
     </script>
 
 @endsection

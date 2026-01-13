@@ -4,6 +4,8 @@
 
 @section('content')
 
+    @include('components.modal-sistema')
+
     <style>
         .filtro-card {
             background: white;
@@ -108,183 +110,174 @@
             font-size: 0.85rem;
         }
     </style>
-        <!-- Card de Filtros -->
-        <div class="filtro-card">
-            <h5><i class="fas fa-filter"></i> Filtros</h5>
-            <form method="GET">
-                <div class="filtro-row">
-                    <div>
-                        <label for="search" class="form-label mb-1 fw-semibold">Buscar</label>
-                        <input type="text" name="search" id="search" class="form-control form-control-sm"
-                            placeholder="Termo ou estagiário..." value="{{ request('search') }}">
-                    </div>
-
-                    <div>
-                        <label for="tipo_avaliacao" class="form-label mb-1 fw-semibold">Tipo de Avaliação</label>
-                        <select name="tipo_avaliacao" id="tipo_avaliacao" class="form-select form-select-sm">
-                            <option value="">Todas</option>
-                            <option value="seis_meses" {{ request('tipo_avaliacao') == 'seis_meses' ? 'selected' : '' }}>
-                                6 Meses
-                            </option>
-                            <option value="finalizacao" {{ request('tipo_avaliacao') == 'finalizacao' ? 'selected' : '' }}>
-                                Finalização
-                            </option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label for="status" class="form-label mb-1 fw-semibold">Status</label>
-                        <select name="status" id="status" class="form-select form-select-sm">
-                            <option value="">Todas</option>
-                            <option value="pendente" {{ request('status') == 'pendente' ? 'selected' : '' }}>
-                                Pendente
-                            </option>
-                            <option value="respondida" {{ request('status') == 'respondida' ? 'selected' : '' }}>
-                                Respondida
-                            </option>
-                            <option value="revisada" {{ request('status') == 'revisada' ? 'selected' : '' }}>
-                                Revisada
-                            </option>
-                        </select>
-                    </div>
+    <!-- Card de Filtros -->
+    <div class="filtro-card">
+        <h5><i class="fas fa-filter"></i> Filtros</h5>
+        <form method="GET">
+            <div class="filtro-row">
+                <div>
+                    <label for="search" class="form-label mb-1 fw-semibold">Buscar</label>
+                    <input type="text" name="search" id="search" class="form-control form-control-sm"
+                        placeholder="Termo ou estagiário..." value="{{ request('search') }}">
                 </div>
 
-                <div class="d-flex gap-2 mt-3">
-                    <button type="submit" class="btn btn-primary btn-sm">
-                        <i class="fas fa-search"></i> Filtrar
-                    </button>
-                    <a href="{{ route('avaliacoes.index') }}" class="btn btn-outline-secondary btn-sm">
-                        <i class="fas fa-redo"></i> Limpar
-                    </a>
+                <div>
+                    <label for="tipo_avaliacao" class="form-label mb-1 fw-semibold">Tipo de Avaliação</label>
+                    <select name="tipo_avaliacao" id="tipo_avaliacao" class="form-select form-select-sm">
+                        <option value="">Todas</option>
+                        <option value="seis_meses" {{ request('tipo_avaliacao') == 'seis_meses' ? 'selected' : '' }}>
+                            6 Meses
+                        </option>
+                        <option value="finalizacao" {{ request('tipo_avaliacao') == 'finalizacao' ? 'selected' : '' }}>
+                            Finalização
+                        </option>
+                    </select>
                 </div>
-            </form>
+
+                <div>
+                    <label for="status" class="form-label mb-1 fw-semibold">Status</label>
+                    <select name="status" id="status" class="form-select form-select-sm">
+                        <option value="">Todas</option>
+                        <option value="pendente" {{ request('status') == 'pendente' ? 'selected' : '' }}>
+                            Pendente
+                        </option>
+                        <option value="respondida" {{ request('status') == 'respondida' ? 'selected' : '' }}>
+                            Respondida
+                        </option>
+                        <option value="revisada" {{ request('status') == 'revisada' ? 'selected' : '' }}>
+                            Revisada
+                        </option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2 mt-3">
+                <button type="submit" class="btn btn-primary btn-sm">
+                    <i class="fas fa-search"></i> Filtrar
+                </button>
+                <a href="{{ route('avaliacoes.index') }}" class="btn btn-outline-secondary btn-sm">
+                    <i class="fas fa-redo"></i> Limpar
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Mensagens de Feedback -->
+    @if ($message = Session::get('success'))
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            {{ $message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
+    @endif
 
-        <!-- Mensagens de Feedback -->
-        @if ($message = Session::get('success'))
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                {{ $message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        @endif
+    @if ($message = Session::get('error'))
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            {{ $message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    @endif
 
-        @if ($message = Session::get('error'))
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                {{ $message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        @endif
-
-        <!-- Tabela de Avaliações -->
-        @if ($avaliacoes->count() > 0)
-            <table class="tabela-avaliacoes">
-                <thead>
+    <!-- Tabela de Avaliações -->
+    @if ($avaliacoes->count() > 0)
+        <table class="tabela-avaliacoes">
+            <thead>
+                <tr>
+                    <th>Nº Termo</th>
+                    <th>Estagiário</th>
+                    <th>Supervisor</th>
+                    <th>Tipo</th>
+                    <th>Status</th>
+                    <th>Criada em</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach ($avaliacoes as $avaliacao)
                     <tr>
-                        <th>Nº Termo</th>
-                        <th>Estagiário</th>
-                        <th>Supervisor</th>
-                        <th>Tipo</th>
-                        <th>Status</th>
-                        <th>Criada em</th>
-                        <th>Ações</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach ($avaliacoes as $avaliacao)
-                        <tr>
-                            <td>
-                                <strong>{{ $avaliacao->termo->numero_termo }}/{{ $avaliacao->termo->ano_termo }}</strong>
-                            </td>
-                            <td>
-                                {{ $avaliacao->termo->estagiario->nome_estagiario ?? 'N/A' }}
-                            </td>
-                            <td>
-                                {{ $avaliacao->supervisor->nome ?? $avaliacao->termo->supervisor->nome_supervisor ?? 'N/A' }}
-                            </td>
-                            <td>
-                                @if ($avaliacao->tipo_avaliacao === 'seis_meses')
-                                    <span class="badge badge-info">6 Meses</span>
+                        <td>
+                            <strong>{{ $avaliacao->termo->numero_termo }}/{{ $avaliacao->termo->ano_termo }}</strong>
+                        </td>
+                        <td>
+                            {{ $avaliacao->termo->estagiario->nome_estagiario ?? 'N/A' }}
+                        </td>
+                        <td>
+                            {{ $avaliacao->supervisor->nome ?? $avaliacao->termo->supervisor->nome_supervisor ?? 'N/A' }}
+                        </td>
+                        <td>
+                            @if ($avaliacao->tipo_avaliacao === 'seis_meses')
+                                <span class="badge badge-info">6 Meses</span>
+                            @else
+                                <span class="badge badge-secondary">Finalização</span>
+                            @endif
+                        </td>
+                        <td>
+                            <span class="status-badge status-{{ $avaliacao->status }}">
+                                @if ($avaliacao->status === 'pendente')
+                                    Pendente
+                                @elseif ($avaliacao->status === 'respondida')
+                                    Respondida
                                 @else
-                                    <span class="badge badge-secondary">Finalização</span>
+                                    Revisada
                                 @endif
-                            </td>
-                            <td>
-                                <span class="status-badge status-{{ $avaliacao->status }}">
-                                    @if ($avaliacao->status === 'pendente')
-                                        Pendente
-                                    @elseif ($avaliacao->status === 'respondida')
-                                        Respondida
-                                    @else
-                                        Revisada
-                                    @endif
-                                </span>
-                            </td>
-                            <td>
-                                {{ $avaliacao->created_at->format('d/m/Y H:i') }}
-                            </td>
-                            <td>
-                                <div class="acoes-cell">
-                                    <!-- Botão Visualizar -->
-                                    <a href="{{ route('avaliacoes.show', $avaliacao) }}" class="btn btn-sm btn-info"
-                                        title="Visualizar avaliação">
-                                        <i class="fas fa-eye"></i> Ver
+                            </span>
+                        </td>
+                        <td>
+                            {{ $avaliacao->created_at->format('d/m/Y H:i') }}
+                        </td>
+                        <td>
+                            <div class="acoes-cell">
+                                <!-- Botão Visualizar -->
+                                <a href="{{ route('avaliacoes.show', $avaliacao) }}" class="btn btn-sm btn-info"
+                                    title="Visualizar avaliação">
+                                    <i class="fas fa-eye"></i> Ver
+                                </a>
+
+                                <!-- Botão Ver Outras Avaliações do Termo -->
+                                <a href="{{ route('avaliacoes.por-termo', $avaliacao->termo) }}" class="btn btn-sm btn-secondary"
+                                    title="Ver todas as avaliações deste termo">
+                                    <i class="fas fa-list"></i> Termo
+                                </a>
+
+                                <!-- Botão Compartilhar Link (apenas se pendente) -->
+                                @if ($avaliacao->status === 'pendente')
+                                    <button class="btn btn-sm btn-success btn-compartilhar"
+                                        data-avaliacao-id="{{ $avaliacao->id_avaliacao }}" title="Copiar link de compartilhamento">
+                                        <i class="fas fa-share-alt"></i> Link
+                                    </button>
+                                @elseif ($avaliacao->status === 'respondida')
+                                    <!-- Botões para avaliação respondida -->
+                                    <a href="{{ route('avaliacoes.pdf', $avaliacao) }}" class="btn btn-sm btn-outline-primary"
+                                        title="Baixar PDF da avaliação">
+                                        <i class="fas fa-file-pdf"></i> PDF
                                     </a>
+                                    <button class="btn btn-sm btn-warning" title="Limpar avaliação para nova resposta"
+                                        onclick="confirmarLimpar({{ $avaliacao->id_avaliacao }}, '{{ route('avaliacoes.limpar', $avaliacao) }}')">
+                                        <i class="fas fa-redo"></i> Limpar
+                                    </button>
+                                @endif
 
-                                    <!-- Botão Ver Outras Avaliações do Termo -->
-                                    <a href="{{ route('avaliacoes.por-termo', $avaliacao->termo) }}"
-                                        class="btn btn-sm btn-secondary" title="Ver todas as avaliações deste termo">
-                                        <i class="fas fa-list"></i> Termo
-                                    </a>
+                                <!-- Botão Excluir -->
+                                <button class="btn btn-sm btn-danger" title="Excluir avaliação"
+                                    onclick="confirmarExcluir({{ $avaliacao->id_avaliacao }}, '{{ route('avaliacoes.destroy', $avaliacao) }}')">
+                                    <i class="fas fa-trash"></i> Del
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
 
-                                    <!-- Botão Compartilhar Link (apenas se pendente) -->
-                                    @if ($avaliacao->status === 'pendente')
-                                        <button class="btn btn-sm btn-success btn-compartilhar"
-                                            data-avaliacao-id="{{ $avaliacao->id_avaliacao }}" title="Copiar link de compartilhamento">
-                                            <i class="fas fa-share-alt"></i> Link
-                                        </button>
-                                    @elseif ($avaliacao->status === 'respondida')
-                                        <!-- Botões para avaliação respondida -->
-                                        <a href="{{ route('avaliacoes.pdf', $avaliacao) }}" class="btn btn-sm btn-outline-primary" title="Baixar PDF da avaliação">
-                                            <i class="fas fa-file-pdf"></i> PDF
-                                        </a>
-                                        <form action="{{ route('avaliacoes.limpar', $avaliacao) }}" method="POST"
-                                            style="display: inline;"
-                                            onsubmit="return confirm('Tem certeza que deseja limpar esta avaliação?');">
-                                            @csrf
-                                            <button type="submit" class="btn btn-sm btn-warning"
-                                                title="Limpar avaliação para nova resposta">
-                                                <i class="fas fa-redo"></i> Limpar
-                                            </button>
-                                        </form>
-                                    @endif
-
-                                    <!-- Botão Excluir -->
-                                    <form action="{{ route('avaliacoes.destroy', $avaliacao) }}" method="POST"
-                                        style="display: inline;"
-                                        onsubmit="return confirm('Tem certeza que deseja excluir esta avaliação?');">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-danger" title="Excluir avaliação">
-                                            <i class="fas fa-trash"></i> Del
-                                        </button>
-                                    </form>
-                                </div>
-                            </td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
-
-            <!-- Paginação -->
-            <div class="mt-4">
-                {{ $avaliacoes->links() }}
-            </div>
-        @else
-            <div class="alert alert-info">
-                <i class="fas fa-info-circle"></i>
-                Nenhuma avaliação pendente no momento.
-            </div>
-        @endif
+        <!-- Paginação -->
+        <div class="mt-4">
+            {{ $avaliacoes->links() }}
+        </div>
+    @else
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i>
+            Nenhuma avaliação pendente no momento.
+        </div>
+    @endif
     </div>
 
     <!-- Modal para compartilhamento de link -->
@@ -331,16 +324,57 @@
                         modal.show();
                     })
                     .catch(error => {
-                        alert('Erro ao gerar link: ' + error.message);
+                        mostrarErro('Erro ao Gerar Link', 'Não conseguimos gerar o link: ' + error.message);
                     });
             });
         });
 
+        function confirmarLimpar(avaliacaoId, url) {
+            mostrarConfirmacao(
+                'Limpar Avaliação',
+                'Tem certeza que deseja limpar esta avaliação?',
+                function () {
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = url;
+                    form.innerHTML = `@csrf`;
+                    document.body.appendChild(form);
+                    form.submit();
+                }
+            );
+        }
+
+        function confirmarExcluir(avaliacaoId, url) {
+            mostrarConfirmacao(
+                'Excluir Avaliação',
+                'Tem certeza que deseja excluir esta avaliação?',
+                function () {
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = url;
+                    form.innerHTML = `@csrf
+                            @method('DELETE')`;
+                    document.body.appendChild(form);
+                    form.submit();
+                }
+            );
+        }
+
         function copiarLink() {
             const input = document.getElementById('linkCompartilhamento');
             input.select();
-            document.execCommand('copy');
-            alert('Link copiado para a área de transferência!');
+
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(input.value).then(() => {
+                    mostrarSucesso('Link Copiado', 'O link foi copiado para a área de transferência!');
+                }).catch(err => {
+                    document.execCommand('copy');
+                    mostrarSucesso('Link Copiado', 'O link foi copiado para a área de transferência!');
+                });
+            } else {
+                document.execCommand('copy');
+                mostrarSucesso('Link Copiado', 'O link foi copiado para a área de transferência!');
+            }
         }
     </script>
 

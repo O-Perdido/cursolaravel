@@ -4,6 +4,8 @@
 
 @section('content')
 
+    @include('components.modal-sistema')
+
     <style>
         .termo-info-card {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -229,23 +231,17 @@
                                 <a href="{{ route('avaliacoes.pdf', $avaliacao) }}" class="btn-small btn btn-outline-primary">
                                     <i class="fas fa-file-pdf"></i> PDF
                                 </a>
-                                <form action="{{ route('avaliacoes.limpar', $avaliacao) }}" method="POST" style="display: inline;"
-                                    onsubmit="return confirm('Tem certeza?');">
-                                    @csrf
-                                    <button type="submit" class="btn-small btn btn-warning">
-                                        <i class="fas fa-redo"></i> Limpar
-                                    </button>
-                                </form>
+                                <button class="btn-small btn btn-warning"
+                                    onclick="confirmarLimpar({{ $avaliacao->id_avaliacao }}, '{{ route('avaliacoes.limpar', $avaliacao) }}')">
+                                    <i class="fas fa-redo"></i> Limpar
+                                </button>
                             @endif
 
                             <!-- Excluir -->
-                            <form action="{{ route('avaliacoes.destroy', $avaliacao) }}" method="POST" style="display: inline;"
-                                onsubmit="return confirm('Tem certeza?');">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="btn-small btn btn-danger">
-                                    <i class="fas fa-trash"></i> Del
-                                </button>
+                            <button class="btn-small btn btn-danger"
+                                onclick="confirmarExcluir({{ $avaliacao->id_avaliacao }}, '{{ route('avaliacoes.destroy', $avaliacao) }}')">
+                                <i class="fas fa-trash"></i> Del
+                            </button>
                             </form>
                         </div>
                     </div>
@@ -345,16 +341,57 @@
                         modal.show();
                     })
                     .catch(error => {
-                        alert('Erro ao gerar link: ' + error.message);
+                        mostrarErro('Erro ao Gerar Link', 'Não conseguimos gerar o link: ' + error.message);
                     });
             });
         });
 
+        function confirmarLimpar(avaliacaoId, url) {
+            mostrarConfirmacao(
+                'Limpar Avaliação',
+                'Tem certeza que deseja limpar esta avaliação?',
+                function () {
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = url;
+                    form.innerHTML = `@csrf`;
+                    document.body.appendChild(form);
+                    form.submit();
+                }
+            );
+        }
+
+        function confirmarExcluir(avaliacaoId, url) {
+            mostrarConfirmacao(
+                'Excluir Avaliação',
+                'Tem certeza que deseja excluir esta avaliação?',
+                function () {
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = url;
+                    form.innerHTML = `@csrf
+                            @method('DELETE')`;
+                    document.body.appendChild(form);
+                    form.submit();
+                }
+            );
+        }
+
         function copiarLink() {
             const input = document.getElementById('linkCompartilhamento');
             input.select();
-            document.execCommand('copy');
-            alert('Link copiado para a área de transferência!');
+
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(input.value).then(() => {
+                    mostrarSucesso('Link Copiado', 'O link foi copiado para a área de transferência!');
+                }).catch(err => {
+                    document.execCommand('copy');
+                    mostrarSucesso('Link Copiado', 'O link foi copiado para a área de transferência!');
+                });
+            } else {
+                document.execCommand('copy');
+                mostrarSucesso('Link Copiado', 'O link foi copiado para a área de transferência!');
+            }
         }
     </script>
 
