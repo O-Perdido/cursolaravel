@@ -172,30 +172,52 @@ class AvaliacaoController extends Controller
         ]);
 
         $termo = Termo::findOrFail($request->fk_id_termo);
+        $tipoAvaliacao = $request->tipo_avaliacao;
+        $tipoTexto = $tipoAvaliacao === 'seis_meses' ? '6 meses' : 'finalização';
 
         // Verifica se termo está ativo
-        if (!$this->avaliacaoService->termoEstaAtivo($termo)) {
-            return redirect()->back()->with('error', 'Apenas termos ativos podem ter avaliações.');
+        // EXCEÇÃO: Avaliações de finalização podem ser criadas mesmo em termos rescindidos
+        if (!$this->avaliacaoService->termoEstaAtivo($termo) && $tipoAvaliacao !== 'finalizacao') {
+            if ($termo->rescisao) {
+                return redirect()->back()->with('error', 'Este termo foi rescindido. Apenas avaliações de finalização podem ser criadas para termos rescindidos.');
+            }
+            
+            $dataFim = $termo->data_fim_estagio ?? $termo->data_fim_estagio_fixo;
+            if ($dataFim && now()->gt($dataFim)) {
+                return redirect()->back()->with('error', 'Este termo já foi finalizado em ' . \Carbon\Carbon::parse($dataFim)->format('d/m/Y') . '. Não é possível criar avaliação de ' . $tipoTexto . '.');
+            }
+            
+            return redirect()->back()->with('error', 'Apenas termos ativos podem ter avaliações de ' . $tipoTexto . '.');
         }
 
         // Verifica se já existe avaliação do tipo pendente
         $avaliacaoExistente = $termo->avaliacoes()
-            ->where('tipo_avaliacao', $request->tipo_avaliacao)
+            ->where('tipo_avaliacao', $tipoAvaliacao)
             ->where('status', 'pendente')
             ->first();
 
         if ($avaliacaoExistente) {
-            return redirect()->back()->with('error', 'Já existe uma avaliação ' . $request->tipo_avaliacao . ' pendente para este termo.');
+            return redirect()->back()->with('error', 'Já existe uma avaliação de ' . $tipoTexto . ' pendente para este termo. Por favor, finalize ou exclua a avaliação existente antes de criar uma nova.');
+        }
+
+        // Verifica se já existe avaliação do tipo respondida (caso queira evitar duplicatas)
+        $avaliacaoRespondida = $termo->avaliacoes()
+            ->where('tipo_avaliacao', $tipoAvaliacao)
+            ->where('status', 'respondida')
+            ->count();
+
+        if ($avaliacaoRespondida > 0 && $tipoAvaliacao === 'seis_meses') {
+            return redirect()->back()->with('warning', 'Atenção: Já existe(m) ' . $avaliacaoRespondida . ' avaliação(ões) de ' . $tipoTexto . ' respondida(s) para este termo.');
         }
 
         $avaliacao = $this->avaliacaoService->criarAvaliacao(
             $termo,
-            $request->tipo_avaliacao,
+            $tipoAvaliacao,
             $termo->fk_id_supervisor
         );
 
         return redirect()->route('avaliacoes.show', $avaliacao)
-            ->with('success', 'Avaliação criada com sucesso!');
+            ->with('success', 'Avaliação de ' . $tipoTexto . ' criada com sucesso!');
     }
 
     /**
