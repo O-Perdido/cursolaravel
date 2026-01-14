@@ -116,22 +116,30 @@
                                 <label for="fk_id_empresa" class="form-label">Selecione a Unidade Concedente</label>
                                 <input type="text" class="form-control" id="empresa_search" placeholder="Digite para buscar..."
                                     autocomplete="off">
-                                <select class="form-control mt-2" id="fk_id_empresa" name="fk_id_empresa" size="5" required
-                                    style="display:none; position: absolute; top: 60px; left: 0; width: 700px; z-index: 1050; background: #fff; border: 1px solid #ced4da;">
-                                    @foreach($empresas as $empresa)
-                                        <option value="{{ $empresa->id_empresa }}">{{ $empresa->nome_empresa }}</option>
-                                    @endforeach
-                                </select>
+                                <div id="fk_id_empresa_select_wrapper"
+                                    style="display:none; position: absolute; top: 60px; left: 0; z-index: 1050; resize:horizontal; overflow:auto; border: 1px solid #ced4da; min-width:700px;">
+                                    <select class="form-control" id="fk_id_empresa" name="fk_id_empresa" size="5" required
+                                        style="width:100%; border:none; margin:0; padding:0;">
+                                        @foreach($empresas as $empresa)
+                                            <option value="{{ $empresa->id_empresa }}">{{ $empresa->nome_empresa }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
                             </div>
                             <script>
                                 document.addEventListener('DOMContentLoaded', function () {
                                     const searchInput = document.getElementById('empresa_search');
                                     const select = document.getElementById('fk_id_empresa');
+                                    const wrapper = document.getElementById('fk_id_empresa_select_wrapper');
                                     const options = Array.from(select.options);
                                     const localContainer = document.getElementById('local_container');
                                     const localSelect = document.getElementById('fk_id_local');
                                     searchInput.addEventListener('focus', function () {
-                                        select.style.display = 'block';
+                                        if (wrapper) {
+                                            wrapper.style.display = 'block';
+                                        } else {
+                                            select.style.display = 'block';
+                                        }
                                         setTimeout(() => {
                                             searchInput.select();
                                         }, 0);
@@ -145,13 +153,21 @@
                                                 select.appendChild(option.cloneNode(true));
                                             }
                                         });
-                                        select.style.display = 'block';
+                                        if (wrapper) {
+                                            wrapper.style.display = 'block';
+                                        } else {
+                                            select.style.display = 'block';
+                                        }
                                     });
 
                                     select.addEventListener('change', function () {
                                         const selected = select.options[select.selectedIndex];
                                         searchInput.value = selected.text;
-                                        select.style.display = 'none';
+                                        if (wrapper) {
+                                            wrapper.style.display = 'none';
+                                        } else {
+                                            select.style.display = 'none';
+                                        }
 
                                         // Ao selecionar a empresa, carrega os locais relacionados
                                         const empresaId = selected.value;
@@ -195,8 +211,12 @@
                                     });
 
                                     document.addEventListener('click', function (e) {
-                                        if (!searchInput.contains(e.target) && !select.contains(e.target)) {
-                                            select.style.display = 'none';
+                                        if (!searchInput.contains(e.target) && !select.contains(e.target) && (!wrapper || !wrapper.contains(e.target))) {
+                                            if (wrapper) {
+                                                wrapper.style.display = 'none';
+                                            } else {
+                                                select.style.display = 'none';
+                                            }
                                         }
                                     });
                                 });
@@ -267,15 +287,15 @@
                                     placeholder="Digite o número de dias úteis">
                             </div>
                             <!-- Campo para selecionar o tipo de cálculo de recesso
-                                                                                                                                                                                                                                                                                                                                                                        - original: mantém a regra antiga (não considera saldo de recesso)
-                                                                                                                                                                                                                                                                                                                                                                        - com_saldo: paga apenas os dias NÃO utilizados (saldo_recesso)
-                                                                                                                                                                                                                                                                                                                                                                        Ex.: saldo_recesso=30 => paga 100%; saldo_recesso=0 => paga 0%; saldo_recesso=15 => paga 50% -->
+                                                                                                                                                                                                                                                                                                                                                                                - original: mantém a regra antiga (não considera saldo de recesso)
+                                                                                                                                                                                                                                                                                                                                                                                - com_saldo: paga apenas os dias NÃO utilizados (saldo_recesso)
+                                                                                                                                                                                                                                                                                                                                                                                Ex.: saldo_recesso=30 => paga 100%; saldo_recesso=0 => paga 0%; saldo_recesso=15 => paga 50% -->
                             <div class="mb-3">
                                 <label class="form-label d-block">Tipo de Cálculo de Recesso</label>
                                 <!-- Switch Bootstrap 5 para escolher o modo de cálculo
-                                                                                                                                                                                                                                                                                                                                                                        - Desligado: original (não considera saldo)
-                                                                                                                                                                                                                                                                                                                                                                        - Ligado: com_saldo (paga dias NÃO utilizados)
-                                                                                                                                                                                                                                                                                                                                                                        -->
+                                                                                                                                                                                                                                                                                                                                                                                - Desligado: original (não considera saldo)
+                                                                                                                                                                                                                                                                                                                                                                                - Ligado: com_saldo (paga dias NÃO utilizados)
+                                                                                                                                                                                                                                                                                                                                                                                -->
                                 <div class="d-flex align-items-center">
                                     <label for="tipo_calculo_recesso_switch" class="me-2 mb-0">Cálculo Antigo</label>
                                     <div class="form-check form-switch m-0 mx-2 ps-0">
@@ -339,15 +359,18 @@
                             <input type="text" class="form-control form-control-sm" id="empresa_search_filtro"
                                 placeholder="Digite para buscar..." autocomplete="off"
                                 value="{{ $empresas->firstWhere('id_empresa', request('empresa'))?->nome_empresa }}">
-                            <select name="empresa" id="empresa" class="form-select form-select-sm mt-2" size="5"
-                                style="display:none; position:absolute; z-index:1050; background:#fff; border:1px solid #ced4da; width:700px;">
-                                <option value="">Todas</option>
-                                @foreach($empresas as $empresa)
-                                    <option value="{{ $empresa->id_empresa }}" {{ request('empresa') == $empresa->id_empresa ? 'selected' : '' }}>
-                                        {{ $empresa->nome_empresa }}
-                                    </option>
-                                @endforeach
-                            </select>
+                            <div id="empresa_select_wrapper_filtro"
+                                style="display:none; position:absolute; z-index:1050; resize:horizontal; overflow:auto; border:1px solid #ced4da; min-width:700px;">
+                                <select name="empresa" id="empresa" class="form-select form-select-sm" size="5"
+                                    style="width:100%; border:none; margin:0; padding:0;">
+                                    <option value="">Todas</option>
+                                    @foreach($empresas as $empresa)
+                                        <option value="{{ $empresa->id_empresa }}" {{ request('empresa') == $empresa->id_empresa ? 'selected' : '' }}>
+                                            {{ $empresa->nome_empresa }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
                         </div>
                         <div class="col-md-3" id="localFilterCol" style="{{ request('empresa') ? '' : 'display:none;' }}">
                             <label for="local" class="form-label mb-1 fw-semibold">Local</label>
@@ -610,6 +633,7 @@
         document.addEventListener('DOMContentLoaded', function () {
             const searchInputFiltro = document.getElementById('empresa_search_filtro');
             const selectFiltro = document.getElementById('empresa');
+            const wrapperFiltro = document.getElementById('empresa_select_wrapper_filtro');
             if (searchInputFiltro && selectFiltro) {
                 const originalOptions = Array.from(selectFiltro.options);
 
@@ -621,7 +645,11 @@
                             selectFiltro.appendChild(opt.cloneNode(true));
                         }
                     });
-                    selectFiltro.style.display = 'block';
+                    if (wrapperFiltro) {
+                        wrapperFiltro.style.display = 'block';
+                    } else {
+                        selectFiltro.style.display = 'block';
+                    }
                 }
 
                 searchInputFiltro.addEventListener('focus', () => {
@@ -632,7 +660,11 @@
                 selectFiltro.addEventListener('change', () => {
                     const sel = selectFiltro.options[selectFiltro.selectedIndex];
                     if (sel) searchInputFiltro.value = sel.text;
-                    selectFiltro.style.display = 'none';
+                    if (wrapperFiltro) {
+                        wrapperFiltro.style.display = 'none';
+                    } else {
+                        selectFiltro.style.display = 'none';
+                    }
                     carregarLocais(sel?.value || '');
                 });
                 selectFiltro.addEventListener('click', e => {
@@ -642,8 +674,12 @@
                     }
                 });
                 document.addEventListener('mousedown', e => {
-                    if (!searchInputFiltro.contains(e.target) && !selectFiltro.contains(e.target)) {
-                        selectFiltro.style.display = 'none';
+                    if (!searchInputFiltro.contains(e.target) && !selectFiltro.contains(e.target) && (!wrapperFiltro || !wrapperFiltro.contains(e.target))) {
+                        if (wrapperFiltro) {
+                            wrapperFiltro.style.display = 'none';
+                        } else {
+                            selectFiltro.style.display = 'none';
+                        }
                     }
                 });
                 // Preencher inicialmente o campo se já houver seleção

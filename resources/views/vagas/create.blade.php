@@ -36,16 +36,18 @@
                                     class="text-danger">*</span></label>
                             <input type="text" class="form-control form-control-sm" id="empresa_search"
                                 placeholder="Digite para buscar..." autocomplete="off">
-                            <select class="form-control form-control-sm mt-2" id="fk_id_empresa" name="fk_id_empresa"
-                                size="5" required
-                                style="display:none; position: absolute; top: 60px; left: 0; width: 100%; z-index: 1050; background: #fff; border: 1px solid #ced4da;">
-                                <option value="">Escolha uma empresa</option>
-                                @if(isset($empresas) && $empresas->count())
-                                    @foreach($empresas as $emp)
-                                        <option value="{{ $emp->id_empresa }}">{{ $emp->nome_empresa }}</option>
-                                    @endforeach
-                                @endif
-                            </select>
+                            <div id="fk_id_empresa_select_wrapper"
+                                style="display:none; position: absolute; top: 60px; left: 0; z-index: 1050; resize:horizontal; overflow:auto; border: 1px solid #ced4da; min-width:100%;">
+                                <select class="form-control form-control-sm" id="fk_id_empresa" name="fk_id_empresa"
+                                    size="5" required style="width:100%; border:none; margin:0; padding:0;">
+                                    <option value="">Escolha uma empresa</option>
+                                    @if(isset($empresas) && $empresas->count())
+                                        @foreach($empresas as $emp)
+                                            <option value="{{ $emp->id_empresa }}">{{ $emp->nome_empresa }}</option>
+                                        @endforeach
+                                    @endif
+                                </select>
+                            </div>
                             <small class="form-text text-muted">Selecione a empresa para carregar os locais.</small>
                         </div>
                     @else
@@ -421,7 +423,14 @@
 
         // Seleção de Empresa (somente admin/operador)
         if (empresaSelect && empresaSearch) {
-            empresaSearch.addEventListener('focus', function () { empresaSelect.style.display = 'block'; });
+            const empresaWrapper = qs('#fk_id_empresa_select_wrapper');
+            empresaSearch.addEventListener('focus', function () {
+                if (empresaWrapper) {
+                    empresaWrapper.style.display = 'block';
+                } else {
+                    empresaSelect.style.display = 'block';
+                }
+            });
             empresaSearch.addEventListener('input', function () {
                 const filter = this.value.toUpperCase();
                 const options = empresaSelect.getElementsByTagName('option');
@@ -429,18 +438,30 @@
                     const txtValue = options[i].textContent || options[i].innerText;
                     options[i].style.display = (txtValue.toUpperCase().indexOf(filter) > -1 || options[i].value === '') ? '' : 'none';
                 }
-                empresaSelect.style.display = 'block';
+                if (empresaWrapper) {
+                    empresaWrapper.style.display = 'block';
+                } else {
+                    empresaSelect.style.display = 'block';
+                }
             });
             empresaSelect.addEventListener('change', function () {
                 const selected = this.options[this.selectedIndex];
                 empresaSearch.value = selected.text;
-                empresaSelect.style.display = 'none';
+                if (empresaWrapper) {
+                    empresaWrapper.style.display = 'none';
+                } else {
+                    empresaSelect.style.display = 'none';
+                }
                 carregarLocais(this.value);
                 carregarSupervisores(this.value);
             });
             document.addEventListener('click', function (event) {
-                if (!empresaSearch.contains(event.target) && !empresaSelect.contains(event.target)) {
-                    empresaSelect.style.display = 'none';
+                if (!empresaSearch.contains(event.target) && !empresaSelect.contains(event.target) && (!empresaWrapper || !empresaWrapper.contains(event.target))) {
+                    if (empresaWrapper) {
+                        empresaWrapper.style.display = 'none';
+                    } else {
+                        empresaSelect.style.display = 'none';
+                    }
                 }
             });
         }
@@ -451,8 +472,8 @@
             carregarSupervisores(@json($empresaSelecionada));
         @endif
 
-                                                                                                                            // Filtro do dropdown de Supervisor
-                                                                                                                    if (supervisorSearch) {
+                                                                                                                                // Filtro do dropdown de Supervisor
+                                                                                                                        if (supervisorSearch) {
             supervisorSearch.addEventListener('focus', function () {
                 supervisorSelect.style.display = 'block';
             });
@@ -680,14 +701,14 @@
             const icon = tipo === 'success' ? '✓' : '✕';
 
             const toastHTML = `
-                                                                                        <div id="${toastId}" class="toast" role="alert" aria-live="assertive" aria-atomic="true" style="pointer-events: auto;">
-                                                                                            <div class="toast-header ${bgColor} text-white">
-                                                                                                <strong class="me-auto">${icon} ${tipo === 'success' ? 'Sucesso' : 'Erro'}</strong>
-                                                                                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+                                                                                            <div id="${toastId}" class="toast" role="alert" aria-live="assertive" aria-atomic="true" style="pointer-events: auto;">
+                                                                                                <div class="toast-header ${bgColor} text-white">
+                                                                                                    <strong class="me-auto">${icon} ${tipo === 'success' ? 'Sucesso' : 'Erro'}</strong>
+                                                                                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+                                                                                                </div>
+                                                                                                <div class="toast-body">${mensagem}</div>
                                                                                             </div>
-                                                                                            <div class="toast-body">${mensagem}</div>
-                                                                                        </div>
-                                                                                    `;
+                                                                                        `;
 
             container.insertAdjacentHTML('beforeend', toastHTML);
             const toastEl = document.getElementById(toastId);

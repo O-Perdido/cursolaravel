@@ -19,8 +19,12 @@ class VagaController extends Controller
         if ($request->filled('status')) {
             $query->where('status', $request->input('status'));
         }
+        if ($request->filled('empresa') && $user->nivel !== 'empresa') {
+            $query->where('fk_id_empresa', $request->input('empresa'));
+        }
         $vagas = $query->orderByDesc('created_at')->paginate(20);
-        return view('vagas.index', compact('vagas'));
+        $empresas = \App\Models\Empresa::orderBy('nome_empresa', 'asc')->get();
+        return view('vagas.index', compact('vagas', 'empresas'));
     }
 
     // Formulário de criação

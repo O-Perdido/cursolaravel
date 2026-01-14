@@ -38,6 +38,27 @@
                 <div class="row align-items-end">
                     <div class="col-md-10">
                         <div class="row g-2">
+                            <!-- Filtro por Unidade Concedente -->
+                            @if (Auth::user()->nivel != 'empresa')
+                                <div class="col-md-3">
+                                    <label for="empresa_search" class="form-label mb-1">Unidade Concedente</label>
+                                    <input type="text" class="form-control form-control-sm" id="empresa_search"
+                                        placeholder="Digite para buscar..." autocomplete="off"
+                                        value="{{ $empresas->firstWhere('id_empresa', request('empresa'))?->nome_empresa }}">
+                                    <div id="empresa_select_wrapper"
+                                        style="display:none; position:absolute; z-index:1050; resize:horizontal; overflow:auto; border:1px solid #ced4da; min-width:300px;">
+                                        <select name="empresa" id="empresa" class="form-select form-select-sm" size="5"
+                                            style="width:100%; border:none; margin:0; padding:0;">
+                                            <option value="">Todas</option>
+                                            @foreach ($empresas as $empresa)
+                                                <option value="{{ $empresa->id_empresa }}" {{ request('empresa') == $empresa->id_empresa ? 'selected' : '' }}>
+                                                    {{ $empresa->nome_empresa }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                </div>
+                            @endif
                             <!-- Filtro por Status -->
                             <div class="col-md-3">
                                 <label for="status" class="form-label mb-1">Filtrar por Status</label>
@@ -185,3 +206,43 @@
     </div>
 
 @endsection
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Setup filtro de busca de empresa
+        if (document.getElementById('empresa_search')) {
+            const searchInput = document.getElementById('empresa_search');
+            const select = document.getElementById('empresa');
+            const wrapper = document.getElementById('empresa_select_wrapper');
+            const options = Array.from(select.options);
+
+            searchInput.addEventListener('focus', function () {
+                wrapper.style.display = 'block';
+                setTimeout(() => searchInput.select(), 0);
+            });
+
+            searchInput.addEventListener('input', function () {
+                const value = this.value.toLowerCase();
+                select.innerHTML = '';
+                options.forEach(option => {
+                    if (option.text.toLowerCase().includes(value)) {
+                        select.appendChild(option.cloneNode(true));
+                    }
+                });
+                wrapper.style.display = 'block';
+            });
+
+            select.addEventListener('change', function () {
+                const selected = select.options[select.selectedIndex];
+                searchInput.value = selected.text;
+                wrapper.style.display = 'none';
+            });
+
+            document.addEventListener('click', function (e) {
+                if (!searchInput.contains(e.target) && !wrapper.contains(e.target)) {
+                    wrapper.style.display = 'none';
+                }
+            });
+        }
+    });
+</script>

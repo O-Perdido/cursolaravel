@@ -148,16 +148,18 @@
                                     class="text-muted">(opcional)</small></label>
                             <input type="text" class="form-control form-control-sm" id="local_search"
                                 placeholder="Digite para buscar..." autocomplete="off" {{ $vaga->fk_id_termo ? 'readonly' : '' }} value="{{ $vaga->local->descricao ?? '' }}">
-                            <select class="form-control form-control-sm mt-2" id="fk_id_local" name="fk_id_local" size="5"
-                                {{ $vaga->fk_id_termo ? 'disabled' : '' }}
-                                style="display:none; position: absolute; top: 60px; left: 0; width: 100%; z-index: 1050; background: #fff; border: 1px solid #ced4da;">
-                                <option value="">Escolha um departamento</option>
-                                @foreach($locais as $local)
-                                    <option value="{{ $local->id_local }}" {{ old('fk_id_local', $vaga->fk_id_local) == $local->id_local ? 'selected' : '' }}>
-                                        {{ $local->descricao }}
-                                    </option>
-                                @endforeach
-                            </select>
+                            <div id="fk_id_local_select_wrapper" style="display:none; position: absolute; top: 60px; left: 0; z-index: 1050; resize:horizontal; overflow:auto; border: 1px solid #ced4da; min-width:100%;">
+                                <select class="form-control form-control-sm" id="fk_id_local" name="fk_id_local" size="5"
+                                    {{ $vaga->fk_id_termo ? 'disabled' : '' }}
+                                    style="width:100%; border:none; margin:0; padding:0;">
+                                    <option value="">Escolha um departamento</option>
+                                    @foreach($locais as $local)
+                                        <option value="{{ $local->id_local }}" {{ old('fk_id_local', $vaga->fk_id_local) == $local->id_local ? 'selected' : '' }}>
+                                            {{ $local->descricao }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
                             <!-- Campo hidden para garantir envio quando disabled -->
                             @if($vaga->fk_id_termo)
                                 <input type="hidden" name="fk_id_local" value="{{ $vaga->fk_id_local }}">
@@ -384,9 +386,14 @@
                 // Busca de Local (só ativa se vaga não está vinculada)
                 const localSearch = document.getElementById('local_search');
                 const localSelect = document.getElementById('fk_id_local');
+                const localWrapper = document.getElementById('fk_id_local_select_wrapper');
 
                 localSearch.addEventListener('focus', function () {
-                    localSelect.style.display = 'block';
+                    if (localWrapper) {
+                        localWrapper.style.display = 'block';
+                    } else {
+                        localSelect.style.display = 'block';
+                    }
                 });
 
                 localSearch.addEventListener('input', function () {
@@ -401,19 +408,31 @@
                             options[i].style.display = 'none';
                         }
                     }
-                    localSelect.style.display = 'block';
+                    if (localWrapper) {
+                        localWrapper.style.display = 'block';
+                    } else {
+                        localSelect.style.display = 'block';
+                    }
                 });
 
                 localSelect.addEventListener('change', function () {
                     const selectedOption = this.options[this.selectedIndex];
                     localSearch.value = selectedOption.text;
-                    localSelect.style.display = 'none';
+                    if (localWrapper) {
+                        localWrapper.style.display = 'none';
+                    } else {
+                        localSelect.style.display = 'none';
+                    }
                 });
 
                 // Fechar dropdown ao clicar fora
                 document.addEventListener('click', function (event) {
-                    if (!localSearch.contains(event.target) && !localSelect.contains(event.target)) {
-                        localSelect.style.display = 'none';
+                    if (!localSearch.contains(event.target) && !localSelect.contains(event.target) && (!localWrapper || !localWrapper.contains(event.target))) {
+                        if (localWrapper) {
+                            localWrapper.style.display = 'none';
+                        } else {
+                            localSelect.style.display = 'none';
+                        }
                     }
                 });
 

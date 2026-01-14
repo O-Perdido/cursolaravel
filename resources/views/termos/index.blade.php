@@ -210,15 +210,18 @@
                                 <input type="text" class="form-control form-control-sm" id="empresa_search"
                                     placeholder="Digite para buscar..." autocomplete="off"
                                     value="{{ $empresas->firstWhere('id_empresa', request('empresa'))?->nome_empresa }}">
-                                <select name="empresa" id="empresa" class="form-select form-select-sm mt-2" size="5"
-                                    style="display:none; position:absolute; z-index:1050; background:#fff; border:1px solid #ced4da; width:700px;">
-                                    <option value="">Todas</option>
-                                    @foreach ($empresas as $empresa)
-                                        <option value="{{ $empresa->id_empresa }}" {{ request('empresa') == $empresa->id_empresa ? 'selected' : '' }}>
-                                            {{ $empresa->nome_empresa }}
-                                        </option>
-                                    @endforeach
-                                </select>
+                                <div id="empresa_select_wrapper"
+                                    style="display:none; position:absolute; z-index:1050; resize:horizontal; overflow:auto; border:1px solid #ced4da; min-width:700px;">
+                                    <select name="empresa" id="empresa" class="form-select form-select-sm" size="5"
+                                        style="width:100%; border:none; margin:0; padding:0;">
+                                        <option value="">Todas</option>
+                                        @foreach ($empresas as $empresa)
+                                            <option value="{{ $empresa->id_empresa }}" {{ request('empresa') == $empresa->id_empresa ? 'selected' : '' }}>
+                                                {{ $empresa->nome_empresa }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
                             </div>
 
                             <div class="col-md-3" id="localFilterCol" style="{{ request('empresa') ? '' : 'display:none;' }}">
@@ -908,10 +911,15 @@
         function setupFilter(searchId, selectId) {
             const searchInput = document.getElementById(searchId);
             const select = document.getElementById(selectId);
+            const wrapper = document.getElementById(selectId + '_select_wrapper');
             const options = Array.from(select.options);
 
             searchInput.addEventListener('focus', function () {
-                select.style.display = 'block';
+                if (wrapper) {
+                    wrapper.style.display = 'block';
+                } else {
+                    select.style.display = 'block';
+                }
                 setTimeout(() => searchInput.select(), 0);
             });
 
@@ -923,13 +931,21 @@
                         select.appendChild(option.cloneNode(true));
                     }
                 });
-                select.style.display = 'block';
+                if (wrapper) {
+                    wrapper.style.display = 'block';
+                } else {
+                    select.style.display = 'block';
+                }
             });
 
             select.addEventListener('change', function () {
                 const selected = select.options[select.selectedIndex];
                 searchInput.value = selected.text;
-                select.style.display = 'none';
+                if (wrapper) {
+                    wrapper.style.display = 'none';
+                } else {
+                    select.style.display = 'none';
+                }
 
                 // Se for o select de empresa, carregar os locais
                 if (selectId === 'empresa') {
@@ -938,8 +954,12 @@
             });
 
             document.addEventListener('click', function (e) {
-                if (!searchInput.contains(e.target) && !select.contains(e.target)) {
-                    select.style.display = 'none';
+                if (!searchInput.contains(e.target) && !select.contains(e.target) && (!wrapper || !wrapper.contains(e.target))) {
+                    if (wrapper) {
+                        wrapper.style.display = 'none';
+                    } else {
+                        select.style.display = 'none';
+                    }
                 }
             });
         }
