@@ -50,8 +50,7 @@ class VagaController extends Controller
         $empresaId = $user->nivel === 'empresa' ? $user->fk_id_empresa : $request->input('fk_id_empresa');
         $request->merge(['fk_id_empresa' => $empresaId]);
         
-        $temEstagiario = $request->input('tem_estagiario_definido') === 'sim' ? true : false;
-        $request->merge(['tem_estagiario_definido' => $temEstagiario]);
+        $this->normalizarEstagiarioDefinido($request);
         
         $validated = $request->validate([
             'titulo_vaga' => 'required|string|max:150',
@@ -114,8 +113,7 @@ class VagaController extends Controller
             return back()->withErrors(['msg' => 'Não é possível editar vaga vinculada a termo.']);
         }
         
-        $temEstagiario = $request->input('tem_estagiario_definido') === 'sim' || $request->input('tem_estagiario_definido') === '1' ? true : false;
-        $request->merge(['tem_estagiario_definido' => $temEstagiario]);
+        $this->normalizarEstagiarioDefinido($request);
         
         $validated = $request->validate([
             'titulo_vaga' => 'required|string|max:150',
@@ -205,6 +203,24 @@ class VagaController extends Controller
             'lotacao' => $vaga->lotacao,
             'valor_bolsa' => $vaga->valor_bolsa,
             'valor_auxilio_transporte' => $vaga->valor_auxilio_transporte,
+        ]);
+    }
+
+    private function normalizarEstagiarioDefinido(Request $request): void
+    {
+        $nome = trim((string) $request->input('nome_estagiario', ''));
+        $whatsapp = trim((string) $request->input('contato_whatsapp', ''));
+        $email = trim((string) $request->input('contato_email', ''));
+
+        $dadosPreenchidos = $nome !== '' || $whatsapp !== '' || $email !== '';
+        $flagSolicitada = in_array($request->input('tem_estagiario_definido'), ['sim', '1', 1, true, 'true'], true);
+        $temEstagiario = $dadosPreenchidos || $flagSolicitada;
+
+        $request->merge([
+            'nome_estagiario' => $nome,
+            'contato_whatsapp' => $whatsapp,
+            'contato_email' => $email,
+            'tem_estagiario_definido' => $temEstagiario,
         ]);
     }
 }

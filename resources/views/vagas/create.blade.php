@@ -307,6 +307,9 @@
         const camposEstagiario = document.getElementById('campos_estagiario');
         const radioComEstagiario = document.getElementById('vaga_com_estagiario');
         const radioSemEstagiario = document.getElementById('vaga_sem_estagiario');
+        const nomeEstagiarioInput = document.getElementById('nome_estagiario');
+        const contatoWhatsappInput = document.getElementById('contato_whatsapp');
+        const contatoEmailInput = document.getElementById('contato_email');
 
         // Carregar locais da empresa
         async function carregarLocais(empresaId) {
@@ -487,12 +490,43 @@
 
         // Mostrar/ocultar campos do estagiário (somente empresa)
         if (radioComEstagiario && radioSemEstagiario && camposEstagiario) {
+            const camposEstagiarioInputs = [nomeEstagiarioInput, contatoWhatsappInput, contatoEmailInput];
+            const possuiCamposPreenchidos = () => camposEstagiarioInputs.some((input) => input && input.value.trim() !== '');
+
             function toggleCamposEstagiario() {
                 camposEstagiario.style.display = radioComEstagiario.checked ? 'block' : 'none';
             }
+
+            function marcarComoTemEstagiario() {
+                radioComEstagiario.checked = true;
+                radioSemEstagiario.checked = false;
+                toggleCamposEstagiario();
+            }
+
+            camposEstagiarioInputs.forEach((input) => {
+                if (!input) return;
+                input.addEventListener('input', function () {
+                    if (this.value.trim() !== '') {
+                        marcarComoTemEstagiario();
+                    }
+                });
+            });
+
             radioComEstagiario.addEventListener('change', toggleCamposEstagiario);
-            radioSemEstagiario.addEventListener('change', toggleCamposEstagiario);
-            toggleCamposEstagiario();
+            radioSemEstagiario.addEventListener('change', function () {
+                if (this.checked && possuiCamposPreenchidos()) {
+                    mostrarToast('Limpe os dados do estagiário para marcar que a vaga não tem estagiário definido.', 'danger');
+                    marcarComoTemEstagiario();
+                    return;
+                }
+                toggleCamposEstagiario();
+            });
+
+            if (possuiCamposPreenchidos()) {
+                marcarComoTemEstagiario();
+            } else {
+                toggleCamposEstagiario();
+            }
         }
     </script>
 

@@ -45,6 +45,7 @@ Foi implementado um sistema completo de cadastro e gerenciamento de vagas de est
   - `data_termino` não pode estar no passado
   - Vaga deve pertencer à empresa selecionada
   - Validações de existência de FK (empresa, local)
+  - Se qualquer campo de estagiário (nome, WhatsApp ou e-mail) estiver preenchido, a vaga é salva automaticamente como "tem estagiário definido"; só é possível salvar como "não tem" se todos esses campos estiverem vazios
   
 - **Frontend**:
   - Alerta se vaga expirada for selecionada (data_termino < hoje)
