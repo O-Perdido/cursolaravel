@@ -364,6 +364,45 @@
                                 });
                             </script>
                             <li class="nav-item dropdown" style="vertical-align: middle;">
+                                <a class="nav-link" href="{{ route('processos-seletivos.index') }}" id="navbarDropdownProcessos"
+                                    role="button">
+                                    <i class="fa-solid fa-graduation-cap fa-2x"></i><br>
+                                    <small>Processos Públicos</small>
+                                </a>
+                                <ul class="dropdown-menu" aria-labelledby="navbarDropdownProcessos">
+                                    <li>
+                                        <a class="dropdown-item" href="{{ route('processos-seletivos.create') }}">Novo
+                                            Processo</a>
+                                    </li>
+                                </ul>
+                            </li>
+                            <script>
+                                document.addEventListener('DOMContentLoaded', function () {
+                                    const dropdownProcessos = document.getElementById('navbarDropdownProcessos');
+                                    const dropdownMenuProcessos = dropdownProcessos.nextElementSibling;
+
+                                    dropdownProcessos.addEventListener('mouseenter', function () {
+                                        if (dropdownMenuProcessos) {
+                                            dropdownMenuProcessos.classList.add('show');
+                                        }
+                                    });
+
+                                    dropdownProcessos.addEventListener('mouseleave', function () {
+                                        if (dropdownMenuProcessos) {
+                                            dropdownMenuProcessos.classList.remove('show');
+                                        }
+                                    });
+
+                                    dropdownMenuProcessos.addEventListener('mouseenter', function () {
+                                        dropdownMenuProcessos.classList.add('show');
+                                    });
+
+                                    dropdownMenuProcessos.addEventListener('mouseleave', function () {
+                                        dropdownMenuProcessos.classList.remove('show');
+                                    });
+                                });
+                            </script>
+                            <li class="nav-item dropdown" style="vertical-align: middle;">
                                 <a class="nav-link" href="{{ route('termos.index') }}" id="navbarDropdownTermos" role="button">
                                     <i class="fa-solid fa-file-contract fa-2x"></i><br>
                                     <small>Termos</small>

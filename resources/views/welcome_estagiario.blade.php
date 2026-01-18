@@ -120,47 +120,54 @@
             </div>
         </div>
 
-        <!-- Card: Vagas -->
+        <!-- Card: Processos Seletivos -->
         <div class="col-md-4">
             <div class="card h-100 border-0 shadow-sm"
-                style="border-radius: 15px; transition: transform 0.3s ease, box-shadow 0.3s ease; position: relative; overflow: hidden;">
-                <!-- Badge "Em Breve" -->
-                <div
-                    style="position: absolute; top: 15px; right: -35px; background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%); color: white; padding: 5px 40px; transform: rotate(45deg); font-weight: 600; font-size: 0.75rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1); z-index: 10;">
-                    EM BREVE
-                </div>
-
-                <div class="card-body p-4" style="opacity: 0.7;">
+                style="border-radius: 15px; transition: transform 0.3s ease, box-shadow 0.3s ease;">
+                <div class="card-body p-4">
                     <div class="d-flex align-items-center mb-3">
                         <div class="rounded-circle d-flex align-items-center justify-content-center me-3"
                             style="width: 60px; height: 60px; background: linear-gradient(135deg, #13502b 0%, #4ebb7c 100%);">
                             <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="white"
-                                class="bi bi-briefcase" viewBox="0 0 16 16">
+                                class="bi bi-mortarboard" viewBox="0 0 16 16">
                                 <path
-                                    d="M6.5 1A1.5 1.5 0 0 0 5 2.5V3H1.5A1.5 1.5 0 0 0 0 4.5v8A1.5 1.5 0 0 0 1.5 14h13a1.5 1.5 0 0 0 1.5-1.5v-8A1.5 1.5 0 0 0 14.5 3H11v-.5A1.5 1.5 0 0 0 9.5 1zm0 1h3a.5.5 0 0 1 .5.5V3H6v-.5a.5.5 0 0 1 .5-.5m1.886 6.914L15 7.151V12.5a.5.5 0 0 1-.5.5h-13a.5.5 0 0 1-.5-.5V7.15l6.614 1.764a1.5 1.5 0 0 0 .772 0M1.5 4h13a.5.5 0 0 1 .5.5v1.616L8.129 7.948a.5.5 0 0 1-.258 0L1 6.116V4.5a.5.5 0 0 1 .5-.5" />
+                                    d="M8.211 2.047a.5.5 0 0 0-.422 0l-7.905 3.953a.5.5 0 0 0 .422.941L6.5 7.653V13a.5.5 0 0 0 .5.5h3a.5.5 0 0 0 .5-.5V7.653l6.294-3.159a.5.5 0 0 0 .422-.941L8.211 2.047Z" />
+                                <path
+                                    d="M13.25 8.885.75 5.568v7.052a1.5 1.5 0 0 0 1.5 1.5h11.5a1.5 1.5 0 0 0 1.5-1.5v-7.051Z" />
                             </svg>
                         </div>
                         <div>
-                            <h5 class="card-title mb-0" style="font-weight: 600; color: #2d3748;">Vagas</h5>
-                            <small class="text-muted">Oportunidades futuras</small>
+                            <h5 class="card-title mb-0" style="font-weight: 600; color: #2d3748;">Processos Seletivos</h5>
+                            <small class="text-muted">Oportunidades de inscrição</small>
                         </div>
                     </div>
 
                     <p class="card-text text-muted mb-4" style="font-size: 0.95rem;">
-                        Esta funcionalidade estará disponível em breve! Aqui você poderá visualizar e se candidatar a novas
-                        oportunidades de estágio.
+                        Confira os editais de processos seletivos abertos, realize suas inscrições e acompanhe o status de
+                        suas candidaturas.
                     </p>
 
                     <div class="d-grid gap-2">
-                        <button class="btn btn-secondary" disabled
-                            style="border: none; border-radius: 8px; background: linear-gradient(135deg, #13502b 0%, #4ebb7c 100%); padding: 10px; font-weight: 500;">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
-                                class="bi bi-hourglass-split me-2" viewBox="0 0 16 16">
-                                <path
-                                    d="M2.5 15a.5.5 0 1 1 0-1h1v-1a4.5 4.5 0 0 1 2.557-4.06c.29-.139.443-.377.443-.59v-.7c0-.213-.154-.451-.443-.59A4.5 4.5 0 0 1 3.5 3V2h-1a.5.5 0 0 1 0-1h11a.5.5 0 0 1 0 1h-1v1a4.5 4.5 0 0 1-2.557 4.06c-.29.139-.443.377-.443.59v.7c0 .213.154.451.443.59A4.5 4.5 0 0 1 12.5 13v1h1a.5.5 0 0 1 0 1zm2-13v1c0 .537.12 1.045.337 1.5h6.326c.216-.455.337-.963.337-1.5V2zm3 6.35c0 .701-.478 1.236-1.011 1.492A3.5 3.5 0 0 0 4.5 13s.866-1.299 3-1.48zm1 0v3.17c2.134.181 3 1.48 3 1.48a3.5 3.5 0 0 0-1.989-3.158C8.978 9.586 8.5 9.052 8.5 8.351z" />
-                            </svg>
-                            Aguarde Novidades
-                        </button>
+                        <div class="d-grid gap-2">
+                            <a href="{{ route('processos-seletivos.abertos') }}" class="btn"
+                                style="background: linear-gradient(135deg, #13502b 0%, #4ebb7c 100%); border: none; border-radius: 8px; padding: 10px; font-weight: 500; color: white;">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                                    class="bi bi-search me-2" viewBox="0 0 16 16">
+                                    <path
+                                        d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.02.062.038.093.055l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.09-.09zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0" />
+                                </svg>
+                                Ver Processos Abertos
+                            </a>
+                            <a href="{{ route('processos-seletivos.minhas-inscricoes') }}" class="btn btn-outline-success"
+                                style="border: 2px solid #4ebb7c; color: #13502b; border-radius: 8px; padding: 8px; font-weight: 500;">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                                    class="bi bi-list-check me-2" viewBox="0 0 16 16">
+                                    <path fill-rule="evenodd"
+                                        d="M5 11.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zM3.854 2.146a.5.5 0 0 1 0 .708l-1.5 1.5a.5.5 0 0 1-.708 0l-.5-.5a.5.5 0 1 1 .708-.708L2 3.293l1.146-1.147a.5.5 0 0 1 .708 0zm0 4a.5.5 0 0 1 0 .708l-1.5 1.5a.5.5 0 0 1-.708 0l-.5-.5a.5.5 0 1 1 .708-.708L2 7.293l1.146-1.147a.5.5 0 0 1 .708 0zm0 4a.5.5 0 0 1 0 .708l-1.5 1.5a.5.5 0 0 1-.708 0l-.5-.5a.5.5 0 0 1 .708-.708l.146.147 1.146-1.147a.5.5 0 0 1 .708 0z" />
+                                </svg>
+                                Minhas Inscrições
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>

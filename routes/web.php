@@ -88,6 +88,33 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/api/vagas/{id}/info', [App\Http\Controllers\VagaController::class, 'getVagaInfo'])->name('api.vagas.info');
     });
 
+    // Rotas de processos seletivos (admin/operador/empresa - gerenciamento)
+    Route::middleware(['nivel:admin,operador,empresa'])->group(function () {
+        Route::get('/processos-seletivos', [App\Http\Controllers\ProcessoSeletivoController::class, 'index'])->name('processos-seletivos.index');
+        Route::get('/processos-seletivos/create', [App\Http\Controllers\ProcessoSeletivoController::class, 'create'])->name('processos-seletivos.create');
+        Route::post('/processos-seletivos', [App\Http\Controllers\ProcessoSeletivoController::class, 'store'])->name('processos-seletivos.store');
+        Route::get('/processos-seletivos/{id}/edit', [App\Http\Controllers\ProcessoSeletivoController::class, 'edit'])->name('processos-seletivos.edit');
+        Route::put('/processos-seletivos/{id}', [App\Http\Controllers\ProcessoSeletivoController::class, 'update'])->name('processos-seletivos.update');
+        Route::delete('/processos-seletivos/{id}', [App\Http\Controllers\ProcessoSeletivoController::class, 'destroy'])->name('processos-seletivos.destroy');
+        Route::delete('/processos-seletivos/arquivos/{id}', [App\Http\Controllers\ProcessoSeletivoController::class, 'removerArquivo'])->name('processos-seletivos.arquivos.destroy');
+        Route::get('/processos-seletivos/{id}/inscricoes', [App\Http\Controllers\ProcessoSeletivoController::class, 'listarInscricoes'])->name('processos-seletivos.inscricoes');
+        Route::post('/processos-seletivos/{id}/inscricoes/exportar', [App\Http\Controllers\ProcessoSeletivoController::class, 'exportarInscricoes'])->name('processos-seletivos.exportar-inscricoes');
+        Route::get('/processos-seletivos/{id}/resultados', [App\Http\Controllers\ProcessoSeletivoController::class, 'resultados'])->name('processos-seletivos.resultados');
+        Route::post('/processos-seletivos/{id}/resultados', [App\Http\Controllers\ProcessoSeletivoController::class, 'publicarResultado'])->name('processos-seletivos.publicar-resultado');
+    });
+
+    Route::middleware(['nivel:admin,operador,empresa,estagiario'])->group(function () {
+        Route::get('/processos-seletivos/arquivos/{id}/download', [App\Http\Controllers\ProcessoSeletivoPublicoController::class, 'downloadArquivo'])->name('processos-seletivos.arquivos.download');
+    });
+
+    // Rotas de processos seletivos (estagiário)
+    Route::middleware(['nivel:estagiario', 'estagiario_verified'])->group(function () {
+        Route::get('/processos-seletivos-abertos', [App\Http\Controllers\ProcessoSeletivoPublicoController::class, 'listarAbertos'])->name('processos-seletivos.abertos');
+        Route::get('/processos-seletivos/{id}/detalhes', [App\Http\Controllers\ProcessoSeletivoPublicoController::class, 'detalhes'])->name('processos-seletivos.detalhes');
+        Route::post('/processos-seletivos/{id}/inscrever', [App\Http\Controllers\ProcessoSeletivoPublicoController::class, 'inscrever'])->name('processos-seletivos.inscrever');
+        Route::get('/minhas-inscricoes', [App\Http\Controllers\ProcessoSeletivoPublicoController::class, 'minhasInscricoes'])->name('processos-seletivos.minhas-inscricoes');
+    });
+
     Route::middleware(['admin_ou_operador'])->group(function () {
 
         // Exibir o formulário de cadastro
