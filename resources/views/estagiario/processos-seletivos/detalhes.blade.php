@@ -14,49 +14,124 @@
         </div>
     </div>
 
+    @php
+        $inicioInscricoes = $processo->data_inicio_inscricoes ?? $processo->data_abertura;
+        $fimInscricoes = $processo->data_fechamento_inscricoes;
+        $inscricaoAbertaAgora = $processo->periodoInscricoesAberto();
+        $inscricaoEmBreve = $processo->inscricoesEmBreve();
+        $inscricaoEncerrada = $processo->inscricoesEncerradas();
+        $processoFinalizado = $processo->status === 'finalizado';
+    @endphp
+
     <div class="row g-3">
         <div class="col-12 col-lg-8">
-            <div class="card shadow-sm mb-3">
-                <div class="card-body d-flex flex-column flex-md-row justify-content-between gap-3">
-                    <div class="d-flex gap-3 align-items-start">
-                        @if($processo->empresa->logo_empresa)
-                            <img src="{{ Storage::url($processo->empresa->logo_empresa) }}" alt="{{ $processo->empresa->nome_empresa }}" class="rounded" style="width: 56px; height: 56px; object-fit: cover;">
-                        @else
-                            <div class="rounded bg-light d-flex align-items-center justify-content-center" style="width: 56px; height: 56px;">
-                                <i class="fas fa-building text-muted"></i>
-                            </div>
-                        @endif
-                        <div>
-                            <h4 class="mb-1">{{ $processo->titulo }}</h4>
-                            <p class="text-muted small mb-1">Processo {{ $processo->numero_processo }}</p>
-                            <span class="badge @switch($processo->status) @case('aberto') bg-success @break @case('inscricoes') bg-info @break @case('encerrado') bg-warning @break @case('finalizado') bg-dark @break @default bg-secondary @endswitch">{{ ucfirst($processo->status) }}</span>
+            <div class="card shadow-sm mb-3 overflow-hidden">
+                <div class="position-relative bg-light d-flex align-items-center justify-content-between gap-3 p-4" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 160px;">
+                    <div class="flex-grow-1">
+                        <h3 class="mb-2 text-white">{{ $processo->titulo }}</h3>
+                        <p class="text-white-50 mb-1 small">Processo {{ $processo->numero_processo }} • {{ $processo->empresa->nome_empresa }}</p>
+                        <span class="badge @switch($processo->status) @case('aberto') bg-success @break @case('inscricoes') bg-info @break @case('encerrado') bg-warning @break @case('finalizado') bg-dark @break @default bg-secondary @endswitch">{{ ucfirst($processo->status) }}</span>
+                    </div>
+                    @if($processo->icone_processo)
+                        <img src="{{ asset('storage/' . $processo->icone_processo) }}" alt="{{ $processo->titulo }}" class="rounded" style="width: 120px; height: 120px; object-fit: cover; box-shadow: 0 4px 12px rgba(0,0,0,0.2);">
+                    @elseif($processo->empresa->logo_empresa)
+                        <img src="{{ Storage::url($processo->empresa->logo_empresa) }}" alt="{{ $processo->empresa->nome_empresa }}" class="rounded" style="width: 120px; height: 120px; object-fit: cover; box-shadow: 0 4px 12px rgba(0,0,0,0.2);">
+                    @else
+                        <div class="rounded bg-white d-flex align-items-center justify-content-center" style="width: 120px; height: 120px; box-shadow: 0 4px 12px rgba(0,0,0,0.2);">
+                            <i class="fas fa-briefcase text-muted" style="font-size: 48px;"></i>
                         </div>
-                    </div>
-                    <div class="d-flex flex-column flex-md-row gap-2">
-                        @if($processo->data_abertura)
-                            <div class="p-2 border rounded text-center flex-fill">
-                                <div class="text-muted small">Abertura</div>
-                                <div class="fw-semibold">{{ $processo->data_abertura->format('d/m H:i') }}</div>
-                            </div>
-                        @endif
-                        @if($processo->data_fechamento_inscricoes)
-                            <div class="p-2 border rounded text-center flex-fill">
-                                <div class="text-muted small">Fecha inscrições</div>
-                                <div class="fw-semibold">{{ $processo->data_fechamento_inscricoes->format('d/m H:i') }}</div>
-                            </div>
-                        @endif
-                    </div>
+                    @endif
+                </div>
+                <div class="card-body">
+                    @if($processo->data_abertura || $inicioInscricoes || $fimInscricoes)
+                        <div class="row g-2 mb-3">
+                            @if($processo->data_abertura)
+                                <div class="col-md-4">
+                                    <div class="p-2 border rounded text-center h-100">
+                                        <div class="text-muted small"><i class="fas fa-bullhorn me-1"></i>Publicação</div>
+                                        <div class="fw-semibold">{{ $processo->data_abertura->format('d/m H:i') }}</div>
+                                    </div>
+                                </div>
+                            @endif
+                            @if($inicioInscricoes)
+                                <div class="col-md-4">
+                                    <div class="p-2 border rounded text-center h-100">
+                                        <div class="text-muted small"><i class="fas fa-play me-1"></i>Início das Inscrições</div>
+                                        <div class="fw-semibold">{{ $inicioInscricoes->format('d/m H:i') }}</div>
+                                    </div>
+                                </div>
+                            @endif
+                            @if($fimInscricoes)
+                                <div class="col-md-4">
+                                    <div class="p-2 border rounded text-center h-100">
+                                        <div class="text-muted small"><i class="fas fa-stop me-1"></i>Fim das Inscrições</div>
+                                        <div class="fw-semibold">{{ $fimInscricoes->format('d/m H:i') }}</div>
+                                    </div>
+                                </div>
+                            @endif
+                        </div>
+                    @endif
                 </div>
             </div>
 
-            @if($processo->descricao_fases)
+            @php
+                $fases = $processo->fases ?? [];
+                $vagasNiveis = $processo->vagas_por_nivel ?? [];
+            @endphp
+
+            @if($fases && count($fases) > 0)
+                <div class="card shadow-sm mb-3">
+                    <div class="card-header bg-light"><h6 class="mb-0"><i class="fas fa-list me-2"></i>Fases do Processo</h6></div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-sm align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr><th>Descrição</th><th style="width: 35%">Período/Data</th></tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($fases as $fase)
+                                        <tr>
+                                            <td>{{ $fase['descricao'] ?? '-' }}</td>
+                                            <td>{{ $fase['periodo'] ?? '-' }}</td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            @elseif($processo->descricao_fases)
                 <div class="card shadow-sm mb-3">
                     <div class="card-header bg-light"><h6 class="mb-0"><i class="fas fa-list me-2"></i>Fases do Processo</h6></div>
                     <div class="card-body"><div style="white-space: pre-wrap; line-height: 1.6;">{{ $processo->descricao_fases }}</div></div>
                 </div>
             @endif
 
-            @if($processo->cursos_destino && count($processo->cursos_destino) > 0)
+            @if($vagasNiveis && count($vagasNiveis) > 0)
+                <div class="card shadow-sm mb-3">
+                    <div class="card-header bg-light"><h6 class="mb-0"><i class="fas fa-graduation-cap me-2"></i>Vagas por Nível</h6></div>
+                    <div class="card-body">
+                        @foreach($vagasNiveis as $nivel)
+                            <div class="mb-3">
+                                <h6 class="mb-2">{{ $nivel['nivel'] ?? 'Nível' }}</h6>
+                                <div class="table-responsive">
+                                    <table class="table table-sm align-middle mb-0">
+                                        <thead class="table-light"><tr><th>Curso</th><th style="width: 25%">Vagas</th></tr></thead>
+                                        <tbody>
+                                            @foreach(($nivel['itens'] ?? []) as $curso)
+                                                <tr>
+                                                    <td>{{ $curso['curso'] ?? '-' }}</td>
+                                                    <td>{{ $curso['vagas'] ?? '-' }}</td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            @elseif($processo->cursos_destino && count($processo->cursos_destino) > 0)
                 <div class="card shadow-sm mb-3">
                     <div class="card-header bg-light"><h6 class="mb-0"><i class="fas fa-graduation-cap me-2"></i>Cursos Destinados</h6></div>
                     <div class="card-body">
@@ -108,14 +183,36 @@
         <div class="col-12 col-lg-4">
             <div class="card shadow-sm h-100" id="inscricaoSidebar">
                 <div class="card-body d-flex flex-column gap-2">
-                    @if(!$jaInscrito)
-                        <button type="button" class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#inscricaoModal">
-                            <i class="fas fa-pen-to-square me-1"></i> Se Inscrever
-                        </button>
-                        <p class="text-muted text-center small mb-0">Confirme para registrar sua participação.</p>
+                    @if($inscricaoAbertaAgora)
+                        @if(!$jaInscrito)
+                            <button type="button" class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#inscricaoModal">
+                                <i class="fas fa-pen-to-square me-1"></i> Se Inscrever
+                            </button>
+                            <p class="text-muted text-center small mb-0">Confirme para registrar sua participação.</p>
+                        @else
+                            <div class="alert alert-success mb-0" role="alert">
+                                <i class="fas fa-check-circle me-1"></i> Você já está inscrito. Acompanhe em "Minhas Inscrições".
+                            </div>
+                        @endif
+                    @elseif($inscricaoEmBreve)
+                        <div class="alert alert-warning mb-0" role="alert">
+                            <i class="fas fa-clock me-1"></i> Inscrições em breve @if($inicioInscricoes) (a partir de {{ $inicioInscricoes->format('d/m H:i') }}) @endif.
+                        </div>
+                    @elseif($processoFinalizado)
+                        <div class="alert alert-secondary mb-0" role="alert">
+                            <i class="fas fa-flag-checkered me-1"></i> Processo concluído.
+                        </div>
+                    @elseif($inscricaoEncerrada)
+                        <div class="alert alert-warning mb-0" role="alert">
+                            <i class="fas fa-hourglass-end me-1"></i> Inscrições encerradas.
+                        </div>
+                    @elseif($processo->status === 'inscricoes')
+                        <div class="alert alert-info mb-0" role="alert">
+                            <i class="fas fa-sync-alt me-1"></i> Inscrições abertas, tente novamente em instantes.
+                        </div>
                     @else
-                        <div class="alert alert-success mb-0" role="alert">
-                            <i class="fas fa-check-circle me-1"></i> Você já está inscrito. Acompanhe em "Minhas Inscrições".
+                        <div class="alert alert-danger mb-0" role="alert">
+                            <i class="fas fa-times-circle me-1"></i> Inscrições indisponíveis para este processo.
                         </div>
                     @endif
 

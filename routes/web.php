@@ -465,6 +465,15 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
 });
 
+// ========== ROTAS PÚBLICAS (sem autenticação) ==========
+
+// Landing page - página inicial pública
+Route::get('/', [App\Http\Controllers\ProcessoSeletivoPublicoController::class, 'landing'])->name('landing');
+
+// Rotas de processos seletivos públicas
+Route::get('/processos-publicos', [App\Http\Controllers\ProcessoSeletivoPublicoController::class, 'listarPublicos'])->name('processos-seletivos.publicos');
+Route::get('/processos-seletivos/{id}/detalhes-publico', [App\Http\Controllers\ProcessoSeletivoPublicoController::class, 'detalhesPublico'])->name('processos-seletivos.detalhes.publico');
+
 // Rotas públicas de avaliação (sem autenticação)
 Route::get('/avaliacoes/responder/{token}', [\App\Http\Controllers\AvaliacaoController::class, 'responder'])->name('avaliacoes.responder');
 Route::post('/avaliacoes/salvar-respostas/{token}', [\App\Http\Controllers\AvaliacaoController::class, 'salvarRespostas'])->name('avaliacoes.salvar-respostas');

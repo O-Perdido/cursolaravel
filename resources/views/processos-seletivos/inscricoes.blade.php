@@ -53,7 +53,14 @@
                     @forelse($inscricoes as $inscricao)
                         <tr>
                             <td class="text-muted">{{ $inscricao->id_inscricao }}</td>
-                            <td class="fw-semibold">{{ $inscricao->estagiario->nome_estagiario }}</td>
+                            <td class="fw-semibold">
+                                <div class="d-flex align-items-center gap-2">
+                                    {{ $inscricao->estagiario->nome_estagiario }}
+                                    <a href="{{ route('estagiario.show', $inscricao->fk_id_estagiario) }}" target="_blank" class="btn btn-sm btn-link p-0" title="Abrir perfil em nova aba">
+                                        <i class="fas fa-external-link-alt text-primary"></i>
+                                    </a>
+                                </div>
+                            </td>
                             <td>{{ $inscricao->estagiario->email }}</td>
                             <td>{{ $inscricao->estagiario->numero_celular ?? $inscricao->estagiario->numero_telefone }}</td>
                             <td>{{ $inscricao->estagiario->curso ?? '-' }}</td>

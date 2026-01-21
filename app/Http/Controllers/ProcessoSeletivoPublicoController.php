@@ -13,14 +13,79 @@ use Illuminate\Support\Str;
 class ProcessoSeletivoPublicoController extends Controller
 {
     // Listar processos abertos para estagiários
-    public function listarAbertos()
+    public function listarAbertos(Request $request)
     {
-        $processos = ProcessoSeletivo::where('status', '!=', 'rascunho')
-            ->with(['empresa'])
-            ->orderByDesc('data_abertura')
-            ->get();
+        $query = ProcessoSeletivo::where('status', '!=', 'rascunho')
+            ->with(['empresa']);
 
-        return view('estagiario.processos-seletivos.listar', compact('processos'));
+        $allowedStatus = ['aberto', 'inscricoes', 'encerrado', 'finalizado'];
+        $defaultStatus = ['aberto', 'inscricoes'];
+
+        if ($request->filled('status') && in_array($request->status, $allowedStatus)) {
+            $query->where('status', $request->status);
+        } else {
+            $query->whereIn('status', $defaultStatus);
+        }
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('titulo', 'like', "%{$search}%")
+                    ->orWhere('numero_processo', 'like', "%{$search}%")
+                    ->orWhereHas('empresa', function ($q) use ($search) {
+                        $q->where('nome_empresa', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        if ($request->filled('curso')) {
+            $curso = $request->curso;
+            $query->where(function ($q) use ($curso) {
+                $q->whereJsonContains('cursos_destino', $curso)
+                    ->orWhereRaw("JSON_SEARCH(cursos_destino, 'one', ?, NULL) IS NOT NULL", ["%{$curso}%"]);
+            });
+        }
+
+        if ($request->filled('nivel')) {
+            $nivel = $request->nivel;
+            $query->where(function ($q) use ($nivel) {
+                $q->whereRaw("JSON_SEARCH(JSON_EXTRACT(vagas_por_nivel, '$[*].nivel'), 'one', ?, NULL) IS NOT NULL", [$nivel])
+                    ->orWhereRaw("JSON_SEARCH(JSON_EXTRACT(vagas_por_nivel, '$[*].nivel'), 'one', ?, NULL) IS NOT NULL", ["%{$nivel}%"])
+                    ->orWhereRaw("JSON_SEARCH(vagas_por_nivel, 'one', ?, NULL) IS NOT NULL", ["%{$nivel}%"]);
+            });
+        }
+
+        $processos = $query
+            ->orderByDesc(DB::raw('COALESCE(data_inicio_inscricoes, data_abertura, created_at)'))
+            ->paginate(12);
+
+        $todosCursos = [];
+        ProcessoSeletivo::where('status', '!=', 'rascunho')->get()->each(function ($p) use (&$todosCursos) {
+            if ($p->cursos_destino && is_array($p->cursos_destino)) {
+                foreach ($p->cursos_destino as $curso) {
+                    if (is_array($curso) && isset($curso['nome'])) {
+                        $todosCursos[$curso['nome']] = $curso['nome'];
+                    } elseif (is_string($curso)) {
+                        $todosCursos[$curso] = $curso;
+                    }
+                }
+            }
+        });
+        ksort($todosCursos);
+
+        $todosNiveis = [];
+        ProcessoSeletivo::where('status', '!=', 'rascunho')->get()->each(function ($p) use (&$todosNiveis) {
+            if ($p->vagas_por_nivel && is_array($p->vagas_por_nivel)) {
+                foreach ($p->vagas_por_nivel as $vaga) {
+                    if (is_array($vaga) && isset($vaga['nivel'])) {
+                        $todosNiveis[$vaga['nivel']] = $vaga['nivel'];
+                    }
+                }
+            }
+        });
+        ksort($todosNiveis);
+
+        return view('estagiario.processos-seletivos.listar', compact('processos', 'todosCursos', 'todosNiveis'));
     }
 
     // Detalhes de um processo
@@ -43,6 +108,12 @@ class ProcessoSeletivoPublicoController extends Controller
     // Realizar inscrição (AJAX)
     public function inscrever(Request $request, $id)
     {
+        // Se não está logado, redirecionar para login
+        if (!Auth::check()) {
+            return redirect()->route('login')
+                ->with('redirect', route('processos-seletivos.detalhes.publico', $id));
+        }
+
         $user = Auth::user();
 
         // Validar se é estagiário
@@ -53,9 +124,24 @@ class ProcessoSeletivoPublicoController extends Controller
         $estagiarioId = $user->fk_id_estagiario;
         $processo = ProcessoSeletivo::findOrFail($id);
 
-        // Validar se o período de inscrições está aberto
-        if (!$processo->periodiInscricoesAberto()) {
+        $agora = now();
+        $inicio = $processo->inicioInscricoes();
+        $fim = $processo->data_fechamento_inscricoes;
+
+        if ($processo->status !== 'inscricoes') {
+            return response()->json(['error' => 'Inscrições não estão disponíveis no momento'], 422);
+        }
+
+        if ($inicio && $agora->lt($inicio)) {
+            return response()->json(['error' => 'Inscrições ainda não iniciaram'], 422);
+        }
+
+        if ($fim && $agora->gt($fim)) {
             return response()->json(['error' => 'Período de inscrições encerrado'], 422);
+        }
+
+        if (!$processo->periodoInscricoesAberto()) {
+            return response()->json(['error' => 'Inscrições indisponíveis'], 422);
         }
 
         // Verificar se já está inscrito
@@ -116,5 +202,113 @@ class ProcessoSeletivoPublicoController extends Controller
             ->get();
 
         return view('estagiario.processos-seletivos.minhas-inscricoes', compact('inscricoes'));
+    }
+
+    // ========== ROTAS PÚBLICAS ==========
+
+    // Landing page - página inicial pública
+    public function landing()
+    {
+        // Landing page agora é só CTA e informações
+        // Processos estão em /processos-publicos
+        return view('landing');
+    }
+
+    // Listar processos públicos (sem autenticação)
+    public function listarPublicos(Request $request)
+    {
+        $query = ProcessoSeletivo::where('status', '!=', 'rascunho')
+            ->with(['empresa']);
+
+        $allowedStatus = ['aberto', 'inscricoes', 'encerrado', 'finalizado'];
+        $defaultStatus = ['aberto', 'inscricoes'];
+
+        if ($request->filled('status') && in_array($request->status, $allowedStatus)) {
+            $query->where('status', $request->status);
+        } else {
+            $query->whereIn('status', $defaultStatus);
+        }
+
+        // Filtro por busca
+        if ($request->has('search') && !empty($request->search)) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('titulo', 'like', "%{$search}%")
+                  ->orWhere('numero_processo', 'like', "%{$search}%")
+                  ->orWhereHas('empresa', function ($q) use ($search) {
+                      $q->where('nome_empresa', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        // Filtro por curso (usando JSON)
+        if ($request->has('curso') && !empty($request->curso)) {
+            $curso = $request->curso;
+            $query->where(function ($q) use ($curso) {
+                $q->whereJsonContains('cursos_destino', $curso)
+                  ->orWhereRaw("JSON_SEARCH(cursos_destino, 'one', ?, NULL) IS NOT NULL", ["%{$curso}%"]);
+            });
+        }
+
+        // Filtro por nível (técnico, graduação, pós)
+        if ($request->has('nivel') && !empty($request->nivel)) {
+            $nivel = $request->nivel;
+            $query->where(function ($q) use ($nivel) {
+                $q->whereRaw("JSON_SEARCH(JSON_EXTRACT(vagas_por_nivel, '$[*].nivel'), 'one', ?, NULL) IS NOT NULL", [$nivel])
+                    ->orWhereRaw("JSON_SEARCH(JSON_EXTRACT(vagas_por_nivel, '$[*].nivel'), 'one', ?, NULL) IS NOT NULL", ["%{$nivel}%"])
+                    ->orWhereRaw("JSON_SEARCH(vagas_por_nivel, 'one', ?, NULL) IS NOT NULL", ["%{$nivel}%"]);
+            });
+        }
+
+        $processos = $query
+            ->orderByDesc(DB::raw('COALESCE(data_inicio_inscricoes, data_abertura, created_at)'))
+            ->paginate(12);
+
+        // Coletar todos os cursos únicos para o filtro
+        $todosCursos = [];
+        ProcessoSeletivo::where('status', '!=', 'rascunho')->get()->each(function ($p) use (&$todosCursos) {
+            if ($p->cursos_destino && is_array($p->cursos_destino)) {
+                foreach ($p->cursos_destino as $curso) {
+                    if (is_array($curso) && isset($curso['nome'])) {
+                        $todosCursos[$curso['nome']] = $curso['nome'];
+                    } elseif (is_string($curso)) {
+                        $todosCursos[$curso] = $curso;
+                    }
+                }
+            }
+        });
+        ksort($todosCursos);
+
+        // Coletar todos os níveis únicos
+        $todosNiveis = [];
+        ProcessoSeletivo::where('status', '!=', 'rascunho')->get()->each(function ($p) use (&$todosNiveis) {
+            if ($p->vagas_por_nivel && is_array($p->vagas_por_nivel)) {
+                foreach ($p->vagas_por_nivel as $vaga) {
+                    if (is_array($vaga) && isset($vaga['nivel'])) {
+                        $todosNiveis[$vaga['nivel']] = $vaga['nivel'];
+                    }
+                }
+            }
+        });
+        ksort($todosNiveis);
+
+        return view('processos-seletivos.publicos', compact('processos', 'todosCursos', 'todosNiveis'));
+    }
+
+    // Detalhes de um processo - versão pública
+    public function detalhesPublico($id)
+    {
+        $processo = ProcessoSeletivo::findOrFail($id);
+        $jaInscrito = false;
+
+        // Se está logado, verificar se já está inscrito
+        if (Auth::check() && Auth::user()->nivel === 'estagiario') {
+            $estagiarioId = Auth::user()->fk_id_estagiario;
+            $jaInscrito = InscricaoProcesso::where('fk_id_processo', $id)
+                ->where('fk_id_estagiario', $estagiarioId)
+                ->exists();
+        }
+
+        return view('processos-seletivos.detalhes-publico', compact('processo', 'jaInscrito'));
     }
 }

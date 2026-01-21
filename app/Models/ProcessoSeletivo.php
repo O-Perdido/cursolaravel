@@ -10,12 +10,16 @@ class ProcessoSeletivo extends Model
     protected $fillable = [
         'numero_processo',
         'titulo',
+        'icone_processo',
         'fk_id_empresa',
         'status',
         'data_abertura',
+        'data_inicio_inscricoes',
         'data_fechamento_inscricoes',
         'descricao_fases',
+        'fases',
         'cursos_destino',
+        'vagas_por_nivel',
         'requisitos',
         'observacoes',
         'aviso_inscricao',
@@ -23,7 +27,10 @@ class ProcessoSeletivo extends Model
 
     protected $casts = [
         'cursos_destino' => 'array',
+        'vagas_por_nivel' => 'array',
+        'fases' => 'array',
         'data_abertura' => 'datetime',
+        'data_inicio_inscricoes' => 'datetime',
         'data_fechamento_inscricoes' => 'datetime',
     ];
 
@@ -59,24 +66,70 @@ class ProcessoSeletivo extends Model
         return in_array($this->status, ['aberto', 'inscricoes']);
     }
 
-    public function periodiInscricoesAberto()
+    public function inicioInscricoes()
+    {
+        return $this->data_inicio_inscricoes ?? $this->data_abertura;
+    }
+
+    public function periodoInscricoesAberto(): bool
     {
         $agora = now();
-        if ($this->data_abertura && $this->data_fechamento_inscricoes) {
-            return $agora >= $this->data_abertura && $agora <= $this->data_fechamento_inscricoes;
+        $inicio = $this->inicioInscricoes();
+        $fim = $this->data_fechamento_inscricoes;
+
+        if ($this->status !== 'inscricoes') {
+            return false;
         }
-        return false;
+
+        if ($inicio && $agora->lt($inicio)) {
+            return false;
+        }
+
+        if ($fim && $agora->gt($fim)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public function periodiInscricoesAberto(): bool
+    {
+        // Alias legado para compatibilidade
+        return $this->periodoInscricoesAberto();
+    }
+
+    public function inscricoesEmBreve(): bool
+    {
+        $inicio = $this->inicioInscricoes();
+        $agora = now();
+
+        if (!$inicio) {
+            return $this->status === 'aberto';
+        }
+
+        return $agora < $inicio;
+    }
+
+    public function inscricoesEncerradas(): bool
+    {
+        $fim = $this->data_fechamento_inscricoes;
+
+        return $this->status === 'encerrado' || ($fim && now()->gt($fim));
     }
 
     // Gera número sequencial por empresa/ano
-    public static function gerarNumeroProcesso($empresaId)
+    public static function gerarNumeroProcesso()
     {
         $ano = date('Y');
-        $lastSeq = self::where('fk_id_empresa', $empresaId)
-            ->whereYear('created_at', $ano)
+
+        // Garante consistência mesmo com requisições concorrentes
+        $lastSeq = self::whereYear('created_at', $ano)
+            ->lockForUpdate()
             ->select(\Illuminate\Support\Facades\DB::raw("MAX(CAST(SUBSTRING_INDEX(numero_processo,'-',-1) AS UNSIGNED)) as max_seq"))
             ->value('max_seq');
+
         $seq = ($lastSeq ? intval($lastSeq) : 0) + 1;
+
         return sprintf('%s-%04d', $ano, $seq);
     }
 }

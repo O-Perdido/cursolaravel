@@ -124,10 +124,19 @@
             </div>
             @guest
                 <!-- TITULO COM O NOME COMPLETO DO SISTEMA (só em telas grandes) -->
-                <div class="d-none d-lg-flex align-items-center">
+                <div class="d-none d-lg-flex align-items-center justify-content-between flex-grow-1">
                     <h1 class="text-white text-center" style="font-family: Asthoria, sans-serif;">Sistema de Gestão de
                         Estágios</h1>
+                    <div class="d-flex gap-2">
+                        <a href="{{ route('login') }}" class="btn btn-outline-light btn-sm" style="font-weight: 500;">
+                            <i class="fas fa-sign-in-alt me-1"></i>Acesso Geral
+                        </a>
+                    </div>
                 </div>
+                <!-- Botão de acesso para mobile -->
+                <a href="{{ route('login') }}" class="btn btn-outline-light btn-sm d-lg-none" style="font-weight: 500;">
+                    <i class="fas fa-sign-in-alt me-1"></i>Acesso
+                </a>
             @endguest
             @auth
                 <!-- SE O USUARIO LOGADO FOR EMPRESA MOSTRA TAMBÉM O NOME COMPLETO DO SISTEMA (só em telas grandes) -->
@@ -137,7 +146,7 @@
                             Sistema de Gestão de Estágios
                         </h1>
                         <div class="d-flex align-items-center gap-3">
-                            <a href="{{ route('/') }}"
+                            <a href="{{ route('landing') }}"
                                 class="btn btn-outline-light btn-sm d-flex align-items-center gap-2 shadow-sm"
                                 style="font-weight: 500;">
                                 <i class="fas fa-home"></i>
@@ -149,7 +158,7 @@
                         </div>
                     </div>
                     <!-- Botão INÍCIO para mobile ao lado do hambúrguer -->
-                    <a href="{{ route('/') }}"
+                    <a href="{{ route('landing') }}"
                         class="btn btn-outline-light btn-sm d-lg-none me-2 d-flex align-items-center gap-2"
                         style="font-weight: 500;">
                         <i class="fas fa-home"></i>

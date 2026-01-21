@@ -61,28 +61,43 @@ class ProcessoSeletivoController extends Controller
 
         $validated = $request->validate([
             'titulo' => 'required|string|max:200',
+            'icone_processo' => 'nullable|image|max:2048',
             'fk_id_empresa' => 'required|integer|exists:tb_empresas,id_empresa',
             'status' => 'required|in:rascunho,aberto,inscricoes,encerrado,finalizado',
             'data_abertura' => 'nullable|date',
-            'data_fechamento_inscricoes' => 'nullable|date|after_or_equal:data_abertura',
+            'data_inicio_inscricoes' => 'nullable|date',
+            'data_fechamento_inscricoes' => 'nullable|date|after_or_equal:data_inicio_inscricoes',
             'descricao_fases' => 'nullable|string',
+            'fases' => 'nullable|array',
+            'fases.*.descricao' => 'nullable|string|max:500',
+            'fases.*.periodo' => 'nullable|string|max:200',
             'cursos_destino' => 'nullable|string',
+            'vagas' => 'nullable|array',
+            'vagas.*.nivel' => 'nullable|string|max:120',
+            'vagas.*.itens' => 'nullable|array',
+            'vagas.*.itens.*.curso' => 'nullable|string|max:200',
+            'vagas.*.itens.*.vagas' => 'nullable|string|max:50',
             'requisitos' => 'nullable|string',
             'observacoes' => 'nullable|string',
             'aviso_inscricao' => 'nullable|string',
         ]);
 
         // Transação para garantir atomicidade
-        $processo = DB::transaction(function () use ($validated, $empresaId) {
-            $numeroProcesso = ProcessoSeletivo::gerarNumeroProcesso($empresaId);
+        $processo = DB::transaction(function () use ($request, $validated, $empresaId) {
+            $numeroProcesso = ProcessoSeletivo::gerarNumeroProcesso();
             
-            // Converter cursos para JSON (split por quebra de linha ou vírgula)
-            if (isset($validated['cursos_destino']) && !empty($validated['cursos_destino'])) {
-                $cursos = array_filter(array_map('trim', preg_split('/[,\n]/', $validated['cursos_destino'])));
-                $validated['cursos_destino'] = $cursos;
-            } else {
-                $validated['cursos_destino'] = null;
-            }
+            $vagasFormatadas = $this->formatarVagas($request->input('vagas', []));
+            $fasesFormatadas = $this->formatarFases($request->input('fases', []));
+
+            $listaCursos = $this->extrairCursos($vagasFormatadas, $validated['cursos_destino'] ?? null);
+
+            $validated['cursos_destino'] = $listaCursos;
+            $validated['vagas_por_nivel'] = !empty($vagasFormatadas) ? $vagasFormatadas : null;
+            $validated['fases'] = !empty($fasesFormatadas) ? $fasesFormatadas : null;
+            $validated['descricao_fases'] = !empty($fasesFormatadas)
+                ? collect($fasesFormatadas)->map(fn ($fase) => trim(($fase['descricao'] ?? '') . ' ' . ($fase['periodo'] ? '(' . $fase['periodo'] . ')' : '')))->implode(' | ')
+                : ($validated['descricao_fases'] ?? null);
+            unset($validated['vagas']);
 
             return ProcessoSeletivo::create(array_merge($validated, [
                 'numero_processo' => $numeroProcesso,
@@ -106,6 +121,12 @@ class ProcessoSeletivoController extends Controller
                     ]);
                 }
             }
+        }
+
+        // Ícone do processo
+        if ($request->hasFile('icone_processo')) {
+            $iconePath = $this->armazenarIcone($request, $processo);
+            $processo->update(['icone_processo' => $iconePath]);
         }
 
         return redirect()->route('processos-seletivos.index')
@@ -137,25 +158,46 @@ class ProcessoSeletivoController extends Controller
 
         $validated = $request->validate([
             'titulo' => 'required|string|max:200',
+            'icone_processo' => 'nullable|image|max:2048',
             'status' => 'required|in:rascunho,aberto,inscricoes,encerrado,finalizado',
             'data_abertura' => 'nullable|date',
-            'data_fechamento_inscricoes' => 'nullable|date|after_or_equal:data_abertura',
+            'data_inicio_inscricoes' => 'nullable|date',
+            'data_fechamento_inscricoes' => 'nullable|date|after_or_equal:data_inicio_inscricoes',
             'descricao_fases' => 'nullable|string',
+            'fases' => 'nullable|array',
+            'fases.*.descricao' => 'nullable|string|max:500',
+            'fases.*.periodo' => 'nullable|string|max:200',
             'cursos_destino' => 'nullable|string',
+            'vagas' => 'nullable|array',
+            'vagas.*.nivel' => 'nullable|string|max:120',
+            'vagas.*.itens' => 'nullable|array',
+            'vagas.*.itens.*.curso' => 'nullable|string|max:200',
+            'vagas.*.itens.*.vagas' => 'nullable|string|max:50',
             'requisitos' => 'nullable|string',
             'observacoes' => 'nullable|string',
             'aviso_inscricao' => 'nullable|string',
         ]);
 
-        // Converter cursos para JSON
-        if (isset($validated['cursos_destino']) && !empty($validated['cursos_destino'])) {
-            $cursos = array_filter(array_map('trim', preg_split('/[,\n]/', $validated['cursos_destino'])));
-            $validated['cursos_destino'] = $cursos;
-        } else {
-            $validated['cursos_destino'] = null;
-        }
+        $vagasFormatadas = $this->formatarVagas($request->input('vagas', []));
+        $fasesFormatadas = $this->formatarFases($request->input('fases', []));
+
+        $listaCursos = $this->extrairCursos($vagasFormatadas, $validated['cursos_destino'] ?? null);
+
+        $validated['cursos_destino'] = $listaCursos;
+        $validated['vagas_por_nivel'] = !empty($vagasFormatadas) ? $vagasFormatadas : null;
+        $validated['fases'] = !empty($fasesFormatadas) ? $fasesFormatadas : null;
+        $validated['descricao_fases'] = !empty($fasesFormatadas)
+            ? collect($fasesFormatadas)->map(fn ($fase) => trim(($fase['descricao'] ?? '') . ' ' . ($fase['periodo'] ? '(' . $fase['periodo'] . ')' : '')))->implode(' | ')
+            : ($validated['descricao_fases'] ?? null);
+        unset($validated['vagas']);
 
         $processo->update($validated);
+
+        // Ícone do processo
+        if ($request->hasFile('icone_processo')) {
+            $iconePath = $this->armazenarIcone($request, $processo);
+            $processo->update(['icone_processo' => $iconePath]);
+        }
 
         // Processar uploads de novos arquivos
         if ($request->hasFile('arquivos')) {
@@ -192,10 +234,83 @@ class ProcessoSeletivoController extends Controller
             }
         }
 
+        if ($processo->icone_processo && Storage::disk('public')->exists($processo->icone_processo)) {
+            Storage::disk('public')->delete($processo->icone_processo);
+        }
+
         $processo->delete();
 
         return redirect()->route('processos-seletivos.index')
             ->with('success', 'Processo seletivo deletado com sucesso!');
+    }
+
+    private function armazenarIcone(Request $request, ProcessoSeletivo $processo): string
+    {
+        if ($processo->icone_processo && Storage::disk('public')->exists($processo->icone_processo)) {
+            Storage::disk('public')->delete($processo->icone_processo);
+        }
+
+        return $request->file('icone_processo')
+            ->store('processos-seletivos/' . $processo->id_processo . '/icone', 'public');
+    }
+
+    private function formatarVagas(array $vagas): array
+    {
+        return collect($vagas)->map(function ($nivel) {
+            $nivelNome = trim($nivel['nivel'] ?? '');
+            $itens = collect($nivel['itens'] ?? [])->map(function ($item) {
+                $curso = trim($item['curso'] ?? '');
+                $vagasValor = trim($item['vagas'] ?? '');
+                if ($curso === '' && $vagasValor === '') {
+                    return null;
+                }
+                return [
+                    'curso' => $curso,
+                    'vagas' => $vagasValor !== '' ? $vagasValor : 'CR',
+                ];
+            })->filter()->values()->all();
+
+            if ($nivelNome === '' && empty($itens)) {
+                return null;
+            }
+
+            return [
+                'nivel' => $nivelNome !== '' ? $nivelNome : 'Nível',
+                'itens' => $itens,
+            ];
+        })->filter()->values()->all();
+    }
+
+    private function formatarFases(array $fases): array
+    {
+        return collect($fases)->map(function ($fase) {
+            $descricao = trim($fase['descricao'] ?? '');
+            $periodo = trim($fase['periodo'] ?? '');
+
+            if ($descricao === '' && $periodo === '') {
+                return null;
+            }
+
+            return [
+                'descricao' => $descricao,
+                'periodo' => $periodo,
+            ];
+        })->filter()->values()->all();
+    }
+
+    private function extrairCursos(array $vagasFormatadas, $cursosTexto)
+    {
+        $listaCursos = collect($vagasFormatadas)
+            ->flatMap(fn ($nivel) => collect($nivel['itens'] ?? [])->pluck('curso'))
+            ->filter()
+            ->values()
+            ->all();
+
+        if (empty($listaCursos) && $cursosTexto) {
+            $listaCursos = array_filter(array_map('trim', preg_split('/[,\n]/', $cursosTexto)));
+        }
+
+        return !empty($listaCursos) ? $listaCursos : null;
     }
 
     // Remover um arquivo específico do processo

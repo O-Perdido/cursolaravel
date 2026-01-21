@@ -16,6 +16,7 @@ Módulo similar ao de "Vagas", permitindo que operadores/admin criem editais de 
 - status (enum: 'rascunho', 'aberto', 'inscricoes', 'encerrado', 'finalizado')
 - data_criacao (datetime)
 - data_abertura (datetime)
+- data_inicio_inscricoes (datetime)
 - data_fechamento_inscricoes (datetime)
 - descricao_fases (text)
 - cursos_destino (text) - JSON array com lista de cursos
@@ -153,7 +154,7 @@ GET    /estagiario/minhas-inscricoes           -> ProcessoSeletivoPublicoControl
 - Formulário completo
 - Seções:
   1. Informações básicas (titulo, empresa, status)
-  2. Datas (abertura, fechamento inscrições)
+  2. Datas (publicação, início das inscrições, fechamento - abre/bloqueia botão)
   3. Descrição (fases, cursos, requisitos, observações)
   4. Aviso de Inscrição (texto personalizado)
   5. Upload de Arquivos (edital, retificações com nome customizável)
@@ -197,7 +198,8 @@ GET    /estagiario/minhas-inscricoes           -> ProcessoSeletivoPublicoControl
 
 ### Publicar Processo
 1. Operador muda status para "aberto" ou "inscricoes"
-2. Estagiários veem processo nos cards
+2. Botão de inscrição só habilita entre `data_inicio_inscricoes` e `data_fechamento_inscricoes` quando status estiver em "inscricoes"
+3. Estagiários veem processo nos cards
 
 ### Inscrição do Estagiário
 1. Estagiário clica "Se inscrever"

@@ -107,7 +107,7 @@
                         <th>Empresa</th>
                         <th>Status</th>
                         <th>Inscrições</th>
-                        <th>Data de Abertura</th>
+                        <th>Janela de Inscrição</th>
                         <th>Ações</th>
                     </tr>
                 </thead>
@@ -136,8 +136,15 @@
                                 <span class="badge bg-light text-dark">{{ $processo->inscricoesCount() }}</span>
                             </td>
                             <td>
-                                @if($processo->data_abertura)
-                                    {{ $processo->data_abertura->format('d/m/Y H:i') }}
+                                @if($processo->data_inicio_inscricoes || $processo->data_fechamento_inscricoes)
+                                    <div class="small text-muted">
+                                        @if($processo->data_inicio_inscricoes)
+                                            <div><i class="fas fa-play me-1"></i>{{ $processo->data_inicio_inscricoes->format('d/m/Y H:i') }}</div>
+                                        @endif
+                                        @if($processo->data_fechamento_inscricoes)
+                                            <div><i class="fas fa-stop me-1"></i>{{ $processo->data_fechamento_inscricoes->format('d/m/Y H:i') }}</div>
+                                        @endif
+                                    </div>
                                 @else
                                     <span class="text-muted">-</span>
                                 @endif
@@ -153,13 +160,11 @@
                                     <a href="{{ route('processos-seletivos.resultados', $processo->id_processo) }}" class="btn btn-outline-success" title="Resultados">
                                         <i class="fas fa-file-pdf"></i>
                                     </a>
-                                    <form action="{{ route('processos-seletivos.destroy', $processo->id_processo) }}" method="POST" style="display: inline;" onsubmit="return confirm('Tem certeza que deseja deletar?');">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-outline-danger" title="Deletar">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </form>
+                                    <button type="button" class="btn btn-outline-danger btn-delete" title="Deletar"
+                                        data-action="{{ route('processos-seletivos.destroy', $processo->id_processo) }}"
+                                        data-nome="{{ $processo->titulo }}">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
                                 </div>
                             </td>
                         </tr>
@@ -180,4 +185,46 @@
         {{ $processos->links() }}
     </div>
 </div>
+
+<div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Remover processo seletivo</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-0">Confirma a exclusão do processo <strong id="processo-nome"></strong>? Esta ação removerá os arquivos vinculados.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <form method="POST" id="form-delete-processo">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="btn btn-danger">Excluir</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const modalEl = document.getElementById('confirmDeleteModal');
+        if (!modalEl) return;
+        const processoNome = document.getElementById('processo-nome');
+        const formDelete = document.getElementById('form-delete-processo');
+        const modal = new bootstrap.Modal(modalEl);
+
+        document.querySelectorAll('.btn-delete').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const action = btn.getAttribute('data-action');
+                const nome = btn.getAttribute('data-nome');
+                formDelete.setAttribute('action', action);
+                processoNome.textContent = nome;
+                modal.show();
+            });
+        });
+    });
+</script>
 @endsection
