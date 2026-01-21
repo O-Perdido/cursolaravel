@@ -472,8 +472,8 @@
             carregarSupervisores(@json($empresaSelecionada));
         @endif
 
-                                                                                                                                // Filtro do dropdown de Supervisor
-                                                                                                                        if (supervisorSearch) {
+                                                                                                                                    // Filtro do dropdown de Supervisor
+                                                                                                                            if (supervisorSearch) {
             supervisorSearch.addEventListener('focus', function () {
                 supervisorSelect.style.display = 'block';
             });
@@ -701,14 +701,14 @@
             const icon = tipo === 'success' ? '✓' : '✕';
 
             const toastHTML = `
-                                                                                            <div id="${toastId}" class="toast" role="alert" aria-live="assertive" aria-atomic="true" style="pointer-events: auto;">
-                                                                                                <div class="toast-header ${bgColor} text-white">
-                                                                                                    <strong class="me-auto">${icon} ${tipo === 'success' ? 'Sucesso' : 'Erro'}</strong>
-                                                                                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+                                                                                                <div id="${toastId}" class="toast" role="alert" aria-live="assertive" aria-atomic="true" style="pointer-events: auto;">
+                                                                                                    <div class="toast-header ${bgColor} text-white">
+                                                                                                        <strong class="me-auto">${icon} ${tipo === 'success' ? 'Sucesso' : 'Erro'}</strong>
+                                                                                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+                                                                                                    </div>
+                                                                                                    <div class="toast-body">${mensagem}</div>
                                                                                                 </div>
-                                                                                                <div class="toast-body">${mensagem}</div>
-                                                                                            </div>
-                                                                                        `;
+                                                                                            `;
 
             container.insertAdjacentHTML('beforeend', toastHTML);
             const toastEl = document.getElementById(toastId);
@@ -750,6 +750,7 @@
                     method: 'POST',
                     headers: {
                         'Accept': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
                     },
                     body: formData
                 });
