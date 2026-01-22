@@ -376,7 +376,7 @@
                                 <a class="nav-link" href="{{ route('processos-seletivos.index') }}" id="navbarDropdownProcessos"
                                     role="button">
                                     <i class="fa-solid fa-graduation-cap fa-2x"></i><br>
-                                    <small>Processos Públicos</small>
+                                    <small>Processos Seletivos</small>
                                 </a>
                                 <ul class="dropdown-menu" aria-labelledby="navbarDropdownProcessos">
                                     <li>
