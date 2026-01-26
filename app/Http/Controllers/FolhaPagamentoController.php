@@ -1109,7 +1109,7 @@ class FolhaPagamentoController extends Controller
         // Gerar o PDF usando DomPDF
         $pdf = PDF::loadView('folhas_pagamento.gerarPdfFolhaPagamento', compact('folha', 'conteudoFolha', 'linklogo'));
         $pdf->setPaper([0, 0, 595.28, 841.89], 'landscape');
-        $pdf->getDOMPdf()->set_option('isPhpEnabled', true);
+        $pdf->setOption('isPhpEnabled', true);
 
         $numero_folha = $folha->numero_folha;
         return $pdf->stream("folha_pagamento_$numero_folha.pdf");
@@ -1138,7 +1138,7 @@ class FolhaPagamentoController extends Controller
         // Gerar o PDF usando DomPDF
         $pdf = PDF::loadView('folhas_pagamento.gerarPdfRecibo', compact('folha', 'conteudo', 'linklogo'));
         $pdf->setPaper([0, 0, 595.28, 841.89], 'portrait');
-        $pdf->getDOMPdf()->set_option('isPhpEnabled', true);
+        $pdf->setOption('isPhpEnabled', true);
 
         return $pdf->stream("recibo_{$folha->mes_referencia}_de_{$folha->ano_referencia}_estagiario_{$conteudo->termo->estagiario->nome_estagiario}.pdf");
     }
