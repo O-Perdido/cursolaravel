@@ -769,8 +769,12 @@ class FolhaPagamentoController extends Controller
         // Empresas ordenadas por nome para select
         $empresas = Empresa::orderBy('nome_empresa', 'asc')->get();
 
-        // Anos disponíveis a partir das folhas existentes (fallback para ano atual)
-        $anosDisponiveis = FolhaPagamento::select('ano_referencia')->distinct()->orderBy('ano_referencia','desc')->pluck('ano_referencia');
+        // Anos disponíveis a partir dos termos existentes (fallback para ano atual)
+        $anosDisponiveis = Termo::select('ano_termo')
+            ->whereNotNull('ano_termo')
+            ->distinct()
+            ->orderBy('ano_termo', 'desc')
+            ->pluck('ano_termo');
         if ($anosDisponiveis->isEmpty()) {
             $anosDisponiveis = collect([now()->year]);
         }
