@@ -400,11 +400,20 @@
                                 <small>{{ $processo->empresa->nome_empresa }}</small>
                             </div>
                             <p>Deseja continuar?</p>
+
+                            @if($processo->solicitar_upload_inscricao)
+                                <div class="mb-3">
+                                    <label for="arquivo_inscricao_publico" class="form-label">Anexe o arquivo para concluir</label>
+                                    <input type="file" class="form-control" id="arquivo_inscricao_publico" name="arquivo_inscricao"
+                                        accept=".pdf,image/*" required>
+                                    <small class="text-muted">Envie um PDF ou imagem conforme orientações do processo.</small>
+                                </div>
+                            @endif
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                             <form method="POST" action="{{ route('processos-seletivos.inscrever', $processo->id_processo) }}"
-                                class="d-inline">
+                                class="d-inline" enctype="multipart/form-data">
                                 @csrf
                                 <button type="submit" class="btn btn-success">
                                     <i class="fas fa-check me-1"></i> Confirmar Inscrição

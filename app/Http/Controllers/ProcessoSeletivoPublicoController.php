@@ -118,50 +118,87 @@ class ProcessoSeletivoPublicoController extends Controller
 
         // Validar se é estagiário
         if ($user->nivel !== 'estagiario') {
-            return response()->json(['error' => 'Apenas estagiários podem se inscrever'], 403);
+            return $request->wantsJson()
+                ? response()->json(['error' => 'Apenas estagiários podem se inscrever'], 403)
+                : redirect()->back()->withErrors('Apenas estagiários podem se inscrever');
         }
 
         $estagiarioId = $user->fk_id_estagiario;
         $processo = ProcessoSeletivo::findOrFail($id);
+        $requerUpload = (bool) $processo->solicitar_upload_inscricao;
 
         $agora = now();
         $inicio = $processo->inicioInscricoes();
         $fim = $processo->data_fechamento_inscricoes;
 
         if ($processo->status !== 'inscricoes') {
-            return response()->json(['error' => 'Inscrições não estão disponíveis no momento'], 422);
+            return $request->wantsJson()
+                ? response()->json(['error' => 'Inscrições não estão disponíveis no momento'], 422)
+                : redirect()->back()->withErrors('Inscrições não estão disponíveis no momento');
         }
 
         if ($inicio && $agora->lt($inicio)) {
-            return response()->json(['error' => 'Inscrições ainda não iniciaram'], 422);
+            return $request->wantsJson()
+                ? response()->json(['error' => 'Inscrições ainda não iniciaram'], 422)
+                : redirect()->back()->withErrors('Inscrições ainda não iniciaram');
         }
 
         if ($fim && $agora->gt($fim)) {
-            return response()->json(['error' => 'Período de inscrições encerrado'], 422);
+            return $request->wantsJson()
+                ? response()->json(['error' => 'Período de inscrições encerrado'], 422)
+                : redirect()->back()->withErrors('Período de inscrições encerrado');
         }
 
         if (!$processo->periodoInscricoesAberto()) {
-            return response()->json(['error' => 'Inscrições indisponíveis'], 422);
+            return $request->wantsJson()
+                ? response()->json(['error' => 'Inscrições indisponíveis'], 422)
+                : redirect()->back()->withErrors('Inscrições indisponíveis');
         }
 
         // Verificar se já está inscrito
         if (InscricaoProcesso::where('fk_id_processo', $id)
             ->where('fk_id_estagiario', $estagiarioId)
             ->exists()) {
-            return response()->json(['error' => 'Você já está inscrito neste processo'], 422);
+            return $request->wantsJson()
+                ? response()->json(['error' => 'Você já está inscrito neste processo'], 422)
+                : redirect()->back()->withErrors('Você já está inscrito neste processo');
+        }
+
+        $request->validate([
+            'arquivo_inscricao' => [$requerUpload ? 'required' : 'nullable', 'file', 'max:5120'],
+        ]);
+
+        $arquivoPath = null;
+        if ($request->hasFile('arquivo_inscricao')) {
+            $file = $request->file('arquivo_inscricao');
+            $nomeBase = Str::slug(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME)) ?: 'anexo';
+            $ext = $file->getClientOriginalExtension();
+            $arquivoPath = $file->storeAs(
+                'inscricoes/processo_' . $processo->id_processo . '/estagiario_' . $estagiarioId,
+                $nomeBase . '-' . now()->format('YmdHis') . ($ext ? '.' . $ext : ''),
+                'public'
+            );
         }
 
         // Criar inscrição
+        $numeroInscricao = InscricaoProcesso::gerarNumeroInscricao($id);
         $inscricao = InscricaoProcesso::create([
             'fk_id_processo' => $id,
             'fk_id_estagiario' => $estagiarioId,
             'status_inscricao' => 'inscrito',
+            'arquivo_inscricao' => $arquivoPath,
+            'numero_inscricao' => $numeroInscricao,
         ]);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Inscrição realizada com sucesso!',
-        ]);
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Inscrição realizada com sucesso!',
+                'numero_inscricao' => $numeroInscricao,
+            ]);
+        }
+
+        return redirect()->back()->with('success', "Inscrição realizada com sucesso! Número: {$numeroInscricao}");
     }
 
     // Download seguro de arquivos do edital

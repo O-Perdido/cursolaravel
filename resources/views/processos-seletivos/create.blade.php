@@ -189,6 +189,15 @@
                         name="aviso_inscricao" rows="2"
                         placeholder="Mensagem personalizada que será exibida ao se inscrever">{{ old('aviso_inscricao') }}</textarea>
                     @error('aviso_inscricao')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    <div class="form-check mt-2">
+                        <input class="form-check-input" type="checkbox" value="1" id="solicitar_upload_inscricao"
+                            name="solicitar_upload_inscricao" {{ old('solicitar_upload_inscricao') ? 'checked' : '' }}>
+                        <label class="form-check-label" for="solicitar_upload_inscricao">
+                            Solicitar upload de arquivo na inscrição (opcional)
+                        </label>
+                        <small class="text-muted d-block">Se marcado, o candidato deverá anexar um arquivo no popup antes de
+                            confirmar.</small>
+                    </div>
                 </div>
             </div>
         </div>
@@ -359,10 +368,10 @@
                 const idx = tabelaFases.querySelectorAll('tr').length;
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                                                    <td><input type="text" name="fases[${idx}][descricao]" class="form-control form-control-sm" placeholder="Ex: Divulgação do edital" value="${data.descricao ?? ''}"></td>
-                                                    <td><input type="text" name="fases[${idx}][periodo]" class="form-control form-control-sm" placeholder="Ex: 10/02 a 20/02" value="${data.periodo ?? ''}"></td>
-                                                    <td class="text-center"><button type="button" class="btn btn-outline-danger btn-sm btn-remove-fase"><i class="fas fa-trash"></i></button></td>
-                                                `;
+                                                        <td><input type="text" name="fases[${idx}][descricao]" class="form-control form-control-sm" placeholder="Ex: Divulgação do edital" value="${data.descricao ?? ''}"></td>
+                                                        <td><input type="text" name="fases[${idx}][periodo]" class="form-control form-control-sm" placeholder="Ex: 10/02 a 20/02" value="${data.periodo ?? ''}"></td>
+                                                        <td class="text-center"><button type="button" class="btn btn-outline-danger btn-sm btn-remove-fase"><i class="fas fa-trash"></i></button></td>
+                                                    `;
                 tabelaFases.appendChild(tr);
                 tr.querySelector('.btn-remove-fase').addEventListener('click', () => {
                     tr.remove();
@@ -398,27 +407,27 @@
                 const card = document.createElement('div');
                 card.className = 'nivel-card border rounded p-3 mb-3 bg-light';
                 card.innerHTML = `
-                                                    <div class="d-flex justify-content-between align-items-start gap-2 mb-2 flex-wrap">
-                                                        <div class="flex-grow-1">
-                                                            <label class="form-label small">Nível</label>
-                                                            <input type="text" class="form-control form-control-sm" name="vagas[${idxNivel}][nivel]" value="${data.nivel ?? ''}" placeholder="Ex: Nível Técnico">
+                                                        <div class="d-flex justify-content-between align-items-start gap-2 mb-2 flex-wrap">
+                                                            <div class="flex-grow-1">
+                                                                <label class="form-label small">Nível</label>
+                                                                <input type="text" class="form-control form-control-sm" name="vagas[${idxNivel}][nivel]" value="${data.nivel ?? ''}" placeholder="Ex: Nível Técnico">
+                                                            </div>
+                                                            <button type="button" class="btn btn-outline-danger btn-sm align-self-end remove-nivel"><i class="fas fa-trash"></i></button>
                                                         </div>
-                                                        <button type="button" class="btn btn-outline-danger btn-sm align-self-end remove-nivel"><i class="fas fa-trash"></i></button>
-                                                    </div>
-                                                    <div class="table-responsive mb-2">
-                                                        <table class="table table-sm align-middle mb-1">
-                                                            <thead class="table-light">
-                                                                <tr>
-                                                                    <th style="width: 70%">Curso</th>
-                                                                    <th style="width: 20%">Vagas</th>
-                                                                    <th style="width: 10%" class="text-center">Ações</th>
-                                                                </tr>
-                                                            </thead>
-                                                            <tbody></tbody>
-                                                        </table>
-                                                    </div>
-                                                    <button type="button" class="btn btn-outline-primary btn-sm add-curso"><i class="fas fa-plus me-1"></i>Adicionar curso</button>
-                                                `;
+                                                        <div class="table-responsive mb-2">
+                                                            <table class="table table-sm align-middle mb-1">
+                                                                <thead class="table-light">
+                                                                    <tr>
+                                                                        <th style="width: 70%">Curso</th>
+                                                                        <th style="width: 20%">Vagas</th>
+                                                                        <th style="width: 10%" class="text-center">Ações</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody></tbody>
+                                                            </table>
+                                                        </div>
+                                                        <button type="button" class="btn btn-outline-primary btn-sm add-curso"><i class="fas fa-plus me-1"></i>Adicionar curso</button>
+                                                    `;
 
                 const tbody = card.querySelector('tbody');
                 const addCursoBtn = card.querySelector('.add-curso');
@@ -427,10 +436,10 @@
                     const idxCurso = tbody.querySelectorAll('tr').length;
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
-                                                        <td><input type="text" class="form-control form-control-sm" name="vagas[${idxNivel}][itens][${idxCurso}][curso]" value="${item.curso ?? ''}" placeholder="Ex: Administração"></td>
-                                                        <td><input type="text" class="form-control form-control-sm" name="vagas[${idxNivel}][itens][${idxCurso}][vagas]" value="${item.vagas ?? 'CR'}" placeholder="Ex: 2 ou CR"></td>
-                                                        <td class="text-center"><button type="button" class="btn btn-outline-danger btn-sm remove-curso"><i class="fas fa-trash"></i></button></td>
-                                                    `;
+                                                            <td><input type="text" class="form-control form-control-sm" name="vagas[${idxNivel}][itens][${idxCurso}][curso]" value="${item.curso ?? ''}" placeholder="Ex: Administração"></td>
+                                                            <td><input type="text" class="form-control form-control-sm" name="vagas[${idxNivel}][itens][${idxCurso}][vagas]" value="${item.vagas ?? 'CR'}" placeholder="Ex: 2 ou CR"></td>
+                                                            <td class="text-center"><button type="button" class="btn btn-outline-danger btn-sm remove-curso"><i class="fas fa-trash"></i></button></td>
+                                                        `;
                     tbody.appendChild(tr);
                     tr.querySelector('.remove-curso').addEventListener('click', () => {
                         tr.remove();
@@ -538,10 +547,10 @@
                 const idx = tabelaFases.querySelectorAll('tr').length;
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                                                    <td><input type="text" name="fases[${idx}][descricao]" class="form-control form-control-sm" placeholder="Ex: Divulgação do edital" value="${data.descricao ?? ''}"></td>
-                                                    <td><input type="text" name="fases[${idx}][periodo]" class="form-control form-control-sm" placeholder="Ex: 10/02 a 20/02" value="${data.periodo ?? ''}"></td>
-                                                    <td class="text-center"><button type="button" class="btn btn-outline-danger btn-sm btn-remove-fase"><i class="fas fa-trash"></i></button></td>
-                                                `;
+                                                        <td><input type="text" name="fases[${idx}][descricao]" class="form-control form-control-sm" placeholder="Ex: Divulgação do edital" value="${data.descricao ?? ''}"></td>
+                                                        <td><input type="text" name="fases[${idx}][periodo]" class="form-control form-control-sm" placeholder="Ex: 10/02 a 20/02" value="${data.periodo ?? ''}"></td>
+                                                        <td class="text-center"><button type="button" class="btn btn-outline-danger btn-sm btn-remove-fase"><i class="fas fa-trash"></i></button></td>
+                                                    `;
                 tabelaFases.appendChild(tr);
                 tr.querySelector('.btn-remove-fase').addEventListener('click', () => {
                     tr.remove();
@@ -577,27 +586,27 @@
                 const card = document.createElement('div');
                 card.className = 'nivel-card border rounded p-3 mb-3 bg-light';
                 card.innerHTML = `
-                                                    <div class="d-flex justify-content-between align-items-start gap-2 mb-2 flex-wrap">
-                                                        <div class="flex-grow-1">
-                                                            <label class="form-label small">Nível</label>
-                                                            <input type="text" class="form-control form-control-sm" name="vagas[${idxNivel}][nivel]" value="${data.nivel ?? ''}" placeholder="Ex: Nível Técnico">
+                                                        <div class="d-flex justify-content-between align-items-start gap-2 mb-2 flex-wrap">
+                                                            <div class="flex-grow-1">
+                                                                <label class="form-label small">Nível</label>
+                                                                <input type="text" class="form-control form-control-sm" name="vagas[${idxNivel}][nivel]" value="${data.nivel ?? ''}" placeholder="Ex: Nível Técnico">
+                                                            </div>
+                                                            <button type="button" class="btn btn-outline-danger btn-sm align-self-end remove-nivel"><i class="fas fa-trash"></i></button>
                                                         </div>
-                                                        <button type="button" class="btn btn-outline-danger btn-sm align-self-end remove-nivel"><i class="fas fa-trash"></i></button>
-                                                    </div>
-                                                    <div class="table-responsive mb-2">
-                                                        <table class="table table-sm align-middle mb-1">
-                                                            <thead class="table-light">
-                                                                <tr>
-                                                                    <th style="width: 70%">Curso</th>
-                                                                    <th style="width: 20%">Vagas</th>
-                                                                    <th style="width: 10%" class="text-center">Ações</th>
-                                                                </tr>
-                                                            </thead>
-                                                            <tbody></tbody>
-                                                        </table>
-                                                    </div>
-                                                    <button type="button" class="btn btn-outline-primary btn-sm add-curso"><i class="fas fa-plus me-1"></i>Adicionar curso</button>
-                                                `;
+                                                        <div class="table-responsive mb-2">
+                                                            <table class="table table-sm align-middle mb-1">
+                                                                <thead class="table-light">
+                                                                    <tr>
+                                                                        <th style="width: 70%">Curso</th>
+                                                                        <th style="width: 20%">Vagas</th>
+                                                                        <th style="width: 10%" class="text-center">Ações</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody></tbody>
+                                                            </table>
+                                                        </div>
+                                                        <button type="button" class="btn btn-outline-primary btn-sm add-curso"><i class="fas fa-plus me-1"></i>Adicionar curso</button>
+                                                    `;
 
                 const tbody = card.querySelector('tbody');
                 const addCursoBtn = card.querySelector('.add-curso');
@@ -606,10 +615,10 @@
                     const idxCurso = tbody.querySelectorAll('tr').length;
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
-                                                        <td><input type="text" class="form-control form-control-sm" name="vagas[${idxNivel}][itens][${idxCurso}][curso]" value="${item.curso ?? ''}" placeholder="Ex: Administração"></td>
-                                                        <td><input type="text" class="form-control form-control-sm" name="vagas[${idxNivel}][itens][${idxCurso}][vagas]" value="${item.vagas ?? 'CR'}" placeholder="Ex: 2 ou CR"></td>
-                                                        <td class="text-center"><button type="button" class="btn btn-outline-danger btn-sm remove-curso"><i class="fas fa-trash"></i></button></td>
-                                                    `;
+                                                            <td><input type="text" class="form-control form-control-sm" name="vagas[${idxNivel}][itens][${idxCurso}][curso]" value="${item.curso ?? ''}" placeholder="Ex: Administração"></td>
+                                                            <td><input type="text" class="form-control form-control-sm" name="vagas[${idxNivel}][itens][${idxCurso}][vagas]" value="${item.vagas ?? 'CR'}" placeholder="Ex: 2 ou CR"></td>
+                                                            <td class="text-center"><button type="button" class="btn btn-outline-danger btn-sm remove-curso"><i class="fas fa-trash"></i></button></td>
+                                                        `;
                     tbody.appendChild(tr);
                     tr.querySelector('.remove-curso').addEventListener('click', () => {
                         tr.remove();

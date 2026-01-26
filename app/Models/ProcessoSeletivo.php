@@ -23,6 +23,7 @@ class ProcessoSeletivo extends Model
         'requisitos',
         'observacoes',
         'aviso_inscricao',
+        'solicitar_upload_inscricao',
     ];
 
     protected $casts = [
@@ -32,6 +33,7 @@ class ProcessoSeletivo extends Model
         'data_abertura' => 'datetime',
         'data_inicio_inscricoes' => 'datetime',
         'data_fechamento_inscricoes' => 'datetime',
+        'solicitar_upload_inscricao' => 'boolean',
     ];
 
     // Relações

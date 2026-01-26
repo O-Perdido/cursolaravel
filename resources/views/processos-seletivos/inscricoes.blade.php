@@ -39,20 +39,23 @@
             <table class="table table-hover mb-0 align-middle">
                 <thead class="table-light">
                     <tr>
-                        <th class="text-nowrap">ID</th>
+                        <th class="text-nowrap">Nº Inscrição</th>
                         <th>Estagiário</th>
                         <th>Email</th>
                         <th>Telefone</th>
                         <th>Curso</th>
                         <th>Status</th>
-                        <th class="text-nowrap">Inscrição</th>
+                        <th>Anexo</th>
+                        <th class="text-nowrap">Data</th>
                         <th class="text-center">Ações</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse($inscricoes as $inscricao)
                         <tr>
-                            <td class="text-muted">{{ $inscricao->id_inscricao }}</td>
+                            <td class="fw-bold text-primary">
+                                {{ $inscricao->numero_inscricao ?? '—' }}
+                            </td>
                             <td class="fw-semibold">
                                 <div class="d-flex align-items-center gap-2">
                                     {{ $inscricao->estagiario->nome_estagiario }}
@@ -68,6 +71,15 @@
                                 <span class="badge @switch($inscricao->status_inscricao) @case('inscrito') bg-info @break @case('deferido') bg-success @break @case('indeferido') bg-danger @break @default bg-secondary @endswitch">
                                     {{ ucfirst($inscricao->status_inscricao) }}
                                 </span>
+                            </td>
+                            <td>
+                                @if($inscricao->arquivo_inscricao)
+                                    <a href="{{ Storage::url($inscricao->arquivo_inscricao) }}" target="_blank" class="btn btn-outline-primary btn-sm">
+                                        <i class="fas fa-paperclip me-1"></i> Abrir
+                                    </a>
+                                @else
+                                    <span class="text-muted">-</span>
+                                @endif
                             </td>
                             <td class="text-muted">{{ $inscricao->created_at->format('d/m/Y H:i') }}</td>
                             <td class="text-center">
@@ -97,7 +109,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8" class="text-center py-4 text-muted">Nenhuma inscrição encontrada.</td>
+                            <td colspan="10" class="text-center py-4 text-muted">Nenhuma inscrição encontrada.</td>
                         </tr>
                     @endforelse
                 </tbody>

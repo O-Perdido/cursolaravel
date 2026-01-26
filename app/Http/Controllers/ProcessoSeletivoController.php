@@ -80,6 +80,7 @@ class ProcessoSeletivoController extends Controller
             'requisitos' => 'nullable|string',
             'observacoes' => 'nullable|string',
             'aviso_inscricao' => 'nullable|string',
+            'solicitar_upload_inscricao' => 'nullable|boolean',
         ]);
 
         // Transação para garantir atomicidade
@@ -97,6 +98,7 @@ class ProcessoSeletivoController extends Controller
             $validated['descricao_fases'] = !empty($fasesFormatadas)
                 ? collect($fasesFormatadas)->map(fn ($fase) => trim(($fase['descricao'] ?? '') . ' ' . ($fase['periodo'] ? '(' . $fase['periodo'] . ')' : '')))->implode(' | ')
                 : ($validated['descricao_fases'] ?? null);
+            $validated['solicitar_upload_inscricao'] = $request->boolean('solicitar_upload_inscricao');
             unset($validated['vagas']);
 
             return ProcessoSeletivo::create(array_merge($validated, [
@@ -176,6 +178,7 @@ class ProcessoSeletivoController extends Controller
             'requisitos' => 'nullable|string',
             'observacoes' => 'nullable|string',
             'aviso_inscricao' => 'nullable|string',
+            'solicitar_upload_inscricao' => 'nullable|boolean',
         ]);
 
         $vagasFormatadas = $this->formatarVagas($request->input('vagas', []));
@@ -189,6 +192,7 @@ class ProcessoSeletivoController extends Controller
         $validated['descricao_fases'] = !empty($fasesFormatadas)
             ? collect($fasesFormatadas)->map(fn ($fase) => trim(($fase['descricao'] ?? '') . ' ' . ($fase['periodo'] ? '(' . $fase['periodo'] . ')' : '')))->implode(' | ')
             : ($validated['descricao_fases'] ?? null);
+        $validated['solicitar_upload_inscricao'] = $request->boolean('solicitar_upload_inscricao');
         unset($validated['vagas']);
 
         $processo->update($validated);

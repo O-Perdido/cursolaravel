@@ -243,6 +243,15 @@
                     <p>Você está prestes a se inscrever no processo seletivo <strong>{{ $processo->titulo }}</strong>.</p>
                     <p class="text-muted">Após confirmar, sua inscrição será registrada no sistema.</p>
                 @endif
+
+                @if($processo->solicitar_upload_inscricao)
+                    <div class="mb-3">
+                        <label for="arquivo_inscricao" class="form-label">Anexe o arquivo para confirmar</label>
+                        <input type="file" class="form-control" id="arquivo_inscricao" name="arquivo_inscricao"
+                            accept=".pdf,image/*" required>
+                        <small class="text-muted">Envie um PDF ou imagem conforme orientações do processo.</small>
+                    </div>
+                @endif
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
@@ -261,32 +270,54 @@
             confirmarBtn.addEventListener('click', function() {
                 const processoId = {{ $processo->id_processo }};
                 const token = document.querySelector('meta[name="csrf-token"]')?.content;
+                const fileInput = document.getElementById('arquivo_inscricao');
 
                 const urlInscricao = "{{ route('processos-seletivos.inscrever', $processo->id_processo) }}";
+
+                if (fileInput && fileInput.required && (!fileInput.files || fileInput.files.length === 0)) {
+                    showToast('Atenção', 'Envie o arquivo solicitado para concluir a inscrição.', 'warning');
+                    return;
+                }
 
                 this.disabled = true;
                 this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processando...';
 
+                const formData = new FormData();
+                formData.append('_token', token ?? '');
+                if (fileInput && fileInput.files.length > 0) {
+                    formData.append('arquivo_inscricao', fileInput.files[0]);
+                }
+
                 fetch(urlInscricao, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': token
-                    }
+                        'X-CSRF-TOKEN': token,
+                        'Accept': 'application/json'
+                    },
+                    body: formData
                 })
-                .then(response => response.json())
+                .then(async response => {
+                    const data = await response.json();
+                    if (!response.ok || data.success === false) {
+                        const message = data.error || (data.message ?? 'Não foi possível concluir a inscrição.');
+                        throw new Error(message);
+                    }
+                    return data;
+                })
                 .then(data => {
-                    if (data.success) {
-                        const modal = bootstrap.Modal.getInstance(document.getElementById('inscricaoModal'));
-                        modal.hide();
-                        showToast('Sucesso!', data.message, 'success');
-                        setTimeout(() => location.reload(), 1500);
-                    } else {
-                        showToast('Erro!', data.error, 'danger');
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('inscricaoModal'));
+                    modal.hide();
+                    
+                    let message = data.message;
+                    if (data.numero_inscricao) {
+                        message += `\n\nNúmero de inscrição: ${data.numero_inscricao}`;
                     }
+                    
+                    showToast('Sucesso!', message, 'success');
+                    setTimeout(() => location.reload(), 1500);
                 })
-                .catch(() => {
-                    showToast('Erro!', 'Ocorreu um erro ao processar sua inscrição', 'danger');
+                .catch((error) => {
+                    showToast('Erro!', error.message || 'Ocorreu um erro ao processar sua inscrição', 'danger');
                 })
                 .finally(() => {
                     this.disabled = false;

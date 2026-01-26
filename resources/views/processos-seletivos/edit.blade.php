@@ -204,6 +204,15 @@
                             name="aviso_inscricao"
                             rows="3">{{ old('aviso_inscricao', $processo->aviso_inscricao) }}</textarea>
                         @error('aviso_inscricao')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        <div class="form-check mt-2">
+                            <input class="form-check-input" type="checkbox" value="1" id="solicitar_upload_inscricao"
+                                name="solicitar_upload_inscricao" {{ old('solicitar_upload_inscricao', $processo->solicitar_upload_inscricao) ? 'checked' : '' }}>
+                            <label class="form-check-label" for="solicitar_upload_inscricao">
+                                Solicitar upload de arquivo na inscrição (opcional)
+                            </label>
+                            <small class="text-muted d-block">Se marcado, o candidato deverá anexar um arquivo no popup
+                                antes de confirmar.</small>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -338,10 +347,10 @@
                 const idx = tabelaFases.querySelectorAll('tr').length;
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                                                        <td><input type="text" name="fases[${idx}][descricao]" class="form-control form-control-sm" placeholder="Ex: Divulgação do edital" value="${data.descricao ?? ''}"></td>
-                                                        <td><input type="text" name="fases[${idx}][periodo]" class="form-control form-control-sm" placeholder="Ex: 10/02 a 20/02" value="${data.periodo ?? ''}"></td>
-                                                        <td class="text-center"><button type="button" class="btn btn-outline-danger btn-sm btn-remove-fase"><i class="fas fa-trash"></i></button></td>
-                                                    `;
+                                                            <td><input type="text" name="fases[${idx}][descricao]" class="form-control form-control-sm" placeholder="Ex: Divulgação do edital" value="${data.descricao ?? ''}"></td>
+                                                            <td><input type="text" name="fases[${idx}][periodo]" class="form-control form-control-sm" placeholder="Ex: 10/02 a 20/02" value="${data.periodo ?? ''}"></td>
+                                                            <td class="text-center"><button type="button" class="btn btn-outline-danger btn-sm btn-remove-fase"><i class="fas fa-trash"></i></button></td>
+                                                        `;
                 tabelaFases.appendChild(tr);
                 tr.querySelector('.btn-remove-fase').addEventListener('click', () => {
                     tr.remove();
