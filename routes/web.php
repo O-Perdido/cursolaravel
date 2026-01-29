@@ -86,6 +86,7 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/processos-seletivos/{id}', [App\Http\Controllers\ProcessoSeletivoController::class, 'update'])->name('processos-seletivos.update');
         Route::delete('/processos-seletivos/{id}', [App\Http\Controllers\ProcessoSeletivoController::class, 'destroy'])->name('processos-seletivos.destroy');
         Route::delete('/processos-seletivos/arquivos/{id}', [App\Http\Controllers\ProcessoSeletivoController::class, 'removerArquivo'])->name('processos-seletivos.arquivos.destroy');
+        Route::delete('/processos-seletivos/resultados/{id}', [App\Http\Controllers\ProcessoSeletivoController::class, 'removerResultado'])->name('processos-seletivos.resultados.destroy');
         Route::get('/processos-seletivos/{id}/inscricoes', [App\Http\Controllers\ProcessoSeletivoController::class, 'listarInscricoes'])->name('processos-seletivos.inscricoes');
         Route::post('/processos-seletivos/{id}/inscricoes/atualizar-status', [App\Http\Controllers\ProcessoSeletivoController::class, 'atualizarStatusInscricao'])->name('processos-seletivos.inscricoes.atualizar-status');
         Route::post('/processos-seletivos/{id}/inscricoes/exportar', [App\Http\Controllers\ProcessoSeletivoController::class, 'exportarInscricoes'])->name('processos-seletivos.exportar-inscricoes');
@@ -474,6 +475,7 @@ Route::get('/', function () {
 // Rotas de processos seletivos públicas
 Route::get('/processos-publicos', [App\Http\Controllers\ProcessoSeletivoPublicoController::class, 'listarPublicos'])->name('processos-seletivos.publicos');
 Route::get('/processos-seletivos/{id}/detalhes-publico', [App\Http\Controllers\ProcessoSeletivoPublicoController::class, 'detalhesPublico'])->name('processos-seletivos.detalhes.publico');
+Route::get('/processos-seletivos/arquivos/{id}/download-publico', [App\Http\Controllers\ProcessoSeletivoPublicoController::class, 'downloadArquivoPublico'])->name('processos-seletivos.arquivos.download-publico');
 
 // Rotas públicas de avaliação (sem autenticação)
 Route::get('/avaliacoes/responder/{token}', [\App\Http\Controllers\AvaliacaoController::class, 'responder'])->name('avaliacoes.responder');

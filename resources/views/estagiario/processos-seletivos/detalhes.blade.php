@@ -161,7 +161,7 @@
             @endif
 
             @if($processo->arquivos->count() > 0)
-                <div class="card shadow-sm">
+                <div class="card shadow-sm mb-3">
                     <div class="card-header bg-light"><h6 class="mb-0"><i class="fas fa-file me-2"></i>Documentos do Edital</h6></div>
                     <div class="card-body">
                         <div class="list-group list-group-flush">
@@ -173,6 +173,37 @@
                                     </div>
                                     <i class="fas fa-download text-primary"></i>
                                 </a>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+            @endif
+
+            @php
+                $resultados = $processo->resultados()->orderByDesc('created_at')->get();
+            @endphp
+            @if($resultados->count() > 0)
+                <div class="card shadow-sm mb-3">
+                    <div class="card-header bg-success text-white">
+                        <h6 class="mb-0"><i class="fas fa-trophy me-2"></i>Resultados Publicados</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="list-group list-group-flush">
+                            @foreach($resultados as $resultado)
+                                <div class="list-group-item">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <h6 class="mb-1">{{ $resultado->numero_resultado }}</h6>
+                                        <small class="text-muted">
+                                            {{ $resultado->created_at->format('d/m/Y') }}
+                                        </small>
+                                    </div>
+                                    @if($resultado->arquivo_resultado)
+                                        <a href="{{ Storage::url($resultado->arquivo_resultado) }}" target="_blank"
+                                            class="btn btn-success btn-sm w-100">
+                                            <i class="fas fa-download me-1"></i> Baixar Resultado
+                                        </a>
+                                    @endif
+                                </div>
                             @endforeach
                         </div>
                     </div>

@@ -221,7 +221,7 @@
                         </div>
                         <div class="card-body">
                             <div class="list-group">
-                                <a href="{{ route('processos-seletivos.arquivos.download', $editalArquivo->id_arquivo) }}"
+                                <a href="{{ route('processos-seletivos.arquivos.download-publico', $editalArquivo->id_arquivo) }}"
                                     class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
                                     <div>
                                         <i class="fas fa-file-pdf me-2 text-danger"></i>
@@ -229,6 +229,37 @@
                                     </div>
                                     <i class="fas fa-download text-muted"></i>
                                 </a>
+                            </div>
+                        </div>
+                    </div>
+                @endif
+
+                @php
+                    $resultados = $processo->resultados()->orderByDesc('created_at')->get();
+                @endphp
+                @if($resultados->count() > 0)
+                    <div class="card shadow-sm border-0 mb-3">
+                        <div class="card-header bg-success text-white border-0">
+                            <h5 class="mb-0"><i class="fas fa-trophy me-2"></i>Resultados Publicados</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="list-group">
+                                @foreach($resultados as $resultado)
+                                    <div class="list-group-item">
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <h6 class="mb-1">{{ $resultado->numero_resultado }}</h6>
+                                            <small class="text-muted">
+                                                {{ $resultado->created_at->format('d/m/Y') }}
+                                            </small>
+                                        </div>
+                                        @if($resultado->arquivo_resultado)
+                                            <a href="{{ Storage::url($resultado->arquivo_resultado) }}" target="_blank"
+                                                class="btn btn-success btn-sm w-100">
+                                                <i class="fas fa-download me-1"></i> Baixar Resultado
+                                            </a>
+                                        @endif
+                                    </div>
+                                @endforeach
                             </div>
                         </div>
                     </div>

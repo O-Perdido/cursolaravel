@@ -505,7 +505,29 @@ class ProcessoSeletivoController extends Controller
             'arquivo_resultado' => $caminhoResultado,
         ]);
 
+        // Atualizar status do processo para finalizado quando publicar resultado
+        if ($processo->status !== 'finalizado') {
+            $processo->update(['status' => 'finalizado']);
+        }
+
         return redirect()->route('processos-seletivos.resultados', $id)
-            ->with('success', 'Resultado publicado com sucesso!');
+            ->with('success', 'Resultado publicado com sucesso! Status do processo atualizado para "Finalizado".');
+    }
+
+    // Remover resultado
+    public function removerResultado($id)
+    {
+        $resultado = \App\Models\ResultadoProcesso::findOrFail($id);
+        $processoId = $resultado->fk_id_processo;
+
+        // Remover arquivo do storage se existir
+        if ($resultado->arquivo_resultado && Storage::disk('public')->exists($resultado->arquivo_resultado)) {
+            Storage::disk('public')->delete($resultado->arquivo_resultado);
+        }
+
+        $resultado->delete();
+
+        return redirect()->route('processos-seletivos.resultados', $processoId)
+            ->with('success', 'Resultado removido com sucesso!');
     }
 }

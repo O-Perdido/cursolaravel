@@ -351,4 +351,29 @@ class ProcessoSeletivoPublicoController extends Controller
 
         return view('processos-seletivos.detalhes-publico', compact('processo', 'jaInscrito'));
     }
+
+    // Download público de arquivos do edital (sem autenticação)
+    public function downloadArquivoPublico($id)
+    {
+        $arquivo = ProcessoArquivo::with('processo')->findOrFail($id);
+
+        // Bloquear apenas se o processo estiver em rascunho
+        if ($arquivo->processo->status === 'rascunho') {
+            abort(403, 'Este arquivo não está disponível publicamente');
+        }
+
+        if (!Storage::disk('public')->exists($arquivo->caminho_arquivo)) {
+            abort(404, 'Arquivo não encontrado');
+        }
+
+        $extensao = pathinfo($arquivo->caminho_arquivo, PATHINFO_EXTENSION);
+        $nomeBase = trim(preg_replace('~[\\\\/]+~', '-', $arquivo->nome_exibicao));
+        $nomeBase = $nomeBase !== '' ? $nomeBase : 'arquivo';
+        $nomeDownload = $extensao ? $nomeBase . '.' . $extensao : $nomeBase;
+
+        return response()->download(
+            storage_path('app/public/' . $arquivo->caminho_arquivo),
+            $nomeDownload
+        );
+    }
 }

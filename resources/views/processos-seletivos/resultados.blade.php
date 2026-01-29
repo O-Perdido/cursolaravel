@@ -41,14 +41,21 @@
                                         {{ $resultado->created_at->format('d/m/Y H:i') }}
                                     </small>
                                 </div>
-                                @if($resultado->arquivo_resultado)
-                                    <a href="{{ Storage::url($resultado->arquivo_resultado) }}" target="_blank"
-                                        class="btn btn-outline-primary btn-sm">
-                                        <i class="fas fa-download me-1"></i> Download
-                                    </a>
-                                @else
-                                    <span class="text-muted small">Sem arquivo</span>
-                                @endif
+                                <div class="d-flex gap-2">
+                                    @if($resultado->arquivo_resultado)
+                                        <a href="{{ Storage::url($resultado->arquivo_resultado) }}" target="_blank"
+                                            class="btn btn-outline-primary btn-sm">
+                                            <i class="fas fa-download me-1"></i> Download
+                                        </a>
+                                    @else
+                                        <span class="text-muted small">Sem arquivo</span>
+                                    @endif
+                                    <button type="button" class="btn btn-outline-danger btn-sm btn-delete-resultado" title="Remover Resultado"
+                                        data-action="{{ route('processos-seletivos.resultados.destroy', $resultado->id_resultado) }}"
+                                        data-nome="{{ $resultado->numero_resultado }}">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
                             </div>
                         @endforeach
                     </div>
@@ -99,4 +106,53 @@
             </div>
         </div>
     </div>
+@endsection
+
+@section('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Deletar resultado com confirmação
+        const deleteButtons = document.querySelectorAll('.btn-delete-resultado');
+        deleteButtons.forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const action = this.getAttribute('data-action');
+                const nome = this.getAttribute('data-nome');
+                
+                Swal.fire({
+                    title: 'Confirmar exclusão?',
+                    html: `Deseja realmente remover o resultado:<br><strong>${nome}</strong>?`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'Sim, remover!',
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        const form = document.createElement('form');
+                        form.method = 'POST';
+                        form.action = action;
+                        form.style.display = 'none';
+                        
+                        const csrfInput = document.createElement('input');
+                        csrfInput.type = 'hidden';
+                        csrfInput.name = '_token';
+                        csrfInput.value = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+                        
+                        const methodInput = document.createElement('input');
+                        methodInput.type = 'hidden';
+                        methodInput.name = '_method';
+                        methodInput.value = 'DELETE';
+                        
+                        form.appendChild(csrfInput);
+                        form.appendChild(methodInput);
+                        document.body.appendChild(form);
+                        form.submit();
+                    }
+                });
+            });
+        });
+    });
+</script>
 @endsection

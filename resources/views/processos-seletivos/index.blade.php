@@ -158,7 +158,7 @@
                                         <i class="fas fa-users"></i>
                                     </a>
                                     <a href="{{ route('processos-seletivos.resultados', $processo->id_processo) }}" class="btn btn-outline-success" title="Resultados">
-                                        <i class="fas fa-file-pdf"></i>
+                                        <i class="fas fa-trophy"></i>
                                     </a>
                                     <button type="button" class="btn btn-outline-danger btn-delete" title="Deletar"
                                         data-action="{{ route('processos-seletivos.destroy', $processo->id_processo) }}"
