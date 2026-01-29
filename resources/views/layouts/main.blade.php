@@ -95,14 +95,15 @@
 </head>
 
 <body style="font-family: Gothic, sans-serif;">
+    <!-- Sidebar for authenticated users
     <div>
-        @auth
-            <!-- Sidebar for authenticated users -->
+        @auth             
             @if (Auth::user()->nivel == 'admin' || Auth::user()->nivel == 'operador')
                 <x-sidebar />
             @endif
         @endauth
     </div>
+    -->
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-dark shadow-sm text-center">
         <div class="container-fluid align-items-center px-2 px-md-3">
