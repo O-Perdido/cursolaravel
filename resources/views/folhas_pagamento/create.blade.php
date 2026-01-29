@@ -133,8 +133,9 @@
                             <td style="text-align: center; vertical-align: middle;">
                                 <div style="display: flex; justify-content: center; align-items: center; height: 100%;">
                                     <input type="number" class="form-control" name="dias_trabalhados_{{ $conteudo->id }}"
-                                        value="{{ $diasPadraoCalculo ?? 30 }}" style="width: 60px; height: 30px; text-align: center; appearance: textfield;"
-                                        min="0" max="{{ $diasPadraoCalculo ?? 30 }}"
+                                        value="{{ $diasPadraoCalculo ?? 30 }}"
+                                        style="width: 60px; height: 30px; text-align: center; appearance: textfield;" min="0"
+                                        max="{{ $diasPadraoCalculo ?? 30 }}"
                                         oninput="if(this.value > {{ $diasPadraoCalculo ?? 30 }}) this.value={{ $diasPadraoCalculo ?? 30 }}; if(this.value < 0) this.value=0;">
                                 </div>
                             </td>
@@ -287,7 +288,7 @@
                                     if (tipoTaxa === 'fixa') {
                                         valorTaxa = Number(taxaFixa);
                                     } else if (tipoTaxa === 'percentual') {
-                                        valorTaxa = (Number(taxaPercentual) / 100) * bolsaMes;
+                                        valorTaxa = (Number(taxaPercentual) / 100) * Number(valorBolsa);
                                     }
                                     taxaAdmSpan.textContent = valorTaxa.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                                     taxaAdmInput.value = valorTaxa.toFixed(2);
@@ -408,7 +409,7 @@
                             });
                         @endforeach
 
-                                            const totalRegistros = todosRegistros.length;
+                                                const totalRegistros = todosRegistros.length;
                         const TAMANHO_LOTE = 50; // Envia 50 registros por vez
                         const totalLotes = Math.ceil(totalRegistros / TAMANHO_LOTE);
 

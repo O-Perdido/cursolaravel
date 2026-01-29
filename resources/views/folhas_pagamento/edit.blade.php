@@ -302,7 +302,7 @@
                                     if (tipoTaxa === 'fixa') {
                                         valorTaxa = Number(taxaFixa);
                                     } else if (tipoTaxa === 'percentual') {
-                                        valorTaxa = (Number(taxaPercentual) / 100) * bolsaMes;
+                                        valorTaxa = (Number(taxaPercentual) / 100) * Number(valorBolsa);
                                     }
                                     taxaAdmSpan.textContent = valorTaxa.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                                     taxaAdmInput.value = valorTaxa.toFixed(2);
@@ -431,7 +431,7 @@
                                 });
                             @endforeach
 
-                                                        const totalRegistros = todosRegistros.length;
+                                                            const totalRegistros = todosRegistros.length;
                             const TAMANHO_LOTE = 50; // Envia 50 registros por vez
                             const totalLotes = Math.ceil(totalRegistros / TAMANHO_LOTE);
 
