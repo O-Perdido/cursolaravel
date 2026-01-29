@@ -60,8 +60,35 @@
                         @if(session('error'))
                             <div class="alert alert-danger mt-2">{{ session('error') }}</div>
                         @endif
-                        <button type="submit" class="btn btn-primary" id="save_button">Logar</button>
+                        <button type="submit" class="btn btn-primary w-100 mb-3" id="save_button">
+                            <i class="fas fa-sign-in-alt me-2"></i>Entrar
+                        </button>
                     </form>
+
+                    <!-- Divisor -->
+                    <div class="text-center my-3">
+                        <hr class="my-2">
+                        <small class="text-muted">Não tem conta?</small>
+                    </div>
+
+                    <!-- Botão de Cadastro para Estagiários -->
+                    <a href="{{ route('novo-estagiario-ajax-create') }}" class="btn btn-outline-success w-100 mb-3">
+                        <i class="fas fa-user-plus me-2"></i>Cadastrar como Estagiário
+                    </a>
+
+                    <!-- Alerta informativo -->
+                    <div class="alert alert-info mb-0 py-2" style="font-size: 0.85rem;">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Atenção:</strong> O cadastro online é exclusivo para <strong>estagiários</strong>.<br>
+                        <small>
+                            <i class="fas fa-building me-1"></i><strong>Empresas</strong> ou
+                            <i class="fas fa-school me-1"></i><strong>Instituições de Ensino</strong>:
+                            <a href="https://api.whatsapp.com/send?phone=5548991468761&text=Ol%C3%A1%21%20Gostaria%20de%20cadastrar%20minha%20empresa%2Finstituição%20no%20SIGE"
+                                target="_blank" class="alert-link">
+                                <i class="fab fa-whatsapp"></i> Entre em contato
+                            </a>
+                        </small>
+                    </div>
                 </div>
             </div>
 
@@ -70,10 +97,10 @@
                 <h3>Instalar o SIGEBR</h3>
                 <!-- PWA Install Card (mostrado quando PWA for instalável) -->
                 <div class="card border-success shadow-sm" id="pwa-login-card" style="display: none; animation: slideInUp 0.5s ease-out;
-                                                                                   background: linear-gradient(135deg, #198754 0%, #20c997 100%);
-                                                                                   color: #fff;
-                                                                                   border-radius: 10px;
-                                                                                   overflow: hidden;">
+                                                                                       background: linear-gradient(135deg, #198754 0%, #20c997 100%);
+                                                                                       color: #fff;
+                                                                                       border-radius: 10px;
+                                                                                       overflow: hidden;">
                     <div class="card-body py-3 px-3">
                         <div class="d-flex align-items-start gap-3">
                             <div class="flex-shrink-0">

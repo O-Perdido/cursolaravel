@@ -3,52 +3,366 @@
 @section('title', 'Portal do Estagiário - SIGE')
 
 @section('content')
-<div class="container-fluid py-4">
-    <!-- Hero Section -->
-    <div class="row mb-5">
-        <div class="col-12">
-            <div class="card shadow-lg border-0 overflow-hidden"
-                style="background: linear-gradient(135deg, #102E6C 0%, #0A1F4D 100%);">
-                <div class="card-body text-white py-5 px-4">
-                    <div class="row align-items-center">
-                        <div class="col-lg-7 text-center text-lg-start mb-4 mb-lg-0">
-                            <h1 class="display-4 fw-bold mb-3">Bem-vindo ao SIGE - EBCP</h1>
-                            <p class="lead mb-4">Uma plataforma exclusiva para soluções de estágios.</p>
-                            <div
-                                class="d-flex flex-column flex-sm-row gap-3 justify-content-center justify-content-lg-start">
-                                <a href="{{ route('processos-seletivos.publicos') }}"
-                                    class="btn btn-light btn-lg px-4 shadow-sm">
-                                    <i class="fas fa-briefcase me-2"></i>Ver Processos Seletivos
-                                </a>
-                                @guest
+<!-- Background decorativo da página inteira -->
+<div
+    style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; overflow: hidden;">
+    <!-- Padrão de pontos -->
+    <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; opacity: 0.04;">
+        <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <pattern id="dots-bg" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
+                    <circle cx="20" cy="20" r="2" fill="#102E6C" />
+                </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#dots-bg)" />
+        </svg>
+    </div>
+
+    <!-- Linhas horizontais -->
+    <div
+        style="position: absolute; top: 15%; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(16, 46, 108, 0.1), transparent);">
+    </div>
+    <div
+        style="position: absolute; top: 30%; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(236, 208, 11, 0.08), transparent);">
+    </div>
+    <div
+        style="position: absolute; top: 50%; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(16, 46, 108, 0.08), transparent);">
+    </div>
+    <div
+        style="position: absolute; top: 70%; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(236, 208, 11, 0.08), transparent);">
+    </div>
+
+    <!-- Linhas verticais -->
+    <div
+        style="position: absolute; top: 0; left: 15%; bottom: 0; width: 1px; background: linear-gradient(180deg, transparent, rgba(16, 46, 108, 0.08), transparent);">
+    </div>
+    <div
+        style="position: absolute; top: 0; left: 35%; bottom: 0; width: 1px; background: linear-gradient(180deg, transparent, rgba(236, 208, 11, 0.06), transparent);">
+    </div>
+    <div
+        style="position: absolute; top: 0; left: 65%; bottom: 0; width: 1px; background: linear-gradient(180deg, transparent, rgba(236, 208, 11, 0.06), transparent);">
+    </div>
+    <div
+        style="position: absolute; top: 0; left: 85%; bottom: 0; width: 1px; background: linear-gradient(180deg, transparent, rgba(16, 46, 108, 0.08), transparent);">
+    </div>
+
+    <!-- Formas circulares flutuantes -->
+    <div
+        style="position: absolute; top: 25%; left: 5%; width: 400px; height: 400px; background: radial-gradient(circle at 30% 30%, rgba(236, 208, 11, 0.05), transparent); border-radius: 50%; animation: float 8s ease-in-out infinite;">
+    </div>
+    <div
+        style="position: absolute; top: 55%; right: 8%; width: 350px; height: 350px; background: radial-gradient(circle at 30% 30%, rgba(16, 46, 108, 0.04), transparent); border-radius: 50%; animation: float 10s ease-in-out infinite reverse;">
+    </div>
+    <div
+        style="position: absolute; bottom: 10%; left: 25%; width: 300px; height: 300px; background: radial-gradient(circle at 30% 30%, rgba(236, 208, 11, 0.04), transparent); border-radius: 50%; animation: float 12s ease-in-out infinite;">
+    </div>
+</div>
+
+<!-- Hero Section com Carrossel -->
+<div class="hero-section"
+    style="background: linear-gradient(135deg, #102E6C 0%, #0A1F4D 50%, #1a3a8a 100%); position: relative; overflow: hidden; min-height: 650px;">
+    <!-- Padrão de fundo decorativo com pontos -->
+    <div class="hero-pattern" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; opacity: 0.08;">
+        <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <pattern id="dots" x="0" y="0" width="50" height="50" patternUnits="userSpaceOnUse">
+                    <circle cx="25" cy="25" r="3" fill="white" />
+                </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#dots)" />
+        </svg>
+    </div>
+
+    <!-- Linhas decorativas onduladas -->
+    <div style="position: absolute; top: -10%; left: 0; right: 0; height: 40%; opacity: 0.15; z-index: 1;">
+        <svg width="100%" height="100%" viewBox="0 0 1200 600" preserveAspectRatio="none"
+            xmlns="http://www.w3.org/2000/svg">
+            <!-- Ondas superiores -->
+            <path d="M0,100 Q300,50 600,100 T1200,100 L1200,200 Q900,250 600,200 T0,200 Z" fill="none" stroke="#E0E7FF"
+                stroke-width="2" opacity="0.6" />
+            <path d="M0,150 Q300,100 600,150 T1200,150 L1200,250 Q900,300 600,250 T0,250 Z" fill="none" stroke="#E0E7FF"
+                stroke-width="2" opacity="0.4" />
+            <path d="M0,200 Q300,150 600,200 T1200,200 L1200,300 Q900,350 600,300 T0,300 Z" fill="none" stroke="#E0E7FF"
+                stroke-width="2" opacity="0.2" />
+        </svg>
+    </div>
+
+    <!-- Formas geométricas flutuantes -->
+    <div
+        style="position: absolute; top: 10%; left: 5%; width: 300px; height: 300px; background: radial-gradient(circle at 30% 30%, rgba(236, 208, 11, 0.1), transparent); border-radius: 50%; z-index: 1;">
+    </div>
+    <div
+        style="position: absolute; bottom: 5%; right: 3%; width: 250px; height: 250px; background: radial-gradient(circle at 30% 30%, rgba(236, 208, 11, 0.08), transparent); border-radius: 50%; z-index: 1;">
+    </div>
+
+    <!-- Linhas retas diagonais -->
+    <div
+        style="position: absolute; top: -5%; left: 10%; width: 2px; height: 120%; background: linear-gradient(180deg, transparent, rgba(224, 231, 255, 0.15), transparent); transform: rotate(-25deg); z-index: 1;">
+    </div>
+    <div
+        style="position: absolute; top: -5%; left: 20%; width: 2px; height: 120%; background: linear-gradient(180deg, transparent, rgba(224, 231, 255, 0.1), transparent); transform: rotate(-25deg); z-index: 1;">
+    </div>
+    <div
+        style="position: absolute; top: -5%; right: 10%; width: 2px; height: 120%; background: linear-gradient(180deg, transparent, rgba(224, 231, 255, 0.15), transparent); transform: rotate(25deg); z-index: 1;">
+    </div>
+    <div
+        style="position: absolute; top: -5%; right: 20%; width: 2px; height: 120%; background: linear-gradient(180deg, transparent, rgba(224, 231, 255, 0.1), transparent); transform: rotate(25deg); z-index: 1;">
+    </div>
+
+    <!-- Conteúdo do Carrossel -->
+    <div class="hero-carousel-wrapper" style="position: relative; z-index: 2; height: 650px;">
+        <div id="heroCarousel" class="carousel slide carousel-fade" data-bs-ride="carousel" style="height: 100%;">
+            <!-- Slides do Carrossel -->
+            <div class="carousel-inner" style="height: 100%;">
+                <!-- Slide 1: Bem-vindo -->
+                <!-- 📸 IMAGEM DE FUNDO (OPCIONAL): Adicione background-image abaixo -->
+                <!-- Tamanho recomendado: 1920x650px (landscape) | Formato: JPG/PNG -->
+                <!-- Exemplo de uso: style="background: url('{{ asset('images/hero-slide1.jpg') }}') center/cover; height: 100%;" -->
+                <div class="carousel-item active" style="height: 100%;">
+                    <!-- Overlay escuro sobre a imagem de fundo (remova se não usar imagem) -->
+                    <div class="carousel-overlay"
+                        style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(16, 46, 108, 0.85); z-index: 1;">
+                    </div>
+                    <div class="d-flex align-items-center justify-content-center"
+                        style="height: 100%; position: relative; z-index: 2;">
+                        <div class="container px-4">
+                            <div class="row align-items-center">
+                                <div class="col-lg-7 text-center text-lg-start mb-4 mb-lg-0">
+                                    <h1 class="display-3 fw-bold mb-3 text-white">
+                                        Bem-vindo ao SIGE
+                                    </h1>
+                                    <p class="lead text-white mb-4" style="font-size: 1.3rem; opacity: 0.95;">
+                                        A plataforma de <strong>oportunidades de estágio</strong> mais completa do país
+                                    </p>
+                                    <div
+                                        class="d-flex flex-column flex-sm-row gap-3 justify-content-center justify-content-lg-start">
+                                        <a href="{{ route('processos-seletivos.publicos') }}"
+                                            class="btn btn-light btn-lg px-5 shadow-lg fw-bold">
+                                            <i class="fas fa-briefcase me-2"></i>Explorar Oportunidades
+                                        </a>
+                                        @guest
+                                            <a href="{{ route('novo-estagiario-ajax-create') }}"
+                                                class="btn btn-outline-light btn-lg px-5 fw-bold"
+                                                style="border-width: 2px;">
+                                                <i class="fas fa-user-plus me-2"></i>Cadastre-se Grátis
+                                            </a>
+                                        @endguest
+                                    </div>
+                                </div>
+                                <div class="col-lg-5 text-center">
+                                    <div class="bg-white bg-opacity-10 rounded-3 d-flex align-items-center justify-content-center mx-auto backdrop-blur"
+                                        style="height: 320px; max-width: 420px; border: 2px solid rgba(255,255,255,0.1);">
+                                        <i class="fas fa-graduation-cap text-white"
+                                            style="font-size: 140px; opacity: 0.2;"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Slide 2: Sobre -->
+                <!-- 📸 IMAGEM DE FUNDO (OPCIONAL): Adicione background-image abaixo -->
+                <!-- Sugestão: Imagem de estudantes/profissionais trabalhando em equipe -->
+                <!-- Tamanho recomendado: 1920x650px | Formato: JPG/PNG -->
+                <div class="carousel-item" style="height: 100%;">
+                    <!-- Overlay escuro sobre a imagem de fundo -->
+                    <div class="carousel-overlay"
+                        style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(10, 31, 77, 0.88); z-index: 1;">
+                    </div>
+                    <div class="d-flex align-items-center justify-content-center"
+                        style="height: 100%; position: relative; z-index: 2;">
+                        <div class="container px-4">
+                            <div class="row align-items-center g-4">
+                                <div class="col-lg-6 order-lg-2 text-center mb-4 mb-lg-0">
+                                    <div class="bg-white bg-opacity-10 rounded-3 d-flex align-items-center justify-content-center mx-auto p-4 backdrop-blur"
+                                        style="border: 2px solid rgba(255,255,255,0.1); max-width: 350px; height: 300px;">
+                                        <i class="fas fa-chart-line text-white"
+                                            style="font-size: 100px; opacity: 0.2;"></i>
+                                    </div>
+                                </div>
+                                <div class="col-lg-6 order-lg-1 text-white px-3 px-lg-4">
+                                    <h2 class="display-4 fw-bold mb-3">Conectando Talentos a Oportunidades</h2>
+                                    <p class="lead mb-4" style="font-size: 1.15rem; opacity: 0.95; line-height: 1.7;">
+                                        O SIGE reúne as melhores <strong>empresas</strong>, <strong>instituições de
+                                            ensino</strong> e <strong>órgãos públicos</strong> em um único portal para
+                                        conectar estagiários a oportunidades incríveis.
+                                    </p>
+                                    <ul class="list-unstyled mb-0" style="font-size: 1.05rem;">
+                                        <li class="mb-2"><i class="fas fa-check-circle me-2"
+                                                style="color: #ECD00B;"></i> Processos Seletivos Transparentes</li>
+                                        <li class="mb-2"><i class="fas fa-check-circle me-2"
+                                                style="color: #ECD00B;"></i> Acompanhamento em Tempo Real</li>
+                                        <li class="mb-0"><i class="fas fa-check-circle me-2"
+                                                style="color: #ECD00B;"></i> Segurança e Confiabilidade</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Slide 3: CTA Final -->
+                <!-- 📸 IMAGEM DE FUNDO (OPCIONAL): Adicione background-image abaixo -->
+                <!-- Sugestão: Imagem de estagiário feliz, conquista, ou workspace moderno -->
+                <!-- Tamanho recomendado: 1920x650px | Formato: JPG/PNG -->
+                <div class="carousel-item" style="height: 100%;">
+                    <!-- Overlay escuro sobre a imagem de fundo -->
+                    <div class="carousel-overlay"
+                        style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(26, 58, 138, 0.85); z-index: 1;">
+                    </div>
+                    <div class="d-flex align-items-center justify-content-center"
+                        style="height: 100%; position: relative; z-index: 2;">
+                        <div class="container text-center text-white px-4">
+                            <div class="mb-4">
+                                <i class="fas fa-rocket" style="font-size: 70px; opacity: 0.25;"></i>
+                            </div>
+                            <h2 class="display-3 fw-bold mb-3">Comece Agora Mesmo!</h2>
+                            <p class="lead mb-4"
+                                style="font-size: 1.25rem; opacity: 0.95; max-width: 650px; margin: 0 auto; line-height: 1.6;">
+                                Junte-se a milhares de estagiários que já encontraram suas oportunidades através do SIGE
+                            </p>
+                            @guest
+                                <div class="d-flex flex-column flex-sm-row gap-3 justify-content-center">
                                     <a href="{{ route('novo-estagiario-ajax-create') }}"
-                                        class="btn btn-outline-light btn-lg px-4">
-                                        <i class="fas fa-user-plus me-2"></i>Cadastre-se Aqui
+                                        class="btn btn-light btn-lg px-5 shadow-lg fw-bold">
+                                        <i class="fas fa-user-plus me-2"></i>Criar Minha Conta
                                     </a>
-                                @endguest
-                            </div>
+                                    <a href="{{ route('processos-seletivos.publicos') }}"
+                                        class="btn btn-outline-light btn-lg px-5 fw-bold" style="border-width: 2px;">
+                                        <i class="fas fa-search me-2"></i>Procurar Vagas
+                                    </a>
+                                </div>
+                            @else
+                                <a href="{{ route('processos-seletivos.publicos') }}"
+                                    class="btn btn-light btn-lg px-5 shadow-lg fw-bold">
+                                    <i class="fas fa-briefcase me-2"></i>Ver Processos Disponíveis
+                                </a>
+                            @endguest
                         </div>
-                        <div class="col-lg-5 text-center">
-                            <!-- ESPAÇO PARA IMAGEM: 400x400px -->
-                            <!-- Sugestão Canva: Ilustração de estagiário/estudante com notebook, cores vibrantes -->
-                            <!-- Dimensão ideal: 400x400px (quadrado) ou 500x350px (retângulo) -->
-                            <div class="bg-white bg-opacity-10 rounded-3 d-flex align-items-center justify-content-center mx-auto"
-                                style="height: 280px; max-width: 400px;">
-                                <i class="fas fa-graduation-cap text-white" style="font-size: 120px; opacity: 0.3;"></i>
-                                <!-- Após criar imagem, substituir por: -->
-                                <!-- <img src="{{ asset('images/hero-estagiario.png') }}" alt="Estagiário" class="img-fluid rounded-3" style="max-height: 280px;"> -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Controles do Carrossel -->
+            <button class="carousel-control-prev carousel-control-custom" type="button" data-bs-target="#heroCarousel"
+                data-bs-slide="prev">
+                <span class="carousel-arrow-custom">
+                    <i class="fas fa-chevron-left"></i>
+                </span>
+            </button>
+            <button class="carousel-control-next carousel-control-custom" type="button" data-bs-target="#heroCarousel"
+                data-bs-slide="next">
+                <span class="carousel-arrow-custom">
+                    <i class="fas fa-chevron-right"></i>
+                </span>
+            </button>
+
+            <!-- Indicadores -->
+            <div class="carousel-indicators" style="bottom: 30px; z-index: 10;">
+                <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="0"
+                    class="active bg-white rounded-circle" style="width: 12px; height: 12px;"
+                    aria-current="true"></button>
+                <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="1"
+                    class="bg-white rounded-circle" style="width: 12px; height: 12px; opacity: 0.5;"></button>
+                <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="2"
+                    class="bg-white rounded-circle" style="width: 12px; height: 12px; opacity: 0.5;"></button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid py-4">
+    <div class="container mb-5">
+        <div class="row row-cols-1 row-cols-md-3 g-4">
+            <!-- Card 1: Processos Seletivos -->
+            <div class="col">
+                <div class="card h-100 shadow border-0 overflow-hidden hover-lift-card"
+                    style="border-radius: 12px; transition: all 0.3s ease;">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center mb-4">
+                            <div class="rounded-circle p-3 me-3"
+                                style="background: linear-gradient(135deg, #102E6C 0%, #1a3a8a 100%); width: 60px; height: 60px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-clipboard-list text-white" style="font-size: 28px;"></i>
                             </div>
-                            <p class="small text-white-50 mt-2 mb-0">💡 Adicione uma imagem 400x400px aqui</p>
+                            <h3 class="mb-0 text-dark">Processos Seletivos</h3>
                         </div>
+                        <p class="text-muted mb-4" style="font-size: 0.95rem; line-height: 1.6;">
+                            Participe de processos seletivos de órgãos públicos e parceiros.
+                            Acompanhe prazos, requisitos e inscreva-se.
+                        </p>
+                        <a href="{{ route('processos-seletivos.publicos') }}" class="btn fw-bold"
+                            style="background-color: #102E6C; color: white; border: none; transition: all 0.3s;">
+                            <i class="fas fa-arrow-right me-2"></i>Explorar
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 2: Vagas de Estágio -->
+            <div class="col">
+                <div class="card h-100 shadow border-0 overflow-hidden hover-lift-card position-relative"
+                    style="border-radius: 12px; transition: all 0.3s ease; opacity: 0.85;">
+                    <span class="badge bg-warning position-absolute top-0 end-0 m-3 px-3 py-2"
+                        style="border-radius: 20px;">
+                        <i class="fas fa-clock me-1"></i>Em Breve
+                    </span>
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center mb-4">
+                            <div class="rounded-circle p-3 me-3"
+                                style="background: linear-gradient(135deg, #19B755 0%, #15a34a 100%); width: 60px; height: 60px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-briefcase text-white" style="font-size: 28px;"></i>
+                            </div>
+                            <h3 class="mb-0 text-dark">Vagas de Estágio</h3>
+                        </div>
+                        <p class="text-muted mb-4" style="font-size: 0.95rem; line-height: 1.6;">
+                            Em breve você poderá buscar vagas de estágio direto no portal e se candidatar com apenas
+                            alguns cliques.
+                        </p>
+                        <button class="btn fw-bold" disabled
+                            style="background-color: #e0e0e0; color: #666; border: none;">
+                            <i class="fas fa-hourglass-half me-2"></i>Aguarde
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 3: Meu Perfil -->
+            <div class="col">
+                <div class="card h-100 shadow border-0 overflow-hidden hover-lift-card"
+                    style="border-radius: 12px; transition: all 0.3s ease;">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center mb-4">
+                            <div class="rounded-circle p-3 me-3"
+                                style="background: linear-gradient(135deg, #ECD00B 0%, #f59e0b 100%); width: 60px; height: 60px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-user text-dark" style="font-size: 28px;"></i>
+                            </div>
+                            <h3 class="mb-0 text-dark">Meu Perfil</h3>
+                        </div>
+                        <p class="text-muted mb-4" style="font-size: 0.95rem; line-height: 1.6;">
+                            Gerencie suas informações, atualize seu perfil profissional, acompanhe seus contratos, seus
+                            processos e mantenha-se atualizado.
+                        </p>
+                        @guest
+                            <a href="{{ route('novo-estagiario-ajax-create') }}" class="btn fw-bold"
+                                style="background-color: #ECD00B; color: #000; border: none;">
+                                <i class="fas fa-sign-in-alt me-2"></i>Entrar
+                            </a>
+                        @else
+                            <a href="{{ route('estagiario.editar-perfil') }}" class="btn fw-bold"
+                                style="background-color: #ECD00B; color: #000; border: none;">
+                                <i class="fas fa-user me-2"></i>Acessar Perfil
+                            </a>
+                        @endguest
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Cards de Oportunidades -->
-    <div class="row row-cols-1 row-cols-md-2 g-4 mb-5">
-        <!-- Processos Seletivos -->
+    <!-- Seção: Como Funciona -->
+    <!--
+    <div class="row row-cols-1 row-cols-md-2 g-4 mb-5">        
         <div class="col">
             <div class="card h-100 shadow border-0 hover-lift">
                 <div class="card-body p-4">
@@ -70,7 +384,6 @@
             </div>
         </div>
 
-        <!-- Vagas de Estágio - EM BREVE -->
         <div class="col">
             <div class="card h-100 shadow border-0 position-relative" style="opacity: 0.85;">
                 <span class="badge bg-warning position-absolute top-0 end-0 m-3 px-3 py-2">
@@ -95,6 +408,7 @@
             </div>
         </div>
     </div>
+-->
 
     <!-- Seção: Como Funciona -->
     <div class="row mb-5">
@@ -315,6 +629,169 @@
 
 <!-- Estilos customizados -->
 <style>
+    /* Animações de entrada */
+    @keyframes slideInLeft {
+        from {
+            opacity: 0;
+            transform: translateX(-30px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    @keyframes slideInRight {
+        from {
+            opacity: 0;
+            transform: translateX(30px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    @keyframes slideInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes float {
+
+        0%,
+        100% {
+            transform: translateY(0px);
+        }
+
+        50% {
+            transform: translateY(-20px);
+        }
+    }
+
+    /* Hero Section */
+    .hero-section {
+        position: relative;
+        overflow: hidden;
+    }
+
+    /* Transições suaves do carrossel - CORRIGIDO */
+    .carousel-fade .carousel-item {
+        opacity: 0;
+        transition: opacity 0.8s ease-in-out;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: block !important;
+    }
+
+    .carousel-fade .carousel-item.active {
+        opacity: 1;
+        position: relative;
+        z-index: 2;
+    }
+
+    /* Remove animações inline que causam conflito */
+    .carousel-item * {
+        animation: none !important;
+    }
+
+    /* Cards com Hover */
+    .hover-lift-card {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .hover-lift-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 1rem 3rem rgba(16, 46, 108, 0.2) !important;
+    }
+
+    .hover-lift-card:hover .btn {
+        background-color: #1a3a8a !important;
+        transform: translateX(4px);
+    }
+
+    /* Backdrop blur effect */
+    .backdrop-blur {
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+    }
+
+    /* Controles do Carrossel Customizados */
+    .carousel-control-custom {
+        z-index: 10;
+        width: auto;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+
+    /* Mostrar setas quando hover sobre o carrossel */
+    .hero-carousel-wrapper:hover .carousel-control-custom,
+    #heroCarousel:hover .carousel-control-custom {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .carousel-arrow-custom {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 50px;
+        height: 50px;
+        background: rgba(16, 46, 108, 0.85);
+        border: 2px solid rgba(236, 208, 11, 0.6);
+        border-radius: 50%;
+        color: white;
+        font-size: 20px;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    .carousel-control-custom:hover .carousel-arrow-custom {
+        background: rgba(236, 208, 11, 0.95);
+        border-color: rgba(236, 208, 11, 1);
+        color: #102E6C;
+        transform: scale(1.1);
+        box-shadow: 0 6px 16px rgba(236, 208, 11, 0.4);
+    }
+
+    /* Posicionamento responsivo das setas */
+    .carousel-control-prev {
+        left: 20px;
+    }
+
+    .carousel-control-next {
+        right: 20px;
+    }
+
+    @media (max-width: 768px) {
+        .carousel-arrow-custom {
+            width: 40px;
+            height: 40px;
+            font-size: 16px;
+        }
+
+        .carousel-control-prev {
+            left: 10px;
+        }
+
+        .carousel-control-next {
+            right: 10px;
+        }
+    }
+
     /* Efeito hover nos cards */
     .hover-lift {
         transition: all 0.3s ease;
@@ -336,15 +813,86 @@
         border-color: rgba(0, 0, 0, .125);
     }
 
+    /* Customizar indicators do carrossel */
+    .carousel-indicators button {
+        transition: all 0.3s ease;
+    }
+
+    .carousel-indicators button:hover {
+        opacity: 0.8 !important;
+        width: 16px;
+        height: 16px;
+    }
+
     /* Responsividade extra para mobile */
-    @media (max-width: 576px) {
-        .display-4 {
+    @media (max-width: 768px) {
+        .display-3 {
             font-size: 2rem;
+        }
+
+        .display-4 {
+            font-size: 1.5rem;
         }
 
         .lead {
             font-size: 1rem;
         }
+
+        .carousel-item {
+            padding: 20px;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .display-3 {
+            font-size: 1.5rem;
+        }
+
+        .lead {
+            font-size: 0.95rem;
+        }
+
+        .hero-carousel-wrapper {
+            min-height: auto;
+        }
+
+        #heroCarousel {
+            height: auto;
+        }
+
+        .carousel-control-prev,
+        .carousel-control-next {
+            top: 50%;
+            transform: translateY(-50%);
+        }
+    }
+
+    /* Suavizar transições */
+    * {
+        transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* Botões com efeito */
+    .btn {
+        transition: all 0.3s ease;
+    }
+
+    .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    }
+
+    /* Gradientes nos ícones */
+    .icon-gradient {
+        background: linear-gradient(135deg, #102E6C, #1a3a8a);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    /* Background da página */
+    body {
+        background-color: #ffffff;
+        background-attachment: fixed;
     }
 </style>
 @endsection
