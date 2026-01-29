@@ -50,7 +50,8 @@
                                     @else
                                         <span class="text-muted small">Sem arquivo</span>
                                     @endif
-                                    <button type="button" class="btn btn-outline-danger btn-sm btn-delete-resultado" title="Remover Resultado"
+                                    <button type="button" class="btn btn-outline-danger btn-sm btn-delete-resultado"
+                                        title="Remover Resultado"
                                         data-action="{{ route('processos-seletivos.resultados.destroy', $resultado->id_resultado) }}"
                                         data-nome="{{ $resultado->numero_resultado }}">
                                         <i class="fas fa-trash"></i>
@@ -109,50 +110,50 @@
 @endsection
 
 @section('scripts')
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Deletar resultado com confirmação
-        const deleteButtons = document.querySelectorAll('.btn-delete-resultado');
-        deleteButtons.forEach(btn => {
-            btn.addEventListener('click', function(e) {
-                e.preventDefault();
-                const action = this.getAttribute('data-action');
-                const nome = this.getAttribute('data-nome');
-                
-                Swal.fire({
-                    title: 'Confirmar exclusão?',
-                    html: `Deseja realmente remover o resultado:<br><strong>${nome}</strong>?`,
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#d33',
-                    cancelButtonColor: '#3085d6',
-                    confirmButtonText: 'Sim, remover!',
-                    cancelButtonText: 'Cancelar'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        const form = document.createElement('form');
-                        form.method = 'POST';
-                        form.action = action;
-                        form.style.display = 'none';
-                        
-                        const csrfInput = document.createElement('input');
-                        csrfInput.type = 'hidden';
-                        csrfInput.name = '_token';
-                        csrfInput.value = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-                        
-                        const methodInput = document.createElement('input');
-                        methodInput.type = 'hidden';
-                        methodInput.name = '_method';
-                        methodInput.value = 'DELETE';
-                        
-                        form.appendChild(csrfInput);
-                        form.appendChild(methodInput);
-                        document.body.appendChild(form);
-                        form.submit();
-                    }
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Deletar resultado com confirmação
+            const deleteButtons = document.querySelectorAll('.btn-delete-resultado');
+            deleteButtons.forEach(btn => {
+                btn.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const action = this.getAttribute('data-action');
+                    const nome = this.getAttribute('data-nome');
+
+                    Swal.fire({
+                        title: 'Confirmar exclusão?',
+                        html: `Deseja realmente remover o resultado:<br><strong>${nome}</strong>?`,
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#d33',
+                        cancelButtonColor: '#3085d6',
+                        confirmButtonText: 'Sim, remover!',
+                        cancelButtonText: 'Cancelar'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            const form = document.createElement('form');
+                            form.method = 'POST';
+                            form.action = action;
+                            form.style.display = 'none';
+
+                            const csrfInput = document.createElement('input');
+                            csrfInput.type = 'hidden';
+                            csrfInput.name = '_token';
+                            csrfInput.value = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+                            const methodInput = document.createElement('input');
+                            methodInput.type = 'hidden';
+                            methodInput.name = '_method';
+                            methodInput.value = 'DELETE';
+
+                            form.appendChild(csrfInput);
+                            form.appendChild(methodInput);
+                            document.body.appendChild(form);
+                            form.submit();
+                        }
+                    });
                 });
             });
         });
-    });
-</script>
+    </script>
 @endsection

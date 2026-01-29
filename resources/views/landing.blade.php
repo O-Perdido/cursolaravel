@@ -344,7 +344,8 @@
                             processos e mantenha-se atualizado.
                         </p>
                         @guest
-                            <a href="{{ route('novo-estagiario-ajax-create') }}" class="btn fw-bold"
+                            <!-- rota para a tela inicial de estagiario -->
+                            <a href="{{ route('login') }}" class="btn fw-bold"
                                 style="background-color: #ECD00B; color: #000; border: none;">
                                 <i class="fas fa-sign-in-alt me-2"></i>Entrar
                             </a>
