@@ -119,7 +119,7 @@ class VagaController extends Controller
         
         $this->normalizarEstagiarioDefinido($request);
         
-        $validated = $request->validate([
+        $rules = [
             'titulo_vaga' => 'required|string|max:150',
             'atividades' => 'required|string',
             'fk_id_supervisor' => 'required|integer|exists:tb_supervisores,id_supervisor',
@@ -134,7 +134,14 @@ class VagaController extends Controller
             'nome_estagiario' => 'nullable|string|max:150',
             'contato_whatsapp' => 'nullable|string|max:20',
             'contato_email' => 'nullable|email',
-        ]);
+        ];
+
+        $user = Auth::user();
+        if ($user->nivel === 'empresa') {
+            $rules['status'] = 'required|in:disponivel,suspensa';
+        }
+
+        $validated = $request->validate($rules);
         
         // Validar se data_termino não está no passado
         if (strtotime($validated['data_termino']) < strtotime(date('Y-m-d'))) {

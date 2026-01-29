@@ -42,8 +42,8 @@ class RescisaoController extends Controller
         if ($termo->fk_id_vaga) {
             $vaga = Vaga::find($termo->fk_id_vaga);
             if ($vaga) {
-                // Torna a vaga disponível novamente
-                $vaga->status = 'Disponivel';
+                // Marca a vaga como suspensa (não volta a ficar disponível automaticamente)
+                $vaga->status = 'suspensa';
                 $vaga->fk_id_termo = null;
                 $vaga->save();
             }

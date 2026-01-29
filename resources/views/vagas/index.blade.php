@@ -68,8 +68,8 @@
                                         Disponível</option>
                                     <option value="preenchida" {{ request('status') == 'preenchida' ? 'selected' : '' }}>
                                         Preenchida</option>
-                                    <option value="expirada" {{ request('status') == 'expirada' ? 'selected' : '' }}>Expirada
-                                    </option>
+                                    <option value="suspensa" {{ request('status') == 'suspensa' ? 'selected' : '' }}>
+                                        Suspensa</option>
                                 </select>
                             </div>
                             <div class="col-md-2 d-flex flex-column align-items-end justify-content-end gap-2">
@@ -146,8 +146,10 @@
                                 <span class="badge bg-success">Disponível</span>
                             @elseif($vaga->status == 'preenchida')
                                 <span class="badge bg-primary">Preenchida</span>
+                            @elseif($vaga->status == 'suspensa')
+                                <span class="badge bg-secondary">Suspensa</span>
                             @else
-                                <span class="badge bg-danger">Expirada</span>
+                                <span class="badge bg-secondary">Suspensa</span>
                             @endif
                         </td>
                         <td class="text-center">

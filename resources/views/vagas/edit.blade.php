@@ -195,11 +195,19 @@
                             </div>
                         </div>
 
-                        <!-- Status (readonly) -->
+                        <!-- Status -->
                         <div class="mb-3">
                             <label for="status" class="form-label">Status</label>
-                            <input type="text" id="status" class="form-control form-control-sm"
-                                value="{{ ucfirst($vaga->status) }}" readonly>
+                            @if(($nivel ?? null) === 'empresa' && !$vaga->fk_id_termo)
+                                <select name="status" id="status" class="form-select form-select-sm" required>
+                                    <option value="disponivel" {{ old('status', $vaga->status) === 'disponivel' ? 'selected' : '' }}>Disponível</option>
+                                    <option value="suspensa" {{ old('status', $vaga->status) === 'suspensa' ? 'selected' : '' }}>Suspensa</option>
+                                </select>
+                                <small class="form-text text-muted">Apenas vagas sem termo podem alternar entre disponível e suspensa.</small>
+                            @else
+                                <input type="text" id="status" class="form-control form-control-sm"
+                                    value="{{ ucfirst($vaga->status) }}" readonly>
+                            @endif
                         </div>
 
                         @if($vaga->fk_id_termo)
