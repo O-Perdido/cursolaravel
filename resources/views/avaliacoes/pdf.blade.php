@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <title>Avaliação de Estágio</title>
@@ -197,11 +198,26 @@
             font-weight: 700;
         }
 
-        .badge.muito-ruim { background: #c0392b; }
-        .badge.ruim { background: #e67e22; }
-        .badge.regular { background: #ecd00b; color: #102e6c; }
-        .badge.bom { background: #19b755; }
-        .badge.muito-bom { background: #148a3b; }
+        .badge.muito-ruim {
+            background: #c0392b;
+        }
+
+        .badge.ruim {
+            background: #e67e22;
+        }
+
+        .badge.regular {
+            background: #ecd00b;
+            color: #102e6c;
+        }
+
+        .badge.bom {
+            background: #19b755;
+        }
+
+        .badge.muito-bom {
+            background: #148a3b;
+        }
 
         .rating {
             font-weight: 700;
@@ -224,20 +240,23 @@
             body {
                 padding: 6px;
             }
+
             .page {
                 max-width: 100%;
             }
         }
     </style>
 </head>
+
 <body>
     <div class="page">
         <!-- Header -->
         <div class="header">
             <div class="header-title">Relatório de Avaliação de Desempenho</div>
-            <div class="header-subtitle">Termo de Estágio Nº {{ $avaliacao->termo->numero_termo }}/{{ $avaliacao->termo->ano_termo }}</div>
+            <div class="header-subtitle">Termo de Estágio Nº
+                {{ $avaliacao->termo->numero_termo }}/{{ $avaliacao->termo->ano_termo }}</div>
             <div class="header-info">
-                <div><span>Status:</span> 
+                <div><span>Status:</span>
                     @if ($avaliacao->status === 'respondida')
                         ✓ Respondida
                     @elseif ($avaliacao->status === 'revisada')
@@ -246,7 +265,7 @@
                         Pendente
                     @endif
                 </div>
-                <div><span>Tipo:</span> 
+                <div><span>Tipo:</span>
                     @if ($avaliacao->tipo_avaliacao === 'seis_meses')
                         Avaliação 6 Meses
                     @else
@@ -266,7 +285,8 @@
                 <tr>
                     <td>
                         <span class="info-label">Estagiário</span>
-                        <div class="info-value">{{ optional($avaliacao->termo->estagiario)->nome_estagiario ?? '-' }}</div>
+                        <div class="info-value">{{ optional($avaliacao->termo->estagiario)->nome_estagiario ?? '-' }}
+                        </div>
                     </td>
                     <td>
                         <span class="info-label">Empresa</span>
@@ -276,7 +296,9 @@
                 <tr>
                     <td>
                         <span class="info-label">Supervisor</span>
-                        <div class="info-value">{{ optional($avaliacao->supervisor)->nome ?? optional($avaliacao->termo->supervisor)->nome_supervisor ?? '-' }}</div>
+                        <div class="info-value">
+                            {{ optional($avaliacao->supervisor)->nome ?? optional($avaliacao->termo->supervisor)->nome_supervisor ?? '-' }}
+                        </div>
                     </td>
                     <td>
                         <span class="info-label">Respondida por</span>
@@ -301,7 +323,7 @@
                             @php
                                 $resposta = $qr['resposta'] ?? '';
                                 $respostaLower = strtolower(trim($resposta));
-                                
+
                                 $escalaNumericaMap = [
                                     '1' => ['classe' => 'muito-ruim', 'texto' => 'Muito Ruim'],
                                     '2' => ['classe' => 'ruim', 'texto' => 'Ruim'],
@@ -309,7 +331,7 @@
                                     '4' => ['classe' => 'bom', 'texto' => 'Bom'],
                                     '5' => ['classe' => 'muito-bom', 'texto' => 'Muito Bom'],
                                 ];
-                                
+
                                 $escalaTextoMap = [
                                     'muito ruim' => ['classe' => 'muito-ruim', 'texto' => 'Muito Ruim', 'valor' => 1],
                                     'ruim' => ['classe' => 'ruim', 'texto' => 'Ruim', 'valor' => 2],
@@ -320,24 +342,21 @@
                                     'péssimo' => ['classe' => 'muito-ruim', 'texto' => 'Péssimo', 'valor' => 1],
                                     'ótimo' => ['classe' => 'muito-bom', 'texto' => 'Ótimo', 'valor' => 5],
                                 ];
-                                
+
                                 $isEscala = false;
                                 $escalaInfo = null;
                                 $valor = null;
-                                
+
                                 if (is_numeric($resposta) && $resposta >= 1 && $resposta <= 5) {
                                     $isEscala = true;
-                                    $escalaInfo = $escalaNumericaMap[(string)$resposta];
-                                    $valor = (int)$resposta;
-                                } else {
-                                    foreach ($escalaTextoMap as $key => $info) {
-                                        if (str_contains($respostaLower, $key)) {
-                                            $isEscala = true;
-                                            $escalaInfo = $info;
-                                            $valor = $info['valor'];
-                                            break;
-                                        }
-                                    }
+                                    $escalaInfo = $escalaNumericaMap[(string) $resposta];
+                                    $valor = (int) $resposta;
+                                }
+                                // Verificar se a resposta É EXATAMENTE uma opção de escala (não apenas contém)
+                                elseif (isset($escalaTextoMap[$respostaLower])) {
+                                    $isEscala = true;
+                                    $escalaInfo = $escalaTextoMap[$respostaLower];
+                                    $valor = $escalaInfo['valor'];
                                 }
                             @endphp
 
@@ -348,7 +367,7 @@
                                         <span class="rating">{{ $valor }}/5</span>
                                     </div>
                                 @else
-                                    {{ $resposta }}
+                                    <div style="white-space: pre-wrap; line-height: 1.5;">{{ $resposta }}</div>
                                 @endif
                             @else
                                 <span class="resposta-vazia">Sem resposta</span>
@@ -370,4 +389,5 @@
         </div>
     </div>
 </body>
+
 </html>

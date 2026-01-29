@@ -428,7 +428,7 @@
                             @endif
                         </div>
                     </div>
-                    
+
                     <div class="header-badges">
                         <span class="badge-status">
                             @if ($avaliacao->status === 'pendente')
@@ -462,14 +462,15 @@
                                 <p>{{ $avaliacao->termo->empresa->nome_empresa }}</p>
                             </div>
                         </div>
-                        
+
                         <div class="info-item">
                             <div class="info-item-icon">
                                 <i class="fas fa-user-tie"></i>
                             </div>
                             <div class="info-item-content">
                                 <label>Supervisor</label>
-                                <p>{{ $avaliacao->supervisor->nome ?? $avaliacao->termo->supervisor->nome_supervisor ?? 'Não informado' }}</p>
+                                <p>{{ $avaliacao->supervisor->nome ?? $avaliacao->termo->supervisor->nome_supervisor ?? 'Não informado' }}
+                                </p>
                             </div>
                         </div>
 
@@ -516,7 +517,7 @@
                                     @php
                                         $resposta = $questao['resposta'] ?? '';
                                         $respostaLower = strtolower(trim($resposta));
-                                        
+
                                         // Mapa de valores numéricos para escala
                                         $escalaNumericaMap = [
                                             '1' => ['classe' => 'muito-ruim', 'texto' => 'Muito Ruim', 'valor' => 1],
@@ -525,7 +526,7 @@
                                             '4' => ['classe' => 'bom', 'texto' => 'Bom', 'valor' => 4],
                                             '5' => ['classe' => 'muito-bom', 'texto' => 'Muito Bom', 'valor' => 5],
                                         ];
-                                        
+
                                         // Mapa de respostas em texto para escala
                                         $escalaTextoMap = [
                                             'muito ruim' => ['classe' => 'muito-ruim', 'texto' => 'Muito Ruim', 'valor' => 1],
@@ -537,24 +538,19 @@
                                             'péssimo' => ['classe' => 'muito-ruim', 'texto' => 'Péssimo', 'valor' => 1],
                                             'ótimo' => ['classe' => 'muito-bom', 'texto' => 'Ótimo', 'valor' => 5],
                                         ];
-                                        
+
                                         $isEscala = false;
                                         $escalaInfo = null;
-                                        
+
                                         // Verificar se é um número de 1 a 5
                                         if (is_numeric($resposta) && $resposta >= 1 && $resposta <= 5) {
                                             $isEscala = true;
-                                            $escalaInfo = $escalaNumericaMap[(string)$resposta];
-                                        } 
-                                        // Verificar se contém texto de escala
-                                        else {
-                                            foreach ($escalaTextoMap as $key => $info) {
-                                                if (str_contains($respostaLower, $key)) {
-                                                    $isEscala = true;
-                                                    $escalaInfo = $info;
-                                                    break;
-                                                }
-                                            }
+                                            $escalaInfo = $escalaNumericaMap[(string) $resposta];
+                                        }
+                                        // Verificar se a resposta É EXATAMENTE uma opção de escala (não apenas contém)
+                                        elseif (isset($escalaTextoMap[$respostaLower])) {
+                                            $isEscala = true;
+                                            $escalaInfo = $escalaTextoMap[$respostaLower];
                                         }
                                     @endphp
 
@@ -578,7 +574,9 @@
                                                 </div>
                                             </div>
                                         @else
-                                            <div class="resposta-texto">{{ $resposta }}</div>
+                                            <div class="resposta-texto"
+                                                style="line-height: 1.6; padding: 0.5rem; background: white; border-radius: 4px;">
+                                                {{ trim($resposta) }}</div>
                                         @endif
                                     @else
                                         <div class="resposta-vazia">
@@ -594,7 +592,8 @@
                             <i class="fas fa-info-circle"></i>
                             <div>
                                 <strong>Nenhuma questão encontrada</strong>
-                                <p style="margin: 0.25rem 0 0 0; font-size: 0.9rem;">Esta avaliação ainda não possui questões cadastradas.</p>
+                                <p style="margin: 0.25rem 0 0 0; font-size: 0.9rem;">Esta avaliação ainda não possui questões
+                                    cadastradas.</p>
                             </div>
                         </div>
                     @endif
@@ -632,7 +631,8 @@
     <div class="modal fade" id="modalCompartilhar" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content" style="border: none; border-radius: 12px; overflow: hidden;">
-                <div class="modal-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none;">
+                <div class="modal-header"
+                    style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none;">
                     <h5 class="modal-title" style="display: flex; align-items: center; gap: 0.5rem;">
                         <i class="fas fa-share-alt"></i>
                         Compartilhar Link de Avaliação
@@ -646,17 +646,18 @@
                             Copie o link abaixo e envie para o supervisor responder a avaliação:
                         </p>
                     </div>
-                    
+
                     <div class="input-group" style="margin-bottom: 1rem;">
-                        <input type="text" class="form-control" id="linkCompartilhamento" readonly 
+                        <input type="text" class="form-control" id="linkCompartilhamento" readonly
                             style="border: 2px solid #dee2e6; border-radius: 8px 0 0 8px; padding: 0.75rem;">
                         <button class="btn btn-primary" type="button" onclick="copiarLink()"
                             style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; border-radius: 0 8px 8px 0; padding: 0.75rem 1.5rem;">
                             <i class="fas fa-copy"></i> Copiar
                         </button>
                     </div>
-                    
-                    <div style="background: #fff3cd; border-left: 4px solid #ffc107; padding: 0.75rem 1rem; border-radius: 4px;">
+
+                    <div
+                        style="background: #fff3cd; border-left: 4px solid #ffc107; padding: 0.75rem 1rem; border-radius: 4px;">
                         <small style="color: #856404; display: flex; align-items: center; gap: 0.5rem;">
                             <i class="fas fa-exclamation-triangle"></i>
                             O link expira após o supervisor responder a avaliação.
@@ -671,11 +672,11 @@
         function gerarECompartilhar(avaliacaoId) {
             const btn = document.getElementById('btnCompartilhar');
             const originalText = btn.innerHTML;
-            
+
             // Mostrar loading
             btn.disabled = true;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Gerando link...';
-            
+
             const url = `/avaliacoes/${avaliacaoId}/link-compartilhamento`;
 
             fetch(url, {
@@ -690,7 +691,7 @@
                     document.getElementById('linkCompartilhamento').value = data.link;
                     const modal = new bootstrap.Modal(document.getElementById('modalCompartilhar'));
                     modal.show();
-                    
+
                     // Restaurar botão
                     btn.disabled = false;
                     btn.innerHTML = originalText;
@@ -698,7 +699,7 @@
                 .catch(error => {
                     console.error('Erro:', error);
                     mostrarErro('Erro ao Gerar Link', 'Não conseguimos gerar o link de compartilhamento: ' + error.message);
-                    
+
                     // Restaurar botão
                     btn.disabled = false;
                     btn.innerHTML = originalText;
@@ -709,7 +710,7 @@
             mostrarConfirmacao(
                 'Limpar Avaliação',
                 'Tem certeza que deseja limpar esta avaliação para uma nova resposta?',
-                function() {
+                function () {
                     const form = document.createElement('form');
                     form.method = 'POST';
                     form.action = `/avaliacoes/${avaliacaoId}/limpar`;
@@ -724,12 +725,12 @@
             mostrarConfirmacao(
                 'Excluir Avaliação',
                 'Tem certeza que deseja excluir esta avaliação?',
-                function() {
+                function () {
                     const form = document.createElement('form');
                     form.method = 'POST';
                     form.action = `/avaliacoes/${avaliacaoId}`;
                     form.innerHTML = `@csrf
-                        @method('DELETE')`;
+                                    @method('DELETE')`;
                     document.body.appendChild(form);
                     form.submit();
                 }
@@ -740,7 +741,7 @@
             const input = document.getElementById('linkCompartilhamento');
             input.select();
             input.setSelectionRange(0, 99999); // Para dispositivos móveis
-            
+
             // Tentar usar a API moderna primeiro
             if (navigator.clipboard && window.isSecureContext) {
                 navigator.clipboard.writeText(input.value).then(() => {
