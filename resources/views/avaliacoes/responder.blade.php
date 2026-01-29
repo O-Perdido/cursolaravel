@@ -323,6 +323,7 @@
             from {
                 opacity: 0;
             }
+
             to {
                 opacity: 1;
             }
@@ -333,6 +334,7 @@
                 transform: translateY(30px);
                 opacity: 0;
             }
+
             to {
                 transform: translateY(0);
                 opacity: 1;
@@ -343,9 +345,11 @@
             0% {
                 transform: scale(0);
             }
+
             50% {
                 transform: scale(1.1);
             }
+
             100% {
                 transform: scale(1);
             }
@@ -391,7 +395,7 @@
                         @if ($avaliacao->termo->data_inicio_estagio)
                             {{ \Carbon\Carbon::parse($avaliacao->termo->data_inicio_estagio)->format('d/m/Y') }} -
                             @if ($avaliacao->tipo_avaliacao === 'seis_meses')
-                                {{ \Carbon\Carbon::parse($avaliacao->termo->data_inicio_estagio)->addMonths(6)->format('d/m/Y') }}
+                                {{ \Carbon\Carbon::parse($avaliacao->termo->data_inicio_estagio)->addMonths(6)->subDay()->format('d/m/Y') }}
                             @else
                                 {{ \Carbon\Carbon::parse($avaliacao->termo->data_fim_estagio)->format('d/m/Y') }}
                             @endif
@@ -540,7 +544,7 @@
                     const result = await response.json();
                     const modalSucesso = document.getElementById('modalSucesso');
                     modalSucesso.classList.add('ativo');
-                    
+
                     // Redirecionar após 3 segundos
                     setTimeout(() => {
                         window.location.href = '{{ route("avaliacoes.sucesso") }}';
