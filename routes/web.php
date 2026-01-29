@@ -32,17 +32,6 @@ if ($manutencao) {
 
 Route::middleware(['auth'])->group(function () {
 
-
-    Route::get('/', function () {
-        $nivel = Auth::user()->nivel ?? '';
-        return redirect()->route(match ($nivel) {
-            'admin', 'operador' => 'welcome.admin',
-            'empresa' => 'welcome.empresa',
-            'estagiario' => 'welcome.estagiario',
-            default => 'login',
-        });
-    })->name('/');
-
     // Dashboards específicas por nível
     Route::get('/dashboard/admin', function () {
         $termos = Termo::with('estagiario')
@@ -98,6 +87,7 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/processos-seletivos/{id}', [App\Http\Controllers\ProcessoSeletivoController::class, 'destroy'])->name('processos-seletivos.destroy');
         Route::delete('/processos-seletivos/arquivos/{id}', [App\Http\Controllers\ProcessoSeletivoController::class, 'removerArquivo'])->name('processos-seletivos.arquivos.destroy');
         Route::get('/processos-seletivos/{id}/inscricoes', [App\Http\Controllers\ProcessoSeletivoController::class, 'listarInscricoes'])->name('processos-seletivos.inscricoes');
+        Route::post('/processos-seletivos/{id}/inscricoes/atualizar-status', [App\Http\Controllers\ProcessoSeletivoController::class, 'atualizarStatusInscricao'])->name('processos-seletivos.inscricoes.atualizar-status');
         Route::post('/processos-seletivos/{id}/inscricoes/exportar', [App\Http\Controllers\ProcessoSeletivoController::class, 'exportarInscricoes'])->name('processos-seletivos.exportar-inscricoes');
         Route::get('/processos-seletivos/{id}/resultados', [App\Http\Controllers\ProcessoSeletivoController::class, 'resultados'])->name('processos-seletivos.resultados');
         Route::post('/processos-seletivos/{id}/resultados', [App\Http\Controllers\ProcessoSeletivoController::class, 'publicarResultado'])->name('processos-seletivos.publicar-resultado');
@@ -467,8 +457,19 @@ Route::middleware(['auth'])->group(function () {
 
 // ========== ROTAS PÚBLICAS (sem autenticação) ==========
 
-// Landing page - página inicial pública
-Route::get('/', [App\Http\Controllers\ProcessoSeletivoPublicoController::class, 'landing'])->name('landing');
+// Landing page - página inicial (pública ou redireciona para dashboard se autenticado)
+Route::get('/', function () {
+    if (Auth::check()) {
+        $nivel = Auth::user()->nivel ?? '';
+        return redirect()->route(match ($nivel) {
+            'admin', 'operador' => 'welcome.admin',
+            'empresa' => 'welcome.empresa',
+            'estagiario' => 'welcome.estagiario',
+            default => 'login',
+        });
+    }
+    return app(App\Http\Controllers\ProcessoSeletivoPublicoController::class)->landing();
+})->name('landing');
 
 // Rotas de processos seletivos públicas
 Route::get('/processos-publicos', [App\Http\Controllers\ProcessoSeletivoPublicoController::class, 'listarPublicos'])->name('processos-seletivos.publicos');

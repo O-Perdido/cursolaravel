@@ -5,10 +5,12 @@ use App\Models\ProcessoSeletivo;
 use App\Models\ProcessoArquivo;
 use App\Models\InscricaoProcesso;
 use App\Models\Empresa;
+use App\Exports\InscricoesProcessoExport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Maatwebsite\Excel\Facades\Excel;
 
 class ProcessoSeletivoController extends Controller
 {
@@ -353,37 +355,120 @@ class ProcessoSeletivoController extends Controller
         return view('processos-seletivos.inscricoes', compact('processo', 'inscricoes'));
     }
 
+    // Atualizar status de uma inscrição
+    public function atualizarStatusInscricao(Request $request, $id)
+    {
+        $processo = ProcessoSeletivo::findOrFail($id);
+        
+        $validated = $request->validate([
+            'inscricao_id' => 'required|integer|exists:tb_inscricoes_processo,id_inscricao',
+            'novo_status' => 'required|in:inscrito,deferido,indeferido',
+        ]);
+
+        $inscricao = InscricaoProcesso::where('id_inscricao', $validated['inscricao_id'])
+            ->where('fk_id_processo', $id)
+            ->firstOrFail();
+
+        $inscricao->update([
+            'status_inscricao' => $validated['novo_status'],
+        ]);
+
+        $statusLabel = [
+            'inscrito' => 'Inscrito',
+            'deferido' => 'Deferido',
+            'indeferido' => 'Indeferido',
+        ];
+
+        return back()->with('success', "Status atualizado para: {$statusLabel[$validated['novo_status']]}");
+    }
+
     // Exportar inscrições (PDF/Excel)
     public function exportarInscricoes(Request $request, $id)
     {
         $processo = ProcessoSeletivo::findOrFail($id);
 
-        $format = $request->input('format', 'excel');
-        $inscricoes = $processo->inscricoes()
-            ->with(['estagiario'])
-            ->get();
+        $format = $request->input('format', 'pdf');
+        $statusFiltro = $request->input('status_filter', 'todos');
+        $colunas = $request->input('colunas', []);
+
+        // Se nenhuma coluna selecionada, usar todas
+        if (empty($colunas)) {
+            $colunas = [
+                'numero_inscricao',
+                'nome',
+                'email',
+                'telefone',
+                'cpf',
+                'curso',
+                'instituicao',
+                'status',
+                'data_inscricao'
+            ];
+        }
+
+        // Buscar inscrições com filtro de status
+        $query = $processo->inscricoes()->with(['estagiario']);
+        
+        if ($statusFiltro !== 'todos') {
+            $query->where('status_inscricao', $statusFiltro);
+        }
+        
+        $inscricoes = $query->get();
 
         if ($format === 'pdf') {
-            // Implementar export PDF
-            return $this->exportarInscricoesPDF($processo, $inscricoes);
+            return $this->exportarInscricoesPDF($processo, $inscricoes, $colunas, $statusFiltro);
         } else {
-            // Implementar export Excel
-            return $this->exportarInscricoesExcel($processo, $inscricoes);
+            return $this->exportarInscricoesExcel($processo, $inscricoes, $colunas, $statusFiltro);
         }
     }
 
-    private function exportarInscricoesPDF($processo, $inscricoes)
+    private function exportarInscricoesPDF($processo, $inscricoes, $colunas, $statusFiltro)
     {
-        // Será implementado com Barryvdh\DomPDF
-        // Por enquanto, placeholder
-        return response()->json(['message' => 'Export PDF será implementado']);
+        // Mapeamento de colunas para labels legíveis
+        $colunasLabels = [
+            'numero_inscricao' => 'Nº Inscrição',
+            'nome' => 'Nome',
+            'email' => 'E-mail',
+            'telefone' => 'Telefone',
+            'cpf' => 'CPF',
+            'curso' => 'Curso',
+            'instituicao' => 'Instituição',
+            'status' => 'Status',
+            'data_inscricao' => 'Data Inscrição'
+        ];
+
+        $statusLabels = [
+            'todos' => 'Todas as Inscrições',
+            'inscrito' => 'Apenas Inscritos',
+            'deferido' => 'Apenas Deferidos',
+            'indeferido' => 'Apenas Indeferidos'
+        ];
+
+        $dados = [
+            'processo' => $processo,
+            'inscricoes' => $inscricoes,
+            'colunas' => $colunas,
+            'colunasLabels' => $colunasLabels,
+            'statusFiltro' => $statusLabels[$statusFiltro] ?? 'Todas',
+            'dataExportacao' => now()->format('d/m/Y H:i:s')
+        ];
+
+        $pdf = \PDF::loadView('processos-seletivos.exports.inscricoes-pdf', $dados);
+        $pdf->setPaper('A4', 'landscape');
+
+        $nomeArquivo = 'inscricoes_' . \Str::slug($processo->titulo) . '_' . now()->format('Ymd_His') . '.pdf';
+        
+        return $pdf->download($nomeArquivo);
     }
 
-    private function exportarInscricoesExcel($processo, $inscricoes)
+    private function exportarInscricoesExcel($processo, $inscricoes, $colunas, $statusFiltro)
     {
-        // Será implementado com Maatwebsite\Excel
-        // Por enquanto, placeholder
-        return response()->json(['message' => 'Export Excel será implementado']);
+        $nomeArquivo = 'inscricoes_' . \Str::slug($processo->titulo) . '_' . now()->format('Ymd_His') . '.xlsx';
+        
+        return Excel::download(
+            new InscricoesProcessoExport($inscricoes, $colunas), 
+            $nomeArquivo
+        );
     }
 
     // Gerenciar resultados
