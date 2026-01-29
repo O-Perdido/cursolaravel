@@ -32,6 +32,7 @@ class Termo extends Model
         'fk_id_estagiario',
         'fk_id_empresa',
         'fk_id_local',
+        'fk_id_local_fixo',
         'fk_id_escola',
         'fk_id_supervisor',
         'fk_id_supervisor_fixo',
@@ -51,6 +52,7 @@ class Termo extends Model
         'auxilio_transporte',
         'auxilio_transporte_fixo',
         'lotacao',
+        'lotacao_fixo',
         // Recesso
         'saldo_recesso',
         // Campos ZapSign

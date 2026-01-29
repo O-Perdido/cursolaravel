@@ -7,6 +7,7 @@ use App\Models\Termo;
 use App\Models\Supervisor;
 use App\Models\AlteracaoTermo;
 use App\Models\Ebcp;
+use App\Models\Local;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Services\ZapSignService;
 
@@ -23,15 +24,23 @@ class AlteracaoTermoController extends Controller
     {
         $termo = Termo::all();
         $supervisores = Supervisor::orderBy('nome_supervisor', 'asc')->get();
-        ;
         $id_termo = $id;
         $termo_selecionado = Termo::find($id);
+
+        // Buscar locais da empresa do termo
+        $locais = [];
+        if ($termo_selecionado && $termo_selecionado->fk_id_empresa) {
+            $locais = Local::where('fk_id_empresa', $termo_selecionado->fk_id_empresa)
+                ->orderBy('descricao')
+                ->get();
+        }
 
         return view('termos.alteracoes.create')->with([
             'id_termo' => $id_termo,
             'termo' => $termo,
             'supervisores' => $supervisores,
-            'termo_selecionado' => $termo_selecionado
+            'termo_selecionado' => $termo_selecionado,
+            'locais' => $locais
         ]);
     }
 
@@ -49,6 +58,8 @@ class AlteracaoTermoController extends Controller
             'horario_alteracao' => 'nullable|string',
             'valor_bolsa_alteracao' => 'nullable',
             'auxilio_transporte_alteracao' => 'nullable',
+            'fk_id_local' => 'nullable|integer',
+            'lotacao_alteracao' => 'nullable|string|max:150',
             'descricao' => 'nullable|string',
         ]);
 
@@ -67,6 +78,8 @@ class AlteracaoTermoController extends Controller
         $validatedData['old_valor_bolsa'] = $termo->valor_bolsa;
         $validatedData['old_auxilio_transporte'] = $termo->auxilio_transporte;
         $validatedData['old_desc_atividades'] = $termo->desc_atividades;
+        $validatedData['old_fk_id_local'] = $termo->fk_id_local;
+        $validatedData['old_lotacao'] = $termo->lotacao;
 
 
         // Atualiza os campos alterados, mantendo os valores antigos caso não venham no request
@@ -79,6 +92,8 @@ class AlteracaoTermoController extends Controller
             'auxilio_transporte' => $validatedData['auxilio_transporte_alteracao'] ?? $termo->auxilio_transporte,
             'horario' => $validatedData['horario_alteracao'] ?? $termo->horario,
             'desc_atividades' => $validatedData['desc_atividades_alteracao'] ?? $termo->desc_atividades,
+            'fk_id_local' => $validatedData['fk_id_local'] ?? $termo->fk_id_local,
+            'lotacao' => $validatedData['lotacao_alteracao'] ?? $termo->lotacao,
         ];
 
         // Formatar os valores monetários campos valor_bolsa e auxilio_transporte
@@ -135,6 +150,8 @@ class AlteracaoTermoController extends Controller
             'auxilio_transporte' => $alteracaoTermo->old_auxilio_transporte,
             'horario' => $alteracaoTermo->old_horario,
             'desc_atividades' => $alteracaoTermo->old_desc_atividades,
+            'fk_id_local' => $alteracaoTermo->old_fk_id_local,
+            'lotacao' => $alteracaoTermo->old_lotacao,
         ];
 
         // Atualizar apenas os campos que não são nulos

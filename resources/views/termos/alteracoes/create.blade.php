@@ -66,6 +66,22 @@
 
             <div class="col-md-6 mb-3">
                 <div class="form-group">
+                    <label for="fk_id_local">Local de Estágio</label>
+                    <select class="form-control" id="fk_id_local" name="fk_id_local">
+                        <option value="">Escolha um Local</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <div class="form-group">
+                    <label for="lotacao_alteracao">Lotação</label>
+                    <input type="text" class="form-control" id="lotacao_alteracao" name="lotacao_alteracao" maxlength="150">
+                </div>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <div class="form-group">
                     <label for="horario_alteracao">Horário</label>
                     <textarea class="form-control" id="horario_alteracao" name="horario_alteracao" rows="3"></textarea>
                 </div>
@@ -83,13 +99,13 @@
                 <div class="form-group">
                     <label for="descricao">Descrição das Alterações</label>
                     <textarea class="form-control" id="descricao" name="descricao" rows="10" required>
-        Cláusula Única:
-            Fica estabelecido as seguintes alterações:
+            Cláusula Única:
+                Fica estabelecido as seguintes alterações:
 
-            a) [Descreva as alterações aqui]
+                a) [Descreva as alterações aqui]
 
-            E, por estarem as partes certas e compromissadas, assinam o presente instrumento de maneira eletrônica na forma da lei 14063/2020 que dispõe sobre assinaturas eletrônicas.
-                                            </textarea>
+                E, por estarem as partes certas e compromissadas, assinam o presente instrumento de maneira eletrônica na forma da lei 14063/2020 que dispõe sobre assinaturas eletrônicas.
+                                                </textarea>
                 </div>
             </div>
 
@@ -98,5 +114,42 @@
             </div>
         </div>
     </form>
+
+    <script>
+        // Carregar locais da unidade concedente ao carregar a página
+        document.addEventListener('DOMContentLoaded', function () {
+            const empresaId = {{ $termo_selecionado->fk_id_empresa }};
+            const localSelect = document.getElementById('fk_id_local');
+
+            if (empresaId) {
+                // Fazer requisição AJAX para buscar locais da empresa
+                fetch(`/api/locais-por-empresa?empresa_id=${empresaId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        // Limpar opções existentes (exceto a primeira)
+                        localSelect.innerHTML = '<option value="">Escolha um Local</option>';
+
+                        // Adicionar locais retornados
+                        data.forEach(local => {
+                            const option = document.createElement('option');
+                            option.value = local.id;
+                            option.textContent = local.descricao;
+
+                            // Pré-selecionar o local atual do termo
+                            @if($termo_selecionado->fk_id_local)
+                                if (local.id == {{ $termo_selecionado->fk_id_local }}) {
+                                    option.selected = true;
+                                }
+                            @endif
+
+                            localSelect.appendChild(option);
+                        });
+                    })
+                    .catch(error => {
+                        console.error('Erro ao carregar locais:', error);
+                    });
+            }
+        });
+    </script>
 
 @endsection

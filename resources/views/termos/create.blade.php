@@ -203,6 +203,8 @@
         <input type="hidden" id="data_fim_estagio" name="data_fim_estagio">
         <input type="hidden" id="horario" name="horario">
         <input type="hidden" id="desc_atividades" name="desc_atividades">
+        <input type="hidden" id="fk_id_local_fixo" name="fk_id_local_fixo">
+        <input type="hidden" id="lotacao_fixo" name="lotacao_fixo">
 
     </form>
 
@@ -239,6 +241,22 @@
         document.getElementById('desc_atividades_fixo').addEventListener('input', function () {
             document.getElementById('desc_atividades').value = this.value;
         });
+
+        // Sincronizar campos de local e lotação
+        const localSelect = document.getElementById('fk_id_local');
+        const lotacaoInput = document.getElementById('lotacao');
+
+        if (localSelect) {
+            localSelect.addEventListener('change', function () {
+                document.getElementById('fk_id_local_fixo').value = this.value;
+            });
+        }
+
+        if (lotacaoInput) {
+            lotacaoInput.addEventListener('input', function () {
+                document.getElementById('lotacao_fixo').value = this.value;
+            });
+        }
     </script>
 
     <script>
@@ -377,6 +395,7 @@
                     lotacao: document.getElementById('lotacao').value,
                     valor_bolsa_fixo: document.getElementById('valor_bolsa_fixo').value,
                     auxilio_transporte_fixo: document.getElementById('auxilio_transporte_fixo').value,
+                    fk_id_local: document.getElementById('fk_id_local').value,
                 };
 
                 // Preencher campos com dados da vaga
@@ -425,6 +444,8 @@
                 document.getElementById('horario_fixo').dispatchEvent(new Event('input'));
                 document.getElementById('valor_bolsa_fixo').dispatchEvent(new Event('input'));
                 document.getElementById('auxilio_transporte_fixo').dispatchEvent(new Event('input'));
+                document.getElementById('lotacao').dispatchEvent(new Event('input'));
+                document.getElementById('fk_id_local').dispatchEvent(new Event('change'));
 
                 // Tornar campos readonly (exceto estagiário, escola e supervisor)
                 desabilitarCamposVaga(true);

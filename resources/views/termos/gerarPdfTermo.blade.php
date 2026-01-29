@@ -129,12 +129,12 @@
             <th style="width: 10%; border-right: 1px solid black;">CPF:</th>
             <td style="width: 40%;">{{ $termo->estagiario->numero_cpf }}</td>
         </tr>
-        @if ($termo->lotacao)
+        @if ($termo->lotacao_fixo)
             <tr>
                 <th colspan="4" style="text-align: center; border: 2px solid black;">LOCAL DE ESTÁGIO</th>
             </tr>
             <tr>
-                <td colspan="4" style="text-align: center;">{{ $termo->lotacao }}</td>
+                <td colspan="4" style="text-align: center;">{{ $termo->lotacao_fixo }}</td>
             </tr>
         @endif
         <tr>

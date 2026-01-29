@@ -238,6 +238,7 @@ class TermoController extends Controller
             'fk_id_estagiario' => 'required|integer',
             'fk_id_empresa' => 'required|integer|exists:tb_empresas,id_empresa',
             'fk_id_local' => 'nullable|integer|exists:tb_local,id_local',
+            'fk_id_local_fixo' => 'nullable|integer|exists:tb_local,id_local',
             'fk_id_supervisor' => 'required|integer',
             'fk_id_supervisor_fixo' => 'required|integer',
             'fk_id_escola' => 'required|integer',
@@ -257,6 +258,7 @@ class TermoController extends Controller
             'auxilio_transporte' => '',
             'auxilio_transporte_fixo' => '',
             'lotacao' => 'required|string',
+            'lotacao_fixo' => 'required|string',
             'fk_id_vaga' => 'nullable|integer|exists:tb_vagas,id_vaga',
         ]);
 
