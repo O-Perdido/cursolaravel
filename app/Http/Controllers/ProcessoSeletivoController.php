@@ -10,7 +10,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Maatwebsite\Excel\Facades\Excel;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class ProcessoSeletivoController extends Controller
 {
@@ -453,17 +455,17 @@ class ProcessoSeletivoController extends Controller
             'dataExportacao' => now()->format('d/m/Y H:i:s')
         ];
 
-        $pdf = \PDF::loadView('processos-seletivos.exports.inscricoes-pdf', $dados);
+        $pdf = Pdf::loadView('processos-seletivos.exports.inscricoes-pdf', $dados);
         $pdf->setPaper('A4', 'landscape');
 
-        $nomeArquivo = 'inscricoes_' . \Str::slug($processo->titulo) . '_' . now()->format('Ymd_His') . '.pdf';
+        $nomeArquivo = 'inscricoes_' . Str::slug($processo->titulo) . '_' . now()->format('Ymd_His') . '.pdf';
         
         return $pdf->download($nomeArquivo);
     }
 
     private function exportarInscricoesExcel($processo, $inscricoes, $colunas, $statusFiltro)
     {
-        $nomeArquivo = 'inscricoes_' . \Str::slug($processo->titulo) . '_' . now()->format('Ymd_His') . '.xlsx';
+        $nomeArquivo = 'inscricoes_' . Str::slug($processo->titulo) . '_' . now()->format('Ymd_His') . '.xlsx';
         
         return Excel::download(
             new InscricoesProcessoExport($inscricoes, $colunas), 

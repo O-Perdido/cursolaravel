@@ -224,7 +224,10 @@ class ProcessoSeletivoPublicoController extends Controller
         $nomeBase = $nomeBase !== '' ? $nomeBase : 'arquivo';
         $nomeDownload = $extensao ? $nomeBase . '.' . $extensao : $nomeBase;
 
-        return Storage::disk('public')->download($arquivo->caminho_arquivo, $nomeDownload);
+        return response()->download(
+            storage_path('app/public/' . $arquivo->caminho_arquivo),
+            $nomeDownload
+        );
     }
 
     // Listar inscrições do estagiário
