@@ -151,11 +151,12 @@
                             @endif
                         </td>
                         <td class="text-center">
-                            <div class="btn-group btn-group-sm" role="group">
+                            <div class="d-flex gap-1 justify-content-center align-items-center">
                                 <a href="{{ route('vagas.edit', $vaga->id_vaga) }}" class="btn btn-warning btn-sm"
                                     title="Editar">
                                     <i class="fas fa-edit"></i>
                                 </a>
+
                                 <!-- Botão atalho para o termo vinculado -->
                                 @if($vaga->fk_id_termo)
                                     <a href="{{ route('termos.show', $vaga->fk_id_termo) }}" class="btn btn-info btn-sm"
@@ -163,6 +164,7 @@
                                         <i class="fas fa-file-contract"></i>
                                     </a>
                                 @endif
+
                                 <!-- Botão para preencher a vaga (gerar termo) -->
                                 @if((Auth::user()->nivel == 'admin' || Auth::user()->nivel == 'operador') && $vaga->status == 'disponivel' && !$vaga->fk_id_termo)
                                     <a href="{{ route('termos.create', ['empresa_id' => $vaga->fk_id_empresa, 'vaga_id' => $vaga->id_vaga]) }}"
@@ -170,9 +172,10 @@
                                         <i class="fas fa-file-pen"></i>
                                     </a>
                                 @endif
+
                                 @if(!$vaga->fk_id_termo)
-                                    <form action="{{ route('vagas.destroy', $vaga->id_vaga) }}" method="POST"
-                                        style="display:inline-block" onsubmit="return confirm('Confirma a exclusão desta vaga?')">
+                                    <form action="{{ route('vagas.destroy', $vaga->id_vaga) }}" method="POST" class="m-0"
+                                        onsubmit="return confirm('Confirma a exclusão desta vaga?')">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="btn btn-danger btn-sm" title="Excluir">

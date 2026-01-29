@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Termo;
 use App\Models\Rescisao;
 use App\Models\Ebcp;
+use App\Models\Vaga;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Services\ZapSignService;
 use App\Services\AvaliacaoService;
@@ -36,6 +37,22 @@ class RescisaoController extends Controller
 
         // Gera automaticamente avaliação de finalização ao rescindir
         $this->avaliacaoService->gerarAvaliacaoFinalizacao($termo);
+
+        // Desvincula a vaga caso o termo esteja vinculado a uma
+        if ($termo->fk_id_vaga) {
+            $vaga = Vaga::find($termo->fk_id_vaga);
+            if ($vaga) {
+                // Torna a vaga disponível novamente
+                $vaga->status = 'Disponivel';
+                $vaga->fk_id_termo = null;
+                $vaga->save();
+            }
+
+            // Remove a vinculação do termo com a vaga
+            $termo->fk_id_vaga = null;
+            $termo->vinculo = 'nao_vinculado';
+            $termo->save();
+        }
 
         return redirect('/termos/' . $id_termo . '/show')->with('success', 'Rescisão criada com sucesso!');
     }
