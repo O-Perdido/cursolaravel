@@ -149,7 +149,7 @@
                                         @endguest
                                     </div>
                                 </div>
-                                <div class="col-lg-5 text-center">
+                                <div class="col-lg-5 text-center hero-illustration">
                                     <div class="bg-white bg-opacity-10 rounded-3 d-flex align-items-center justify-content-center mx-auto backdrop-blur"
                                         style="height: 320px; max-width: 420px; border: 2px solid rgba(255,255,255,0.1);">
                                         <i class="fas fa-graduation-cap text-white"
@@ -174,7 +174,7 @@
                         style="height: 100%; position: relative; z-index: 2;">
                         <div class="container px-4">
                             <div class="row align-items-center g-4">
-                                <div class="col-lg-6 order-lg-2 text-center mb-4 mb-lg-0">
+                                <div class="col-lg-6 order-lg-2 text-center mb-4 mb-lg-0 hero-illustration">
                                     <div class="bg-white bg-opacity-10 rounded-3 d-flex align-items-center justify-content-center mx-auto p-4 backdrop-blur"
                                         style="border: 2px solid rgba(255,255,255,0.1); max-width: 350px; height: 300px;">
                                         <i class="fas fa-chart-line text-white"
@@ -260,13 +260,10 @@
 
             <!-- Indicadores -->
             <div class="carousel-indicators" style="bottom: 30px; z-index: 10;">
-                <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="0"
-                    class="active bg-white rounded-circle" style="width: 12px; height: 12px;"
-                    aria-current="true"></button>
-                <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="1"
-                    class="bg-white rounded-circle" style="width: 12px; height: 12px; opacity: 0.5;"></button>
-                <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="2"
-                    class="bg-white rounded-circle" style="width: 12px; height: 12px; opacity: 0.5;"></button>
+                <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="0" class="active"
+                    aria-current="true" aria-label="Slide 1"></button>
+                <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="1" aria-label="Slide 2"></button>
+                <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="2" aria-label="Slide 3"></button>
             </div>
         </div>
     </div>
@@ -816,17 +813,72 @@
 
     /* Customizar indicators do carrossel */
     .carousel-indicators button {
+        width: 12px !important;
+        height: 12px !important;
+        border-radius: 50% !important;
+        background-color: white;
+        opacity: 0.5;
+        border: none;
         transition: all 0.3s ease;
+        padding: 0;
+        margin: 0 4px;
     }
 
-    .carousel-indicators button:hover {
-        opacity: 0.8 !important;
-        width: 16px;
-        height: 16px;
+    .carousel-indicators button.active {
+        opacity: 1;
+        background-color: white;
+        width: 12px !important;
+        height: 12px !important;
     }
 
     /* Responsividade extra para mobile */
     @media (max-width: 768px) {
+        .hero-section {
+            min-height: 0 !important;
+            padding: 0;
+        }
+
+        .hero-pattern,
+        .hero-section>div[style*="position: absolute"] {
+            display: none !important;
+        }
+
+        .hero-carousel-wrapper {
+            height: auto !important;
+            padding: 0;
+        }
+
+        #heroCarousel,
+        #heroCarousel .carousel-inner {
+            height: auto !important;
+        }
+
+        .carousel-fade .carousel-item {
+            position: relative;
+            opacity: 1;
+            height: auto !important;
+            display: none !important;
+        }
+
+        .carousel-fade .carousel-item.active {
+            position: relative;
+            display: block !important;
+        }
+
+        .carousel-overlay {
+            position: relative !important;
+            height: auto !important;
+        }
+
+        .carousel-item .container {
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }
+
+        .hero-illustration {
+            display: none;
+        }
+
         .display-3 {
             font-size: 2rem;
         }
@@ -840,7 +892,31 @@
         }
 
         .carousel-item {
-            padding: 20px;
+            padding: 24px 16px;
+        }
+
+        .carousel-item .d-flex {
+            height: auto !important;
+        }
+
+        .hero-carousel-wrapper .btn-lg {
+            width: 100%;
+        }
+
+        #heroCarousel .carousel-indicators {
+            position: static;
+            margin-top: 12px;
+            margin-bottom: 0;
+        }
+
+        #heroCarousel .carousel-indicators button {
+            width: 10px;
+            height: 10px;
+        }
+
+        #heroCarousel .carousel-indicators button.active {
+            width: 10px;
+            height: 10px;
         }
     }
 
@@ -859,6 +935,20 @@
 
         #heroCarousel {
             height: auto;
+        }
+
+        .carousel-control-custom {
+            display: none;
+        }
+
+        #heroCarousel .carousel-indicators {
+            margin-top: 12px;
+        }
+
+        .carousel-item .btn-lg {
+            padding-left: 1.25rem;
+            padding-right: 1.25rem;
+            font-size: 0.95rem;
         }
 
         .carousel-control-prev,

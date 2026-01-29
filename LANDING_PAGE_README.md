@@ -161,6 +161,10 @@ Route::get('/processos-seletivos/{id}/detalhes-publico', [ProcessoSeletivoPublic
 - Compatível com PWA (public routes funcionam offline se configuradas)
 - URLs amigáveis já funcionam (sem .php)
 
+## Atualizações
+
+- 29/01/2026: Ajustes de responsividade do carrossel no mobile (evita sobreposição de slides e melhora legibilidade).
+
 ## Continuidade
 
 ### Melhorias Futuras
