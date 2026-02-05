@@ -30,7 +30,10 @@
                     <div class="flex-grow-1">
                         <h3 class="mb-2 text-white">{{ $processo->titulo }}</h3>
                         <p class="text-white-50 mb-1 small">Processo {{ $processo->numero_processo }} • {{ $processo->empresa->nome_empresa }}</p>
-                        <span class="badge @switch($processo->status) @case('aberto') bg-success @break @case('inscricoes') bg-info @break @case('encerrado') bg-warning @break @case('finalizado') bg-dark @break @default bg-secondary @endswitch">{{ ucfirst($processo->status) }}</span>
+                        @php
+                            $statusDinamico = $processo->getStatusDinamico();
+                        @endphp
+                        <span class="badge @switch($statusDinamico) @case('aberto') bg-success @break @case('inscricoes') bg-info @break @case('encerrado') bg-warning @break @case('finalizado') bg-dark @break @default bg-secondary @endswitch">{{ ucfirst($statusDinamico) }}</span>
                     </div>
                     @if($processo->icone_processo)
                         <img src="{{ asset('storage/' . $processo->icone_processo) }}" alt="{{ $processo->titulo }}" class="rounded" style="width: 120px; height: 120px; object-fit: cover; box-shadow: 0 4px 12px rgba(0,0,0,0.2);">

@@ -119,8 +119,11 @@
                                 <div class="flex-grow-1">
                                     <h6 class="mb-2">{{ Str::limit($processo->titulo, 70) }}</h6>
                                     <div class="d-flex flex-wrap gap-2 mb-2">
-                                        <span class="badge {{ $statusClasses[$processo->status] ?? 'bg-secondary' }}">
-                                            {{ $statusLabels[$processo->status] ?? ucfirst($processo->status) }}
+                                        @php
+                                            $statusDinamico = $processo->getStatusDinamico();
+                                        @endphp
+                                        <span class="badge {{ $statusClasses[$statusDinamico] ?? 'bg-secondary' }}">
+                                            {{ $statusLabels[$statusDinamico] ?? ucfirst($statusDinamico) }}
                                         </span>
                                     </div>
                                     @php

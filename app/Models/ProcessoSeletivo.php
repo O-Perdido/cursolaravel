@@ -119,6 +119,45 @@ class ProcessoSeletivo extends Model
         return $this->status === 'encerrado' || ($fim && now()->gt($fim));
     }
 
+    /**
+     * Retorna o status dinâmico do processo considerando prazos de inscrição
+     * - Se status = "aberto" ou "finalizado" → retorna como está
+     * - Se status = "inscricoes":
+     *   - Antes da data de abertura → retorna "aberto"
+     *   - Dentro do período → retorna "inscricoes"
+     *   - Após a data de encerramento → retorna "encerrado"
+     */
+    public function getStatusDinamico(): string
+    {
+        // Status que não mudam dinamicamente
+        if (in_array($this->status, ['aberto', 'finalizado'])) {
+            return $this->status;
+        }
+
+        // Se status é "inscricoes", valida com as datas
+        if ($this->status === 'inscricoes') {
+            $agora = now();
+            $inicio = $this->data_inicio_inscricoes ?? $this->data_abertura;
+            $fim = $this->data_fechamento_inscricoes;
+
+            // Antes da data de abertura
+            if ($inicio && $agora->lt($inicio)) {
+                return 'aberto';
+            }
+
+            // Após a data de encerramento
+            if ($fim && $agora->gt($fim)) {
+                return 'encerrado';
+            }
+
+            // Dentro do período de inscrições
+            return 'inscricoes';
+        }
+
+        // Para qualquer outro status (como "encerrado"), retorna como está
+        return $this->status;
+    }
+
     // Gera número sequencial por empresa/ano
     public static function gerarNumeroProcesso()
     {

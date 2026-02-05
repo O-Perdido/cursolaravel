@@ -41,8 +41,11 @@
                             <p class="text-white-50 mb-1 small">Processo {{ $processo->numero_processo }} •
                                 {{ $processo->empresa->nome_empresa }}
                             </p>
-                            <span class="badge {{ $statusClasses[$processo->status] ?? 'bg-secondary' }}">
-                                {{ $statusLabels[$processo->status] ?? ucfirst($processo->status) }}
+                            @php
+                                $statusDinamico = $processo->getStatusDinamico();
+                            @endphp
+                            <span class="badge {{ $statusClasses[$statusDinamico] ?? 'bg-secondary' }}">
+                                {{ $statusLabels[$statusDinamico] ?? ucfirst($statusDinamico) }}
                             </span>
                         </div>
                         @if($processo->icone_processo)

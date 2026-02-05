@@ -204,6 +204,17 @@
                                 value="{{ request('estagiario') }}" placeholder="Nome do estagiário">
                         </div>
 
+                        <div class="col-md-3">
+                            <label for="numero_termo" class="form-label mb-1 fw-semibold">Número/Ano do Termo</label>
+                            <div class="input-group input-group-sm">
+                                <input type="number" name="numero_termo" id="numero_termo" class="form-control form-control-sm"
+                                    value="{{ request('numero_termo') }}" placeholder="Número" min="1">
+                                <span class="input-group-text px-2">/</span>
+                                <input type="number" name="ano_termo" id="ano_termo" class="form-control form-control-sm"
+                                    value="{{ request('ano_termo') }}" placeholder="Ano" min="2000" max="9999">
+                            </div>
+                        </div>
+
                         @if (Auth::user()->nivel != 'empresa')
                             <div class="col-md-3">
                                 <label for="empresa_search" class="form-label mb-1 fw-semibold">Unidade Concedente</label>

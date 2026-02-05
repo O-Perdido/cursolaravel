@@ -43,6 +43,14 @@ class TermoController extends Controller
             });
         }
 
+        if ($request->filled('numero_termo')) {
+            $query->where('numero_termo', $request->input('numero_termo'));
+        }
+
+        if ($request->filled('ano_termo')) {
+            $query->where('ano_termo', $request->input('ano_termo'));
+        }
+
         if ($request->filled('empresa')) {
             $query->where('fk_id_empresa', $request->input('empresa'));
         }

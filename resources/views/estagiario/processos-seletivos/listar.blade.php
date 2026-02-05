@@ -87,7 +87,10 @@
                             <div class="flex-grow-1">
                                 <h6 class="mb-2">{{ Str::limit($processo->titulo, 70) }}</h6>
                                 <div class="d-flex flex-wrap gap-2 mb-2">
-                                    <span class="badge @switch($processo->status) @case('aberto') bg-success @break @case('inscricoes') bg-info @break @case('encerrado') bg-warning @break @case('finalizado') bg-dark @break @default bg-secondary @endswitch">{{ ucfirst($processo->status) }}</span>
+                                    @php
+                                        $statusDinamico = $processo->getStatusDinamico();
+                                    @endphp
+                                    <span class="badge @switch($statusDinamico) @case('aberto') bg-success @break @case('inscricoes') bg-info @break @case('encerrado') bg-warning @break @case('finalizado') bg-dark @break @default bg-secondary @endswitch">{{ ucfirst($statusDinamico) }}</span>
                                 </div>
                                 @php
                                     $inicioInscricoes = $processo->data_inicio_inscricoes ?? $processo->data_abertura;
