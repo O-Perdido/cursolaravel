@@ -575,7 +575,8 @@
                         <input type="hidden" name="fk_id_termo" value="{{ $termo->id_termo }}">
                         <div class="form-group">
                             <label for="data_rescisao">Data da Rescisão</label>
-                            <input type="date" class="form-control" id="data_rescisao" name="data_rescisao" required>
+                            <input type="date" class="form-control" id="data_rescisao" name="data_rescisao"
+                                   min="{{ \Carbon\Carbon::parse($termo->data_inicio_estagio)->format('Y-m-d') }}" required>
                         </div>
                         <div class="form-group">
                             <label for="motivo">Motivo</label>
