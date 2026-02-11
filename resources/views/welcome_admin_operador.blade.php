@@ -104,7 +104,8 @@
                         <div class="row align-items-center">
                             <select id="diasVencimento" class="form-select mb-3" style="font-size: 0.8em;"
                                 title="Dias até o vencimento">
-                                <option value="15" selected>Próximos 15 dias</option>
+                                <option value="30" selected>Próximos 30 dias</option>
+                                <option value="15">Próximos 15 dias</option>
                                 <option value="10">Próximos 10 dias</option>
                                 <option value="5">Próximos 5 dias</option>
                             </select>
