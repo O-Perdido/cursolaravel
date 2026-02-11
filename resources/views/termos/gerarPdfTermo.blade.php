@@ -584,7 +584,7 @@ function numeroPorExtenso($numero)
     </p>
     <p>&nbsp; Cláusula 7ª - Em cumprimento ao Art. 9º da Lei 11.788/08 e na vigência do presente TERMO DE COMPROMISSO DE
         ESTÁGIO, o ESTAGIÁRIO
-        estará incluído na cobertura do SEGURO CONTRA ACIDENTES PESSOAIS de até R$ 10.000,00, além de despesas
+        estará incluído na cobertura do SEGURO CONTRA ACIDENTES PESSOAIS de até R$ 10.973,60, além de despesas
         médico-hospitalares respeitados os limites segurados na apólice nº. 0982.00.67225.173-8
         da PORTO SEGURO,
         sob a responsabilidade da {{ $ebcp->nome_ebcp }}.
