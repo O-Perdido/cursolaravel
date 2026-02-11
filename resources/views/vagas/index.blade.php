@@ -91,9 +91,36 @@
     <!-- FIM DO CARD DE FILTRO E TÍTULO -->
 
     <!-- Total de vagas -->
-    <div class="mb-2">
-        <span class="text-muted">Total de vagas: <strong>{{ $vagas->total() }}</strong></span>
+    <div class="mb-2" style="font-weight: bold; font-size: 1.1em;">
+        Total de vagas: {{ method_exists($vagas, 'total') ? $vagas->total() : $vagas->count() }}
     </div>
+
+    @if (method_exists($vagas, 'links'))
+        <!-- Paginação (topo) -->
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <div class="d-flex align-items-center">
+                <span class="text-muted small">
+                    @if($vagas->total() > 0)
+                        Mostrando {{ $vagas->firstItem() }}–{{ $vagas->lastItem() }} de {{ $vagas->total() }}
+                    @else
+                        Nenhum registro encontrado
+                    @endif
+                </span>
+                @php $pp = request('per_page', '25'); @endphp
+                <select id="perPageSelectorVagas" class="form-select form-select-sm per-page-selector"
+                    onchange="changePerPage(this.value)" style="width: auto; margin-left: 10px;">
+                    <option value="25" {{ $pp == '25' ? 'selected' : '' }}>25</option>
+                    <option value="50" {{ $pp == '50' ? 'selected' : '' }}>50</option>
+                    <option value="100" {{ $pp == '100' ? 'selected' : '' }}>100</option>
+                    <option value="200" {{ $pp == '200' ? 'selected' : '' }}>200</option>
+                    <option value="all" {{ $pp == 'all' ? 'selected' : '' }}>Tudo</option>
+                </select>
+            </div>
+            <div>
+                {{ $vagas->withQueryString()->onEachSide(1)->links('pagination::bootstrap-5') }}
+            </div>
+        </div>
+    @endif
 
     <!-- Tabela de Vagas -->
     <div class="table-responsive">
@@ -205,49 +232,78 @@
         </table>
     </div>
 
-    <!-- Paginação -->
-    <div class="d-flex justify-content-center mt-3">
-        {{ $vagas->links() }}
-    </div>
+    @if (method_exists($vagas, 'links'))
+        <!-- Paginação (rodapé) -->
+        <div class="d-flex justify-content-between align-items-center mt-2">
+            <div class="d-flex align-items-center">
+                <span class="text-muted small">
+                    @if($vagas->total() > 0)
+                        Mostrando {{ $vagas->firstItem() }}–{{ $vagas->lastItem() }} de {{ $vagas->total() }}
+                    @else
+                        Nenhum registro encontrado
+                    @endif
+                </span>
+                @php $pp = request('per_page', '25'); @endphp
+                <select id="perPageSelectorVagasBottom" class="form-select form-select-sm per-page-selector"
+                    onchange="changePerPage(this.value)" style="width: auto; margin-left: 10px;">
+                    <option value="25" {{ $pp == '25' ? 'selected' : '' }}>25</option>
+                    <option value="50" {{ $pp == '50' ? 'selected' : '' }}>50</option>
+                    <option value="100" {{ $pp == '100' ? 'selected' : '' }}>100</option>
+                    <option value="200" {{ $pp == '200' ? 'selected' : '' }}>200</option>
+                    <option value="all" {{ $pp == 'all' ? 'selected' : '' }}>Tudo</option>
+                </select>
+            </div>
+            <div>
+                {{ $vagas->withQueryString()->onEachSide(1)->links('pagination::bootstrap-5') }}
+            </div>
+        </div>
+    @endif
 
-@endsection
+    <script>
+        function changePerPage(value) {
+            const url = new URL(window.location.href);
+            url.searchParams.set('per_page', value);
+            url.searchParams.delete('page'); // Reset para página 1
+            window.location.href = url.toString();
+        }
 
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        // Setup filtro de busca de empresa
-        if (document.getElementById('empresa_search')) {
-            const searchInput = document.getElementById('empresa_search');
-            const select = document.getElementById('empresa');
-            const wrapper = document.getElementById('empresa_select_wrapper');
-            const options = Array.from(select.options);
+        document.addEventListener('DOMContentLoaded', function () {
+            // Setup filtro de busca de empresa
+            if (document.getElementById('empresa_search')) {
+                const searchInput = document.getElementById('empresa_search');
+                const select = document.getElementById('empresa');
+                const wrapper = document.getElementById('empresa_select_wrapper');
+                const options = Array.from(select.options);
 
-            searchInput.addEventListener('focus', function () {
-                wrapper.style.display = 'block';
-                setTimeout(() => searchInput.select(), 0);
-            });
+                searchInput.addEventListener('focus', function () {
+                    wrapper.style.display = 'block';
+                    setTimeout(() => searchInput.select(), 0);
+                });
 
-            searchInput.addEventListener('input', function () {
-                const value = this.value.toLowerCase();
-                select.innerHTML = '';
-                options.forEach(option => {
-                    if (option.text.toLowerCase().includes(value)) {
-                        select.appendChild(option.cloneNode(true));
+                searchInput.addEventListener('input', function () {
+                    const value = this.value.toLowerCase();
+                    select.innerHTML = '';
+                    options.forEach(option => {
+                        if (option.text.toLowerCase().includes(value)) {
+                            select.appendChild(option.cloneNode(true));
+                        }
+                    });
+                    wrapper.style.display = 'block';
+                });
+
+                select.addEventListener('change', function () {
+                    const selected = select.options[select.selectedIndex];
+                    searchInput.value = selected.text;
+                    wrapper.style.display = 'none';
+                });
+
+                document.addEventListener('click', function (e) {
+                    if (!searchInput.contains(e.target) && !wrapper.contains(e.target)) {
+                        wrapper.style.display = 'none';
                     }
                 });
-                wrapper.style.display = 'block';
-            });
+            }
+        });
+    </script>
 
-            select.addEventListener('change', function () {
-                const selected = select.options[select.selectedIndex];
-                searchInput.value = selected.text;
-                wrapper.style.display = 'none';
-            });
-
-            document.addEventListener('click', function (e) {
-                if (!searchInput.contains(e.target) && !wrapper.contains(e.target)) {
-                    wrapper.style.display = 'none';
-                }
-            });
-        }
-    });
-</script>
+@endsection

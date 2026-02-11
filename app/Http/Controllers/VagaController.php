@@ -22,7 +22,23 @@ class VagaController extends Controller
         if ($request->filled('empresa') && $user->nivel !== 'empresa') {
             $query->where('fk_id_empresa', $request->input('empresa'));
         }
-        $vagas = $query->orderByDesc('created_at')->paginate(20);
+        
+        // Itens por página (25, 50, 100, 200, "all")
+        $perPageParam = $request->input('per_page');
+        $allowed = ['25', '50', '100', '200', 'all'];
+        if (!in_array((string)($perPageParam ?? ''), $allowed, true)) {
+            $perPageParam = '25';
+        }
+
+        if ($perPageParam === 'all') {
+            // Paginar tudo em uma única página mantendo a API do paginator
+            $total = (clone $query)->count();
+            $perPage = max(1, (int)$total);
+        } else {
+            $perPage = (int)$perPageParam;
+        }
+        
+        $vagas = $query->orderByDesc('created_at')->paginate($perPage)->appends($request->query());
         $empresas = \App\Models\Empresa::orderBy('nome_empresa', 'asc')->get();
         return view('vagas.index', compact('vagas', 'empresas'));
     }
