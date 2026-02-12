@@ -269,6 +269,24 @@
                                         <td>EBCP CONSULTORIA LTDA</td>
                                         <td>moacirecetista@hotmail.com</td>
                                     </tr>
+                                    {{-- Representantes da Empresa --}}
+                                    @if(isset($alteracaoTermo->termo->empresa))
+                                        @if($alteracaoTermo->termo->empresa->representantes->count() > 0)
+                                            @foreach($alteracaoTermo->termo->empresa->representantes as $rep)
+                                                <tr>
+                                                    <td><i class="fas fa-building text-secondary me-1"></i> Concedente</td>
+                                                    <td>{{ $rep->nome }}</td>
+                                                    <td>{{ $rep->email }}</td>
+                                                </tr>
+                                            @endforeach
+                                        @else
+                                            <tr>
+                                                <td><i class="fas fa-building text-secondary me-1"></i> Concedente</td>
+                                                <td>{{ $alteracaoTermo->termo->empresa->nome_representante ?? $alteracaoTermo->termo->empresa->nome_empresa }}</td>
+                                                <td>{{ $alteracaoTermo->termo->empresa->email ?? '—' }}</td>
+                                            </tr>
+                                        @endif
+                                    @endif
                                     {{-- Representantes da Escola --}}
                                     @if(isset($alteracaoTermo->termo->escola) && !$alteracaoTermo->termo->escola->nao_assina_zapsign)
                                         @if($alteracaoTermo->termo->escola->representantes->count() > 0)
@@ -282,28 +300,11 @@
                                         @else
                                             <tr>
                                                 <td><i class="fas fa-school text-success me-1"></i> Instituicao</td>
-                                                <td>{{ $alteracaoTermo->termo->escola->nome_representante ?? $alteracaoTermo->termo->escola->nome_escola }}</td>
+                                                <td>{{ $alteracaoTermo->termo->escola->nome_representante ?? $alteracaoTermo->termo->escola->nome_escola }}
+                                                </td>
                                                 <td>{{ $alteracaoTermo->termo->escola->email ?? '—' }}</td>
                                             </tr>
                                         @endif
-                                    @endif
-                                    @endif
-                                    {{-- Representantes da Escola --}}
-                                    @if(isset($alteracaoTermo->termo->escola) && $alteracaoTermo->termo->escola->representantes->count() > 0)
-                                        @foreach($alteracaoTermo->termo->escola->representantes as $rep)
-                                            <tr>
-                                                <td><i class="fas fa-school text-success me-1"></i> Instituicao</td>
-                                                <td>{{ $rep->nome }}</td>
-                                                <td>{{ $rep->email }}</td>
-                                            </tr>
-                                        @endforeach
-                                    @elseif(isset($alteracaoTermo->termo->escola))
-                                        <tr>
-                                            <td><i class="fas fa-school text-success me-1"></i> Instituicao</td>
-                                            <td>{{ $alteracaoTermo->termo->escola->nome_representante ?? $alteracaoTermo->termo->escola->nome_escola }}
-                                            </td>
-                                            <td>{{ $alteracaoTermo->termo->escola->email ?? '—' }}</td>
-                                        </tr>
                                     @endif
                                 </tbody>
                             </table>
