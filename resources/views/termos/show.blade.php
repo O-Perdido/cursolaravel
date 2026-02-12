@@ -14,7 +14,7 @@
             {{ session('error') }}
         </div>
     @endif
-    @push('scripts')
+    @section('scripts')
         <script>
             document.addEventListener('DOMContentLoaded', function () {
                 var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
@@ -25,9 +25,17 @@
                 var reverterBtn = document.getElementById('reverter-rescisao-btn');
                 var reverterForm = document.getElementById('reverter-rescisao-form');
                 if (reverterBtn && reverterForm) {
-                    reverterBtn.addEventListener('click', function () {
+                    reverterBtn.addEventListener('click', function (event) {
+                        event.preventDefault();
+                        if (typeof Swal === 'undefined') {
+                            if (confirm('Tem certeza que deseja reverter a rescisao? Esta acao nao pode ser desfeita.')) {
+                                reverterForm.submit();
+                            }
+                            return;
+                        }
+
                         Swal.fire({
-                            title: 'Reverter rescisao? ',
+                            title: 'Reverter rescisao?',
                             text: 'Esta acao nao pode ser desfeita.',
                             icon: 'warning',
                             showCancelButton: true,
@@ -42,7 +50,7 @@
                 }
             });
         </script>
-    @endpush
+    @endsection
 
     <div class="d-flex justify-content-between align-items-center flex-wrap mb-3">
         <h1 class="mb-0">Detalhes do Termo de Estágio</h1>
@@ -105,8 +113,8 @@
                         method="POST" class="d-none">
                         @csrf
                     </form>
-                    <button type="button" id="reverter-rescisao-btn" class="btn btn-outline-danger" data-bs-toggle="tooltip"
-                        data-bs-placement="top" title="Reverter rescisão e restaurar data final do termo.">
+                    <button type="submit" form="reverter-rescisao-form" id="reverter-rescisao-btn" class="btn btn-outline-danger"
+                        data-bs-toggle="tooltip" data-bs-placement="top" title="Reverter rescisão e restaurar data final do termo.">
                         <i class="fas fa-undo"></i> Reverter Rescisão
                     </button>
                 @endif

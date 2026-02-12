@@ -384,8 +384,7 @@ class TermoController extends Controller
             'auxilio_transporte' => '',
             'auxilio_transporte_fixo' => '',
             'lotacao' => 'required|string',
-            'lotacao_fixo' => 'required|string',
-            'fk_id_vaga' => 'nullable|integer|exists:tb_vagas,id_vaga',
+            'lotacao_fixo' => 'required|string',            
             'password_confirm' => 'required|string',
         ]);
 
@@ -433,39 +432,6 @@ class TermoController extends Controller
         }
 
         unset($validatedData['password_confirm']);
-
-        $vagaAnteriorId = $termo->fk_id_vaga;
-        $vagaNovaId = $validatedData['fk_id_vaga'] ?? null;
-        if ($vagaNovaId === '') {
-            $vagaNovaId = null;
-        }
-
-        if ($vagaAnteriorId && (int) $vagaAnteriorId !== (int) $vagaNovaId) {
-            $vagaAnterior = \App\Models\Vaga::find($vagaAnteriorId);
-            if ($vagaAnterior) {
-                $vagaAnterior->update([
-                    'status' => 'disponivel',
-                    'fk_id_termo' => null,
-                    'vinculo_tipo' => null,
-                ]);
-            }
-        }
-
-        if ($vagaNovaId) {
-            $vagaNova = \App\Models\Vaga::find($vagaNovaId);
-            if ($vagaNova) {
-                $vagaNova->update([
-                    'status' => 'preenchida',
-                    'fk_id_termo' => $termo->id_termo,
-                    'vinculo_tipo' => 'vinculado',
-                ]);
-                $validatedData['vinculo'] = 'vinculado';
-            }
-        } else {
-            $validatedData['vinculo'] = 'nao_vinculado';
-        }
-
-        $validatedData['fk_id_vaga'] = $vagaNovaId;
 
         $termo->update($validatedData);
 
