@@ -19,6 +19,9 @@
 - [Salvamento em Lotes](./folha-pagamento/LOTES_SALVAMENTO.md)
 - [Remessas Bancárias em Lotes](./folha-pagamento/REMESSAS_LOTES.md)
 
+### 📝 Termos
+- [Edicao do TCE](./termos/README.md)
+
 ### ⭐ Avaliações de Estágio
 - [Documentação Completa](./avaliacoes/README.md)
 - [Quick Start](./avaliacoes/QUICK_START.md)

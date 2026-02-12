@@ -102,10 +102,10 @@
                 <h3>Instalar o SIGEBR</h3>
                 <!-- PWA Install Card (mostrado quando PWA for instalável) -->
                 <div class="card border-success shadow-sm" id="pwa-login-card" style="display: none; animation: slideInUp 0.5s ease-out;
-                                                                                           background: linear-gradient(135deg, #198754 0%, #20c997 100%);
-                                                                                           color: #fff;
-                                                                                           border-radius: 10px;
-                                                                                           overflow: hidden;">
+                                                                                               background: linear-gradient(135deg, #198754 0%, #20c997 100%);
+                                                                                               color: #fff;
+                                                                                               border-radius: 10px;
+                                                                                               overflow: hidden;">
                     <div class="card-body py-3 px-3">
                         <div class="d-flex align-items-start gap-3">
                             <div class="flex-shrink-0">
@@ -403,10 +403,10 @@
             function showFeedback(type, messages) {
                 const list = Array.isArray(messages) ? messages : [messages];
                 createFeedback.innerHTML = `
-                        <div class="alert alert-${type} mt-2" role="alert">
-                            <ul class="mb-0">${list.map(m => `<li>${m}</li>`).join('')}</ul>
-                        </div>
-                    `;
+                            <div class="alert alert-${type} mt-2" role="alert">
+                                <ul class="mb-0">${list.map(m => `<li>${m}</li>`).join('')}</ul>
+                            </div>
+                        `;
             }
 
             function updateRequirement(element, isValid) {
@@ -523,43 +523,43 @@
 
                     if (data.status === 'not_found') {
                         setResult(`
-                                <div class="alert alert-warning">${data.message}</div>
-                                <a href="${cadastroUrl}" class="btn btn-outline-success w-100">
-                                    <i class="fas fa-user-plus me-2"></i>Fazer cadastro de estagiário
-                                </a>
-                            `);
+                                    <div class="alert alert-warning">${data.message}</div>
+                                    <a href="${cadastroUrl}" class="btn btn-outline-success w-100">
+                                        <i class="fas fa-user-plus me-2"></i>Fazer cadastro de estagiário
+                                    </a>
+                                `);
                         return;
                     }
 
                     if (data.status === 'multiple') {
                         setResult(`
-                                <div class="alert alert-warning">${data.message}</div>
-                                <a href="${whatsappUrl}" target="_blank" class="btn btn-outline-primary w-100">
-                                    <i class="fab fa-whatsapp me-2"></i>Entrar em contato
-                                </a>
-                            `);
+                                    <div class="alert alert-warning">${data.message}</div>
+                                    <a href="${whatsappUrl}" target="_blank" class="btn btn-outline-primary w-100">
+                                        <i class="fab fa-whatsapp me-2"></i>Entrar em contato
+                                    </a>
+                                `);
                         return;
                     }
 
                     if (data.status === 'has_user') {
                         setResult(`
-                                <div class="alert alert-info">
-                                    Você já tem um usuário de acesso cadastrado com o e-mail <strong>${data.user_email}</strong>.
-                                    Se esse e-mail estiver incorreto, entre em contato.
-                                </div>
-                                <a href="${whatsappUrl}" target="_blank" class="btn btn-outline-primary w-100">
-                                    <i class="fab fa-whatsapp me-2"></i>Entrar em contato
-                                </a>
-                            `);
+                                    <div class="alert alert-info">
+                                        Você já tem um usuário de acesso cadastrado com o e-mail <strong>${data.user_email}</strong>
+                                        Se esse e-mail estiver incorreto, entre em contato.
+                                    </div>
+                                    <a href="${whatsappUrl}" target="_blank" class="btn btn-outline-primary w-100">
+                                        <i class="fab fa-whatsapp me-2"></i>Entrar em contato
+                                    </a>
+                                `);
                         return;
                     }
 
                     if (data.status === 'can_create_user') {
                         setResult(`
-                                <div class="alert alert-success">
-                                    Encontramos seu cadastro. Crie seu acesso para entrar no sistema.
-                                </div>
-                            `);
+                                    <div class="alert alert-success">
+                                        Encontramos seu cadastro. Crie seu acesso para entrar no sistema.
+                                    </div>
+                                `);
 
                         createId.value = data.estagiario.id;
                         createEmail.value = data.estagiario.email || '';
@@ -611,11 +611,11 @@
                     if (!response.ok) {
                         if (response.status === 409) {
                             setResult(`
-                                    <div class="alert alert-info">${data.message}</div>
-                                    <a href="${whatsappUrl}" target="_blank" class="btn btn-outline-primary w-100">
-                                        <i class="fab fa-whatsapp me-2"></i>Entrar em contato
-                                    </a>
-                                `);
+                                        <div class="alert alert-info">${data.message}</div>
+                                        <a href="${whatsappUrl}" target="_blank" class="btn btn-outline-primary w-100">
+                                            <i class="fab fa-whatsapp me-2"></i>Entrar em contato
+                                        </a>
+                                    `);
                             resetCreateForm();
                             return;
                         }
@@ -626,10 +626,10 @@
                     }
 
                     setResult(`
-                            <div class="alert alert-success">
-                                Usuário criado com sucesso. Agora você já pode entrar com o email ${data.user.email}.
-                            </div>
-                        `);
+                                <div class="alert alert-success">
+                                    Usuário criado com sucesso. Agora você já pode entrar com o email ${data.user.email}.
+                                </div>
+                            `);
                     resetCreateForm();
                 } catch (error) {
                     showFeedback('danger', 'Erro ao criar o usuário. Tente novamente.');

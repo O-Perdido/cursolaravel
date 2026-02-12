@@ -23,6 +23,7 @@ use App\Services\ZapSignService;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Hash;
 
 
 class TermoController extends Controller
@@ -207,6 +208,18 @@ class TermoController extends Controller
         ]);
     }
 
+    public function edit($id)
+    {
+        $termo = Termo::with(['estagiario', 'empresa', 'escola', 'supervisorFixo', 'local', 'vaga'])
+            ->findOrFail($id);
+        $estagiarios = Estagiario::orderBy('nome_estagiario', 'asc')->get();
+        $escolas = Escola::orderBy('nome_escola', 'asc')->get();
+        $empresas = Empresa::orderBy('nome_empresa', 'asc')->get();
+        $supervisores = Supervisor::orderBy('nome_supervisor', 'asc')->get();
+
+        return view('termos.edit', compact('termo', 'estagiarios', 'empresas', 'escolas', 'supervisores'));
+    }
+
     // Buscar vagas disponíveis de uma empresa
     public function buscarVagasPorEmpresa(Request $request)
     {
@@ -340,6 +353,123 @@ class TermoController extends Controller
         }
         
         return redirect('/termos')->with('success', 'Termo criado com sucesso!');
+    }
+
+    public function update(Request $request, $id)
+    {
+        $termo = Termo::findOrFail($id);
+
+        $validatedData = $request->validate([
+            'fk_id_estagiario' => 'required|integer',
+            'fk_id_empresa' => 'required|integer|exists:tb_empresas,id_empresa',
+            'fk_id_local' => 'nullable|integer|exists:tb_local,id_local',
+            'fk_id_local_fixo' => 'nullable|integer|exists:tb_local,id_local',
+            'fk_id_supervisor' => 'required|integer',
+            'fk_id_supervisor_fixo' => 'required|integer',
+            'fk_id_escola' => 'required|integer',
+            'desc_atividades' => 'required|string',
+            'desc_atividades_fixo' => 'required|string',
+            'nome_orientador' => 'required|string',
+            'nome_orientador_fixo' => 'required|string',
+            'cargo_orientador' => 'required|string',
+            'cargo_orientador_fixo' => 'required|string',
+            'data_inicio_estagio' => 'required|date',
+            'data_fim_estagio' => 'required|date',
+            'data_fim_estagio_fixo' => 'required|date',
+            'horario' => 'required|string',
+            'horario_fixo' => 'required|string',
+            'valor_bolsa' => 'required',
+            'valor_bolsa_fixo' => 'required',
+            'auxilio_transporte' => '',
+            'auxilio_transporte_fixo' => '',
+            'lotacao' => 'required|string',
+            'lotacao_fixo' => 'required|string',
+            'fk_id_vaga' => 'nullable|integer|exists:tb_vagas,id_vaga',
+            'password_confirm' => 'required|string',
+        ]);
+
+        if (!Hash::check($validatedData['password_confirm'], Auth::user()->password)) {
+            return back()
+                ->withErrors(['password_confirm' => 'Senha incorreta. Confirme a sua senha para salvar a edição.'])
+                ->withInput();
+        }
+
+        if ((int) $validatedData['fk_id_estagiario'] !== (int) $termo->fk_id_estagiario) {
+            $termoAtivo = Termo::where('fk_id_estagiario', $validatedData['fk_id_estagiario'])
+                ->where('id_termo', '!=', $termo->id_termo)
+                ->whereDoesntHave('rescisao')
+                ->first();
+
+            if ($termoAtivo) {
+                $estagiario = Estagiario::find($validatedData['fk_id_estagiario']);
+                $nomeEstagiario = $estagiario ? $estagiario->nome_estagiario : 'Este estagiário';
+                $numeroTermo = $termoAtivo->numero_termo . '/' . $termoAtivo->ano_termo;
+
+                return back()
+                    ->withErrors(['fk_id_estagiario' => $nomeEstagiario . ' já possui um termo de estágio ativo (Termo nº ' . $numeroTermo . '). É necessário rescindir o termo atual antes de alterar.'])
+                    ->withInput();
+            }
+        }
+
+        if (!empty($validatedData['fk_id_local'])) {
+            $local = Local::find($validatedData['fk_id_local']);
+            if (!$local || (int) $local->fk_id_empresa !== (int) $validatedData['fk_id_empresa']) {
+                return back()
+                    ->withErrors(['fk_id_local' => 'O local selecionado não pertence à unidade concedente escolhida.'])
+                    ->withInput();
+            }
+        }
+
+        $validatedData['valor_bolsa'] = str_replace(',', '.', str_replace('.', '', $validatedData['valor_bolsa']));
+        $validatedData['valor_bolsa_fixo'] = str_replace(',', '.', str_replace('.', '', $validatedData['valor_bolsa_fixo']));
+
+        $validatedData['auxilio_transporte'] = str_replace(',', '.', str_replace('.', '', $validatedData['auxilio_transporte']));
+        $validatedData['auxilio_transporte_fixo'] = str_replace(',', '.', str_replace('.', '', $validatedData['auxilio_transporte_fixo']));
+
+        if ($validatedData['auxilio_transporte'] == '') {
+            $validatedData['auxilio_transporte'] = 0;
+            $validatedData['auxilio_transporte_fixo'] = 0;
+        }
+
+        unset($validatedData['password_confirm']);
+
+        $vagaAnteriorId = $termo->fk_id_vaga;
+        $vagaNovaId = $validatedData['fk_id_vaga'] ?? null;
+        if ($vagaNovaId === '') {
+            $vagaNovaId = null;
+        }
+
+        if ($vagaAnteriorId && (int) $vagaAnteriorId !== (int) $vagaNovaId) {
+            $vagaAnterior = \App\Models\Vaga::find($vagaAnteriorId);
+            if ($vagaAnterior) {
+                $vagaAnterior->update([
+                    'status' => 'disponivel',
+                    'fk_id_termo' => null,
+                    'vinculo_tipo' => null,
+                ]);
+            }
+        }
+
+        if ($vagaNovaId) {
+            $vagaNova = \App\Models\Vaga::find($vagaNovaId);
+            if ($vagaNova) {
+                $vagaNova->update([
+                    'status' => 'preenchida',
+                    'fk_id_termo' => $termo->id_termo,
+                    'vinculo_tipo' => 'vinculado',
+                ]);
+                $validatedData['vinculo'] = 'vinculado';
+            }
+        } else {
+            $validatedData['vinculo'] = 'nao_vinculado';
+        }
+
+        $validatedData['fk_id_vaga'] = $vagaNovaId;
+
+        $termo->update($validatedData);
+
+        return redirect()->route('termos.show', $termo->id_termo)
+            ->with('success', 'Termo atualizado com sucesso!');
     }
 
     public function show($id)

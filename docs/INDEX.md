@@ -19,6 +19,9 @@ A documentação está organizada em pastas temáticas para facilitar a localiza
 - **[LOTES_SALVAMENTO.md](./folha-pagamento/LOTES_SALVAMENTO.md)** - Sistema de salvamento em lotes para muitos registros
 - **[REMESSAS_LOTES.md](./folha-pagamento/REMESSAS_LOTES.md)** - Divisão de remessas bancárias em lotes
 
+### 📝 [Termos](./termos/)
+- **[README.md](./termos/README.md)** - Edição do TCE e regras de acesso
+
 ### ⭐ [Avaliações](./avaliacoes/)
 - **[README.md](./avaliacoes/README.md)** - Documentação técnica completa
 - **[QUICK_START.md](./avaliacoes/QUICK_START.md)** - Guia rápido de início

@@ -204,7 +204,14 @@ Route::middleware(['auth'])->group(function () {
 
 
         // Rota para mostrar o formulário de edição
-        Route::get('/termos/{id}/edit', [TermoController::class, 'edit'])->name('termos.edit');
+        Route::get('/termos/{id}/edit', [TermoController::class, 'edit'])
+            ->middleware(['nivel:admin'])
+            ->name('termos.edit');
+
+        // Rota para atualizar um termo
+        Route::put('/termos/{id}', [TermoController::class, 'update'])
+            ->middleware(['nivel:admin'])
+            ->name('termos.update');
 
         // Rota para excluir um termo específico
         Route::delete('/termos/{id}', [TermoController::class, 'destroy'])->name('termos.destroy');
@@ -383,6 +390,11 @@ Route::middleware(['auth'])->group(function () {
 
         // Rota para exibir a lista de usuários
         Route::get('/usuarios/', [UserController::class, 'index'])->name('usuarios.index');
+
+        // Pesquisa rápida de usuários (modal)
+        Route::get('/usuarios/pesquisa', [UserController::class, 'search'])->name('usuarios.search');
+        Route::get('/usuarios/{id}/detalhes', [UserController::class, 'details'])->name('usuarios.details');
+        Route::put('/usuarios/{id}/email', [UserController::class, 'updateEmail'])->name('usuarios.updateEmail');
 
         // Rota para exibir o formulário de cadastro de um novo usuário
         Route::get('/usuarios/cadastrar', [UserController::class, 'create'])->name('usuarios.register');
