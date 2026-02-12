@@ -46,7 +46,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     // Aplicar a máscara nos campos de CPF
-    const cpfFields = document.querySelectorAll("#numero_cpf, #cpf_supervisor, #cpf, #cpf_representante");
+    const cpfFields = document.querySelectorAll("#numero_cpf, #cpf_supervisor, #cpf, #cpf_representante, #cpf_recuperacao");
     cpfFields.forEach(field => {
         if (field) cpfMask.mask(field);
     });

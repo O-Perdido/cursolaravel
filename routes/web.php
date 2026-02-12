@@ -515,6 +515,7 @@ Route::post('/novo-estagiario', [EstagiarioController::class, 'novoEstagiarioSto
 // NOVO: fluxo AJAX de cadastro de estagiário e criação de usuário (sem recarregar)
 Route::get('/novo-estagiario-ajax', [EstagiarioController::class, 'novoEstagiarioAjaxCreate'])->name('novo-estagiario-ajax-create');
 Route::post('/novo-estagiario-ajax', [EstagiarioController::class, 'novoEstagiarioAjaxStore'])->name('novo-estagiario-ajax-store');
+Route::post('/estagiarios/buscar-cpf', [EstagiarioController::class, 'buscarEstagiarioPorCpf'])->name('estagiarios.buscar-por-cpf');
 Route::post('/estagiarios/{id}/criar-usuario', [EstagiarioController::class, 'criarUsuarioEstagiario'])->name('estagiarios.criar-usuario');
 
 // Verificação de e-mail por código (público)

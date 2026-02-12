@@ -42,6 +42,60 @@ class EstagiarioController extends Controller
         return true;
     }
 
+    public function buscarEstagiarioPorCpf(Request $request)
+    {
+        $request->validate([
+            'cpf' => 'required|string',
+        ]);
+
+        $cpf = preg_replace('/\D/', '', $request->cpf);
+
+        if (!$this->validarCPF($cpf)) {
+            return response()->json([
+                'status' => 'invalid',
+                'message' => 'CPF informado é inválido.',
+            ], 422);
+        }
+
+        $estagiarios = Estagiario::where('numero_cpf', $cpf)->get();
+
+        if ($estagiarios->isEmpty()) {
+            return response()->json([
+                'status' => 'not_found',
+                'message' => 'Nenhum cadastro encontrado para este CPF.',
+            ]);
+        }
+
+        if ($estagiarios->count() > 1) {
+            return response()->json([
+                'status' => 'multiple',
+                'message' => 'Existem múltiplos cadastros com este CPF.',
+                'count' => $estagiarios->count(),
+            ]);
+        }
+
+        $estagiario = $estagiarios->first();
+        $user = User::where('fk_id_estagiario', $estagiario->id_estagiario)->first();
+
+        if ($user) {
+            return response()->json([
+                'status' => 'has_user',
+                'message' => 'Usuário já cadastrado para este estagiário.',
+                'user_email' => $user->email,
+            ]);
+        }
+
+        return response()->json([
+            'status' => 'can_create_user',
+            'message' => 'Cadastro encontrado e sem usuário vinculado.',
+            'estagiario' => [
+                'id' => $estagiario->id_estagiario,
+                'nome' => $estagiario->nome_estagiario,
+                'email' => $estagiario->email,
+            ],
+        ]);
+    }
+
     public function download($id, $campo)
     {
         // Buscar o estagiário pelo ID
@@ -403,6 +457,13 @@ class EstagiarioController extends Controller
     public function criarUsuarioEstagiario(Request $request, $id)
     {
         $estagiario = Estagiario::findOrFail($id);
+
+        if (User::where('fk_id_estagiario', $estagiario->id_estagiario)->exists()) {
+            return response()->json([
+                'message' => 'Este estagiário já possui usuário cadastrado.',
+                'status' => 'has_user',
+            ], 409);
+        }
 
         // Email do usuário deve ser o mesmo do estagiário
         $email = $request->input('email', $estagiario->email);
