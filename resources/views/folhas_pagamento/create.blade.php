@@ -409,7 +409,7 @@
                             });
                         @endforeach
 
-                                                    const totalRegistros = todosRegistros.length;
+                                                        const totalRegistros = todosRegistros.length;
                         const TAMANHO_LOTE = 50; // Envia 50 registros por vez
                         const totalLotes = Math.ceil(totalRegistros / TAMANHO_LOTE);
 
