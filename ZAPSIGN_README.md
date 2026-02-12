@@ -85,6 +85,27 @@ Certifique-se que o estagiário possui:
 - Se não houver representantes, usa `nome_representante` + `email` da empresa/escola
 - Garanta que o email esteja preenchido para que o convite seja enviado
 
+### Atualizacao automatica de status (Webhook)
+
+- Se `ZAPSIGN_WEBHOOK_URL` estiver configurado, o sistema envia `webhook_url` no payload
+- O endpoint publico ja existe em `/webhooks/zapsign` e atualiza o status automaticamente
+
+### Tela de detalhes do termo (ZapSign)
+
+- Card dedicado com duas secoes: Assinatura TCE e Assinatura TRE
+- Acoes principais ficam no card (enviar, atualizar status, excluir documento)
+- Lista de destinatarios com status individual e link para baixar PDF assinado quando disponivel
+
+### Lista de alteracoes (ZapSign)
+
+- Botao "Assinaturas" abre um modal com status do TAE
+- Exibe destinatarios, status individual, envio, exclusao e download do PDF assinado
+
+### Instituicao de ensino fora do ZapSign
+
+- No cadastro/edicao da escola, marque a opcao "Esta instituicao de ensino nao assina pelo ZapSign"
+- Quando marcada, a escola nao e adicionada como destinataria nas assinaturas (TCE, TAE e TRE)
+
 ## 🎯 Funcionalidades Implementadas
 
 - ✅ Criar documento no ZapSign via upload de PDF

@@ -345,7 +345,82 @@ class TermoController extends Controller
     public function show($id)
     {
         $termo = Termo::with('rescisao')->findOrFail($id);
-        return view('termos.show', compact('termo'));
+
+        $zapSignService = new ZapSignService();
+        $detalhesTce = null;
+        $detalhesTre = null;
+        $signatariosTce = [];
+        $signatariosTre = [];
+        $downloadAssinadoTce = null;
+        $downloadAssinadoTre = null;
+
+        if (!empty($termo->zapsign_doc_token)) {
+            $resultado = $zapSignService->detalharDocumento($termo->zapsign_doc_token);
+            if ($resultado['success']) {
+                $detalhesTce = $resultado['data'];
+                $signatariosTce = $this->extrairSignatariosZapSign($detalhesTce);
+                $downloadAssinadoTce = $this->extrairUrlDocumentoAssinado($detalhesTce);
+            }
+        }
+
+        if ($termo->rescisao && !empty($termo->rescisao->zapsign_doc_token)) {
+            $resultadoTre = $zapSignService->detalharDocumento($termo->rescisao->zapsign_doc_token);
+            if ($resultadoTre['success']) {
+                $detalhesTre = $resultadoTre['data'];
+                $signatariosTre = $this->extrairSignatariosZapSign($detalhesTre);
+                $downloadAssinadoTre = $this->extrairUrlDocumentoAssinado($detalhesTre);
+            }
+        }
+
+        return view('termos.show', compact(
+            'termo',
+            'detalhesTce',
+            'detalhesTre',
+            'signatariosTce',
+            'signatariosTre',
+            'downloadAssinadoTce',
+            'downloadAssinadoTre'
+        ));
+    }
+
+    private function extrairSignatariosZapSign(?array $detalhes): array
+    {
+        if (!$detalhes) {
+            return [];
+        }
+
+        $signers = data_get($detalhes, 'signers')
+            ?? data_get($detalhes, 'document.signers')
+            ?? [];
+
+        return is_array($signers) ? $signers : [];
+    }
+
+    private function extrairUrlDocumentoAssinado(?array $detalhes): ?string
+    {
+        if (!$detalhes) {
+            return null;
+        }
+
+        $paths = [
+            'signed_file',
+            'signed_file_url',
+            'signed_url',
+            'download_signed_url',
+            'document.signed_file',
+            'document.signed_file_url',
+            'document.signed_url',
+            'document.download_signed_url',
+        ];
+
+        foreach ($paths as $path) {
+            $url = data_get($detalhes, $path);
+            if (is_string($url) && $url !== '') {
+                return $url;
+            }
+        }
+
+        return null;
     }
 
     /*public function edit($id)
@@ -478,26 +553,28 @@ class TermoController extends Controller
             }
 
             // 2. Representantes da Instituição de Ensino (Escola)
-            if ($termo->escola && $termo->escola->representantes->count() > 0) {
-                foreach ($termo->escola->representantes as $rep) {
+            if ($termo->escola && !$termo->escola->nao_assina_zapsign) {
+                if ($termo->escola->representantes->count() > 0) {
+                    foreach ($termo->escola->representantes as $rep) {
+                        $signatarios[] = [
+                            'name' => $rep->nome,
+                            'email' => $rep->email,
+                        ];
+                        $signatariosParaPdf[] = [
+                            'nome' => $rep->nome,
+                            'tipo' => 'Pela Instituição de Ensino'
+                        ];
+                    }
+                } elseif ($termo->escola->nome_representante && $termo->escola->email) {
                     $signatarios[] = [
-                        'name' => $rep->nome,
-                        'email' => $rep->email,
+                        'name' => $termo->escola->nome_representante,
+                        'email' => $termo->escola->email,
                     ];
                     $signatariosParaPdf[] = [
-                        'nome' => $rep->nome,
+                        'nome' => $termo->escola->nome_representante,
                         'tipo' => 'Pela Instituição de Ensino'
                     ];
                 }
-            } elseif ($termo->escola && $termo->escola->nome_representante && $termo->escola->email) {
-                $signatarios[] = [
-                    'name' => $termo->escola->nome_representante,
-                    'email' => $termo->escola->email,
-                ];
-                $signatariosParaPdf[] = [
-                    'nome' => $termo->escola->nome_representante,
-                    'tipo' => 'Pela Instituição de Ensino'
-                ];
             }
             
             // 3. Estagiário
@@ -620,6 +697,34 @@ class TermoController extends Controller
 
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Erro ao verificar status: ' . $e->getMessage());
+        }
+    }
+
+    public function excluirDocumentoZapSign($id)
+    {
+        try {
+            $termo = Termo::findOrFail($id);
+
+            if (!$termo->zapsign_doc_token) {
+                return redirect()->back()->with('warning', 'Este termo nao possui documento no ZapSign.');
+            }
+
+            $zapSignService = new ZapSignService();
+            $resultado = $zapSignService->excluirDocumento($termo->zapsign_doc_token);
+
+            if ($resultado['success']) {
+                $termo->zapsign_doc_token = null;
+                $termo->zapsign_status = null;
+                $termo->zapsign_enviado_em = null;
+                $termo->save();
+
+                return redirect()->back()->with('success', 'Documento do ZapSign excluido com sucesso.');
+            }
+
+            return redirect()->back()->with('error', 'Erro ao excluir documento: ' . $resultado['message']);
+
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Erro ao excluir documento: ' . $e->getMessage());
         }
     }
 

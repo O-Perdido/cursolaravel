@@ -56,6 +56,14 @@
                         representantes com emails para assinatura digital.
                     </p>
                     <hr class="my-2">
+                    <h6 class="text-muted mb-3">ZapSign</h6>
+                    <!-- Exibir se a escola não assina pelo ZapSign -->
+                    @if (!$escola->assinatura_zapsign)
+                        <p class="mb-1"><strong>Assinatura:</strong> Não assina pelo ZapSign</p>
+                    @else
+                        <p class="mb-1"><strong>Assinatura:</strong> Assina pelo ZapSign</p>
+                    @endif
+                    <hr class="my-2">
                     <h6 class="text-muted mb-3">Seguro</h6>
                     <p class="mb-1"><strong>Número da Apólice:</strong> {{ $escola->numero_apolice }}</p>
                     <p class="mb-1"><strong>Nome da Seguradora:</strong> {{ $escola->nome_seguradora }}</p>

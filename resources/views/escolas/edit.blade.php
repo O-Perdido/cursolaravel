@@ -125,6 +125,17 @@
             </div>
         </div>
 
+        <div class="form-group mt-3">
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="nao_assina_zapsign" name="nao_assina_zapsign" value="1"
+                    {{ $escola->nao_assina_zapsign ? 'checked' : '' }}>
+                <label class="form-check-label" for="nao_assina_zapsign">
+                    Esta instituicao de ensino nao assina pelo ZapSign
+                </label>
+            </div>
+            <small class="text-muted">Quando marcado, a instituicao nao sera adicionada como destinataria no envio.</small>
+        </div>
+
         <div class="form-group mt-3 text-end">
             <button type="submit" class="btn btn-primary">Salvar</button>
         </div>

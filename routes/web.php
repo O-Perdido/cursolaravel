@@ -223,6 +223,9 @@ Route::middleware(['auth'])->group(function () {
 
         // Rota para verificar status da rescisão no ZapSign
         Route::get('/rescisao/{id}/status-zapsign', [RescisaoController::class, 'verificarStatusZapSign'])->name('rescisao.statusZapSign');
+        Route::delete('/rescisao/{id}/zapsign', [RescisaoController::class, 'excluirDocumentoZapSign'])
+            ->middleware(['admin_ou_operador'])
+            ->name('rescisao.zapsign.excluir');
 
 
         //ROTAS para alterações de termos
@@ -245,6 +248,9 @@ Route::middleware(['auth'])->group(function () {
 
         // Rota para verificar status da alteração no ZapSign
         Route::get('/termos/{id}/alteracoes/{id_alteracao}/status-zapsign', [AlteracaoTermoController::class, 'verificarStatusZapSign'])->name('alteracao.statusZapSign');
+        Route::delete('/termos/{id}/alteracoes/{id_alteracao}/zapsign', [AlteracaoTermoController::class, 'excluirDocumentoZapSign'])
+            ->middleware(['admin_ou_operador'])
+            ->name('alteracao.zapsign.excluir');
 
 
         // Rotas para folhas de pagamento        
@@ -357,6 +363,9 @@ Route::middleware(['auth'])->group(function () {
     // Rotas para integração com ZapSign
     Route::post('/termos/{id}/enviar-zapsign', [TermoController::class, 'enviarParaZapSign'])->name('termos.enviarZapSign');
     Route::get('/termos/{id}/status-zapsign', [TermoController::class, 'verificarStatusZapSign'])->name('termos.statusZapSign');
+    Route::delete('/termos/{id}/zapsign', [TermoController::class, 'excluirDocumentoZapSign'])
+        ->middleware(['admin_ou_operador'])
+        ->name('termos.zapsign.excluir');
 
     // Rotas para Representantes
     Route::post('/representantes', [App\Http\Controllers\RepresentanteController::class, 'store'])->name('representantes.store');

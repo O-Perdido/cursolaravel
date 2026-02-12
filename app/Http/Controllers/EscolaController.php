@@ -86,6 +86,7 @@ class EscolaController extends Controller
             'cpf_representante' => 'nullable|string',
             'numero_apolice' => 'nullable|string',
             'nome_seguradora' => 'nullable|string',
+            'nao_assina_zapsign' => 'nullable|boolean',
 
         ]);
 
@@ -108,6 +109,7 @@ class EscolaController extends Controller
             'cpf_representante' => $request->cpf_representante,
             'numero_apolice' => $request->numero_apolice,
             'nome_seguradora' => $request->nome_seguradora,
+            'nao_assina_zapsign' => $request->boolean('nao_assina_zapsign'),
         ]);
 
         // Redirecionamento com sucesso
@@ -184,6 +186,10 @@ class EscolaController extends Controller
             'cargo_representante' => 'nullable|string',
             'cpf_representante' => 'nullable|string|max:11',
             */
+        ]);
+
+        $request->merge([
+            'nao_assina_zapsign' => $request->boolean('nao_assina_zapsign'),
         ]);
 
         $escola = Escola::findOrFail($id);

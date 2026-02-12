@@ -42,6 +42,7 @@ class Escola extends Model
         'cpf_representante',
         'numero_apolice',
         'nome_seguradora',
+        'nao_assina_zapsign',
     ];
 
     // Definir os campos que devem ser ocultados ao serializar o modelo (opcional)
@@ -52,6 +53,7 @@ class Escola extends Model
     // Cast dos campos para tipos específicos
     protected $casts = [
         'aceitacao_termos' => 'boolean',
+        'nao_assina_zapsign' => 'boolean',
     ];
 
     // Relacionamento com a Cidade

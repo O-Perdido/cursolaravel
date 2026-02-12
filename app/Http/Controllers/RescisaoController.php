@@ -117,26 +117,28 @@ class RescisaoController extends Controller
             }
 
             // 2. Representantes da Instituição de Ensino (Escola)
-            if ($termo->escola && $termo->escola->representantes->count() > 0) {
-                foreach ($termo->escola->representantes as $rep) {
+            if ($termo->escola && !$termo->escola->nao_assina_zapsign) {
+                if ($termo->escola->representantes->count() > 0) {
+                    foreach ($termo->escola->representantes as $rep) {
+                        $signatarios[] = [
+                            'name' => $rep->nome,
+                            'email' => $rep->email,
+                        ];
+                        $signatariosParaPdf[] = [
+                            'nome' => $rep->nome,
+                            'tipo' => 'Pela Instituição de Ensino'
+                        ];
+                    }
+                } elseif ($termo->escola->nome_representante && $termo->escola->email) {
                     $signatarios[] = [
-                        'name' => $rep->nome,
-                        'email' => $rep->email,
+                        'name' => $termo->escola->nome_representante,
+                        'email' => $termo->escola->email,
                     ];
                     $signatariosParaPdf[] = [
-                        'nome' => $rep->nome,
+                        'nome' => $termo->escola->nome_representante,
                         'tipo' => 'Pela Instituição de Ensino'
                     ];
                 }
-            } elseif ($termo->escola && $termo->escola->nome_representante && $termo->escola->email) {
-                $signatarios[] = [
-                    'name' => $termo->escola->nome_representante,
-                    'email' => $termo->escola->email,
-                ];
-                $signatariosParaPdf[] = [
-                    'nome' => $termo->escola->nome_representante,
-                    'tipo' => 'Pela Instituição de Ensino'
-                ];
             }
             
             // 3. Estagiário
@@ -307,6 +309,34 @@ class RescisaoController extends Controller
 
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Erro ao verificar status: ' . $e->getMessage());
+        }
+    }
+
+    public function excluirDocumentoZapSign($id)
+    {
+        try {
+            $rescisao = Rescisao::findOrFail($id);
+
+            if (!$rescisao->zapsign_doc_token) {
+                return redirect()->back()->with('warning', 'Esta rescisao nao possui documento no ZapSign.');
+            }
+
+            $zapSignService = new ZapSignService();
+            $resultado = $zapSignService->excluirDocumento($rescisao->zapsign_doc_token);
+
+            if ($resultado['success']) {
+                $rescisao->zapsign_doc_token = null;
+                $rescisao->zapsign_status = null;
+                $rescisao->zapsign_enviado_em = null;
+                $rescisao->save();
+
+                return redirect()->back()->with('success', 'Documento do ZapSign excluido com sucesso.');
+            }
+
+            return redirect()->back()->with('error', 'Erro ao excluir documento: ' . $resultado['message']);
+
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Erro ao excluir documento: ' . $e->getMessage());
         }
     }
 

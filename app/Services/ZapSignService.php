@@ -36,6 +36,11 @@ class ZapSignService
                 'signers' => $this->formatarSignatarios($signatarios),
             ];
 
+            $webhookUrl = config('zapsign.webhook_url');
+            if ($webhookUrl) {
+                $payload['webhook_url'] = $webhookUrl;
+            }
+
             $response = Http::withHeaders([
                 'Authorization' => 'Bearer ' . $this->apiToken,
                 'Content-Type' => 'application/json',
@@ -93,6 +98,11 @@ class ZapSignService
                 'sandbox' => config('zapsign.sandbox', false),
                 'signers' => $this->formatarSignatarios($signatarios),
             ];
+
+            $webhookUrl = config('zapsign.webhook_url');
+            if ($webhookUrl) {
+                $payload['webhook_url'] = $webhookUrl;
+            }
 
             $response = Http::withHeaders([
                 'Authorization' => 'Bearer ' . $this->apiToken,

@@ -20,11 +20,6 @@
                 <i class="fas fa-file-pdf"></i> PDF Termo
             </a>
             @if (Auth::user()->nivel == 'admin' || Auth::user()->nivel == 'operador')
-                <!-- Botão ZapSign -->
-                <button type="button" class="btn btn-success" data-bs-toggle="modal"
-                    data-bs-target="#zapSignModalShow" title="Enviar para Assinatura ZapSign">
-                    <i class="fas fa-file-signature"></i> ZapSign
-                </button>
                 <!-- Botão Recesso -->
                 <button type="button" class="btn btn-info" data-bs-toggle="modal"
                     data-bs-target="#recessoModal" title="Conceder Recesso">
@@ -35,18 +30,6 @@
                         target="_blank">
                         <i class="fas fa-file-pdf"></i> PDF Rescisão
                     </a>
-                    
-                    @if(!$termo->rescisao->zapsign_doc_token)
-                        <button type="button" class="btn btn-success" data-bs-toggle="modal" 
-                            data-bs-target="#zapSignModalRescisao" title="Enviar Rescisão para Assinatura ZapSign">
-                            <i class="fas fa-file-signature"></i> Enviar para ZapSign
-                        </button>
-                    @else
-                        <a href="{{ route('rescisao.statusZapSign', $termo->rescisao->id_rescisao) }}" class="btn btn-secondary"
-                            title="Atualizar status da rescisão no ZapSign">
-                            <i class="fas fa-sync-alt"></i> Atualizar status
-                        </a>
-                    @endif
                 @else
                     <button type="button" class="btn btn-warning" style="color: crimson; font-weight: 900;" data-toggle="modal"
                         data-target="#exampleModal">
@@ -124,35 +107,208 @@
                 $zsClass = $zsMap[$zsRaw][1] ?? 'secondary';
             @endphp
             @if (Auth::user()->nivel == 'admin' || Auth::user()->nivel == 'operador')
-            <div class="alert alert-light border d-flex justify-content-between align-items-center mb-4" role="alert">
-                <div>
-                    <h5 class="mb-1">Status da assinatura do termo de contrato - ZapSign</h5>
-                    <div class="mb-1">
-                        <span class="badge bg-{{ $zsClass }}">{{ $zsLabel }}</span>
-                        @if(!empty($termo->zapsign_enviado_em))
-                            <small class="text-muted ms-2">Enviado em: {{ \Carbon\Carbon::parse($termo->zapsign_enviado_em)->format('d/m/Y H:i') }}</small>
-                        @endif
-                    </div>
-                    @if(!empty($termo->zapsign_doc_token))
+                @php
+                    $zsRawTce = strtolower($termo->zapsign_status ?? '');
+                    $zsLabelTce = $zsMap[$zsRawTce][0] ?? ($zsRawTce === '' ? 'Não enviado' : ucfirst($zsRawTce));
+                    $zsClassTce = $zsMap[$zsRawTce][1] ?? 'secondary';
+
+                    $zsRawTre = strtolower(optional($termo->rescisao)->zapsign_status ?? '');
+                    $zsLabelTre = $zsMap[$zsRawTre][0] ?? ($zsRawTre === '' ? 'Não enviado' : ucfirst($zsRawTre));
+                    $zsClassTre = $zsMap[$zsRawTre][1] ?? 'secondary';
+
+                    $signerStatusMap = [
+                        '' => ['Pendente', 'secondary'],
+                        'pending' => ['Pendente', 'secondary'],
+                        'waiting' => ['Pendente', 'secondary'],
+                        'waiting_signature' => ['Pendente', 'secondary'],
+                        'sent' => ['Enviado', 'info'],
+                        'viewed' => ['Visualizado', 'info'],
+                        'opened' => ['Visualizado', 'info'],
+                        'signed' => ['Assinado', 'success'],
+                        'finished' => ['Assinado', 'success'],
+                        'completed' => ['Assinado', 'success'],
+                        'concluded' => ['Assinado', 'success'],
+                        'refused' => ['Recusado', 'danger'],
+                        'rejected' => ['Recusado', 'danger'],
+                        'declined' => ['Recusado', 'danger'],
+                        'canceled' => ['Cancelado', 'dark'],
+                        'cancelled' => ['Cancelado', 'dark'],
+                        'error' => ['Erro', 'danger'],
+                        'failed' => ['Erro', 'danger'],
+                    ];
+                @endphp
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header text-white d-flex justify-content-between align-items-center"
+                        style="background-color: #1f2937;">
                         <div>
-                            <strong>Doc token:</strong>
-                            <span class="text-monospace">{{ $termo->zapsign_doc_token }}</span>
-                            <button type="button" class="btn btn-outline-primary btn-sm ms-2"
-                                    data-token="{{ $termo->zapsign_doc_token }}"
-                                    onclick="copyEmailToClipboard(this.dataset.token, this)">
-                                <i class="fas fa-copy"></i> Copiar
-                            </button>
+                            <i class="fas fa-file-signature me-2"></i>
+                            <strong>ZapSign</strong>
                         </div>
-                    @else
-                        <div class="text-muted">Nenhum documento enviado para assinatura.</div>
-                    @endif
+                        <span class="badge bg-light text-dark">Assinaturas</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-lg-6">
+                                <div class="card h-100 border">
+                                    <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                                        <strong>Assinatura TCE</strong>
+                                        <span class="badge bg-{{ $zsClassTce }}">{{ $zsLabelTce }}</span>
+                                    </div>
+                                    <div class="card-body">
+                                        @if(!$termo->zapsign_doc_token)
+                                            <p class="text-muted mb-3">Documento ainda não enviado para assinatura.</p>
+                                            <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal"
+                                                data-bs-target="#zapSignModalShow" title="Enviar para Assinatura ZapSign">
+                                                <i class="fas fa-paper-plane"></i> Enviar para assinatura
+                                            </button>
+                                        @else
+                                            <div class="d-flex flex-wrap gap-2 mb-3">
+                                                <a href="{{ route('termos.statusZapSign', $termo->id_termo) }}" class="btn btn-outline-secondary btn-sm">
+                                                    <i class="fas fa-sync-alt"></i> Atualizar status
+                                                </a>
+                                                <form action="{{ route('termos.zapsign.excluir', $termo->id_termo) }}" method="POST"
+                                                    onsubmit="return confirm('Confirma excluir este documento do ZapSign?');">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="btn btn-outline-danger btn-sm">
+                                                        <i class="fas fa-trash"></i> Excluir documento
+                                                    </button>
+                                                </form>
+                                                @if(!empty($downloadAssinadoTce))
+                                                    <a href="{{ $downloadAssinadoTce }}" class="btn btn-outline-primary btn-sm" target="_blank">
+                                                        <i class="fas fa-file-download"></i> Baixar PDF assinado
+                                                    </a>
+                                                @endif
+                                            </div>
+                                            <div class="small">
+                                                <strong>Doc token:</strong>
+                                                <span class="text-monospace">{{ $termo->zapsign_doc_token }}</span>
+                                                <button type="button" class="btn btn-outline-primary btn-sm ms-2"
+                                                        data-token="{{ $termo->zapsign_doc_token }}"
+                                                        onclick="copyEmailToClipboard(this.dataset.token, this)">
+                                                    <i class="fas fa-copy"></i> Copiar
+                                                </button>
+                                            </div>
+                                        @endif
+                                        <hr class="my-3">
+                                        <h6 class="mb-2">Destinatários</h6>
+                                        @if(!empty($signatariosTce) && count($signatariosTce) > 0)
+                                            <div class="table-responsive">
+                                                <table class="table table-sm table-bordered mb-0">
+                                                    <thead class="table-light">
+                                                        <tr>
+                                                            <th>Nome</th>
+                                                            <th>Email</th>
+                                                            <th>Status</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @foreach($signatariosTce as $signer)
+                                                            @php
+                                                                $signerRaw = strtolower($signer['status'] ?? $signer['signer_status'] ?? $signer['state'] ?? '');
+                                                                $signerInfo = $signerStatusMap[$signerRaw] ?? ['Desconhecido', 'secondary'];
+                                                            @endphp
+                                                            <tr>
+                                                                <td>{{ $signer['name'] ?? '—' }}</td>
+                                                                <td class="text-monospace">{{ $signer['email'] ?? '—' }}</td>
+                                                                <td><span class="badge bg-{{ $signerInfo[1] }}">{{ $signerInfo[0] }}</span></td>
+                                                            </tr>
+                                                        @endforeach
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        @else
+                                            <p class="text-muted mb-0">Nenhum destinatário retornado pelo ZapSign.</p>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="card h-100 border">
+                                    <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                                        <strong>Assinatura TRE</strong>
+                                        @if($termo->rescisao)
+                                            <span class="badge bg-{{ $zsClassTre }}">{{ $zsLabelTre }}</span>
+                                        @endif
+                                    </div>
+                                    <div class="card-body">
+                                        @if(!$termo->rescisao)
+                                            <div class="alert alert-success mb-0">
+                                                <i class="fas fa-check-circle me-1"></i> Contrato ainda ativo.
+                                            </div>
+                                        @else
+                                            @if(!$termo->rescisao->zapsign_doc_token)
+                                                <p class="text-muted mb-3">Rescisão criada, mas documento ainda não enviado.</p>
+                                                <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal"
+                                                    data-bs-target="#zapSignModalRescisao" title="Enviar Rescisão para Assinatura ZapSign">
+                                                    <i class="fas fa-paper-plane"></i> Enviar rescisão para assinatura
+                                                </button>
+                                            @else
+                                                <div class="d-flex flex-wrap gap-2 mb-3">
+                                                    <a href="{{ route('rescisao.statusZapSign', $termo->rescisao->id_rescisao) }}" class="btn btn-outline-secondary btn-sm">
+                                                        <i class="fas fa-sync-alt"></i> Atualizar status
+                                                    </a>
+                                                    <form action="{{ route('rescisao.zapsign.excluir', $termo->rescisao->id_rescisao) }}" method="POST"
+                                                        onsubmit="return confirm('Confirma excluir este documento do ZapSign?');">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit" class="btn btn-outline-danger btn-sm">
+                                                            <i class="fas fa-trash"></i> Excluir documento
+                                                        </button>
+                                                    </form>
+                                                    @if(!empty($downloadAssinadoTre))
+                                                        <a href="{{ $downloadAssinadoTre }}" class="btn btn-outline-primary btn-sm" target="_blank">
+                                                            <i class="fas fa-file-download"></i> Baixar PDF assinado
+                                                        </a>
+                                                    @endif
+                                                </div>
+                                                <div class="small">
+                                                    <strong>Doc token:</strong>
+                                                    <span class="text-monospace">{{ $termo->rescisao->zapsign_doc_token }}</span>
+                                                    <button type="button" class="btn btn-outline-primary btn-sm ms-2"
+                                                            data-token="{{ $termo->rescisao->zapsign_doc_token }}"
+                                                            onclick="copyEmailToClipboard(this.dataset.token, this)">
+                                                        <i class="fas fa-copy"></i> Copiar
+                                                    </button>
+                                                </div>
+                                            @endif
+                                            <hr class="my-3">
+                                            <h6 class="mb-2">Destinatários</h6>
+                                            @if(!empty($signatariosTre) && count($signatariosTre) > 0)
+                                                <div class="table-responsive">
+                                                    <table class="table table-sm table-bordered mb-0">
+                                                        <thead class="table-light">
+                                                            <tr>
+                                                                <th>Nome</th>
+                                                                <th>Email</th>
+                                                                <th>Status</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            @foreach($signatariosTre as $signer)
+                                                                @php
+                                                                    $signerRaw = strtolower($signer['status'] ?? $signer['signer_status'] ?? $signer['state'] ?? '');
+                                                                    $signerInfo = $signerStatusMap[$signerRaw] ?? ['Desconhecido', 'secondary'];
+                                                                @endphp
+                                                                <tr>
+                                                                    <td>{{ $signer['name'] ?? '—' }}</td>
+                                                                    <td class="text-monospace">{{ $signer['email'] ?? '—' }}</td>
+                                                                    <td><span class="badge bg-{{ $signerInfo[1] }}">{{ $signerInfo[0] }}</span></td>
+                                                                </tr>
+                                                            @endforeach
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            @else
+                                                <p class="text-muted mb-0">Nenhum destinatário retornado pelo ZapSign.</p>
+                                            @endif
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div>
-                    <a href="{{ route('termos.statusZapSign', $termo->id_termo) }}" class="btn btn-outline-secondary btn-sm">
-                        <i class="fas fa-sync-alt"></i> Atualizar status
-                    </a>
-                </div>
-            </div>
             @endif
             <div class="mt-4">
                 @php
@@ -167,29 +323,6 @@
                                 <h5 class="mb-0">
                                     <i class="fas fa-ban me-2"></i>Contrato Rescindido
                                 </h5>
-                                @if($termo->rescisao->zapsign_doc_token)
-                                    @php
-                                        $statusMap = [
-                                            'signed' => ['bg-success', 'fas fa-check-circle', 'Assinado'],
-                                            'finished' => ['bg-success', 'fas fa-check-circle', 'Concluído'],
-                                            'concluded' => ['bg-success', 'fas fa-check-circle', 'Concluído'],
-                                            'completed' => ['bg-success', 'fas fa-check-circle', 'Concluído'],
-                                            'assinado' => ['bg-success', 'fas fa-check-circle', 'Assinado'],
-                                            'concluido' => ['bg-success', 'fas fa-check-circle', 'Concluído'],
-                                            'link_aberto' => ['bg-info', 'fas fa-envelope-open', 'Aguardando Assinatura'],
-                                            'waiting_signature' => ['bg-info', 'fas fa-envelope-open', 'Aguardando Assinatura'],
-                                            'enviado' => ['bg-warning text-dark', 'fas fa-paper-plane', 'Enviado para Assinatura'],
-                                            'pending' => ['bg-warning text-dark', 'fas fa-paper-plane', 'Pendente'],
-                                            'desconhecido' => ['bg-secondary', 'fas fa-question-circle', 'Desconhecido']
-                                        ];
-                                        $rawStatus = trim(strtolower($termo->rescisao->zapsign_status ?? 'enviado'));
-                                        $status = $rawStatus ?: 'enviado';
-                                        $statusInfo = $statusMap[$status] ?? $statusMap['desconhecido'];
-                                    @endphp
-                                    <span class="badge {{ $statusInfo[0] }}">
-                                        <i class="{{ $statusInfo[1] }} me-1"></i>{{ $statusInfo[2] }}
-                                    </span>
-                                @endif
                             </div>
                         </div>
                         <div class="card-body">
@@ -216,17 +349,6 @@
                                 <span style="margin-left: 24px;">{{ $termo->rescisao->motivo }}</span>
                             </p>
                         </div>
-                        @if($termo->rescisao->zapsign_doc_token)
-                        <div class="card-footer bg-light d-flex justify-content-between align-items-center">
-                            <small class="text-muted">
-                                <i class="fas fa-signature me-1"></i>
-                                Enviado em: {{ \Carbon\Carbon::parse($termo->rescisao->zapsign_enviado_em)->format('d/m/Y H:i') }}
-                            </small>
-                            <a href="{{ route('rescisao.statusZapSign', $termo->rescisao->id_rescisao) }}" class="btn btn-outline-secondary btn-sm">
-                                <i class="fas fa-sync-alt"></i> Atualizar status
-                            </a>
-                        </div>
-                        @endif
                     </div>
                 @elseif($isVencido)
                     <div class="alert alert-warning d-flex align-items-center" role="alert">
@@ -721,9 +843,30 @@
                                 @endif
 
                                 {{-- Representantes da Escola --}}
-                                @if(isset($termo->escola) && $termo->escola->representantes->count() > 0)
-                                    @foreach($termo->escola->representantes as $rep)
-                                        <tr data-ordem="{{ $ordem++ }}" data-tipo="escola_rep">
+                                @if(isset($termo->escola) && !$termo->escola->nao_assina_zapsign)
+                                    @if($termo->escola->representantes->count() > 0)
+                                        @foreach($termo->escola->representantes as $rep)
+                                            <tr data-ordem="{{ $ordem++ }}" data-tipo="escola_rep">
+                                                <td class="text-center">
+                                                    <button type="button" class="btn btn-sm btn-link p-0"
+                                                        onclick="moverLinhaShow(this, -1)"
+                                                        title="Mover para cima">
+                                                        <i class="fas fa-arrow-up text-primary"></i>
+                                                    </button>
+                                                    <button type="button" class="btn btn-sm btn-link p-0"
+                                                        onclick="moverLinhaShow(this, 1)"
+                                                        title="Mover para baixo">
+                                                        <i class="fas fa-arrow-down text-primary"></i>
+                                                    </button>
+                                                </td>
+                                                <td><i class="fas fa-school text-success me-1"></i> Instituição</td>
+                                                <td>{{ $termo->escola->nome_escola }}</td>
+                                                <td>{{ $rep->email }}</td>
+                                                <td>{{ $rep->nome }}</td>
+                                            </tr>
+                                        @endforeach
+                                    @else
+                                        <tr data-ordem="{{ $ordem++ }}" data-tipo="escola_legado">
                                             <td class="text-center">
                                                 <button type="button" class="btn btn-sm btn-link p-0"
                                                     onclick="moverLinhaShow(this, -1)"
@@ -738,37 +881,18 @@
                                             </td>
                                             <td><i class="fas fa-school text-success me-1"></i> Instituição</td>
                                             <td>{{ $termo->escola->nome_escola }}</td>
-                                            <td>{{ $rep->email }}</td>
-                                            <td>{{ $rep->nome }}</td>
+                                            <td>{{ $termo->escola->email ?? '—' }}</td>
+                                            <td>{{ $termo->escola->nome_representante ?? '—' }}</td>
                                         </tr>
-                                    @endforeach
-                                @elseif(isset($termo->escola))
-                                    <tr data-ordem="{{ $ordem++ }}" data-tipo="escola_legado">
-                                        <td class="text-center">
-                                            <button type="button" class="btn btn-sm btn-link p-0"
-                                                onclick="moverLinhaShow(this, -1)"
-                                                title="Mover para cima">
-                                                <i class="fas fa-arrow-up text-primary"></i>
-                                            </button>
-                                            <button type="button" class="btn btn-sm btn-link p-0"
-                                                onclick="moverLinhaShow(this, 1)"
-                                                title="Mover para baixo">
-                                                <i class="fas fa-arrow-down text-primary"></i>
-                                            </button>
-                                        </td>
-                                        <td><i class="fas fa-school text-success me-1"></i> Instituição</td>
-                                        <td>{{ $termo->escola->nome_escola }}</td>
-                                        <td>{{ $termo->escola->email ?? '—' }}</td>
-                                        <td>{{ $termo->escola->nome_representante ?? '—' }}</td>
-                                    </tr>
+                                    @endif
                                 @endif
                             </tbody>
                         </table>
                     </div>
                     <p class="text-muted small mb-0">
-                        <strong>Observação:</strong> Todos os representantes cadastrados nas
-                        Escolas/Empresas serão incluídos automaticamente. O Agente de Integração (EBCP)
-                        também será incluído.
+                        <strong>Observação:</strong> Os representantes cadastrados nas Escolas/Empresas
+                        serão incluídos automaticamente, exceto quando a instituição estiver marcada
+                        como não assinante do ZapSign.
                     </p>
                 </div>
                 <div class="modal-footer">
@@ -1084,26 +1208,29 @@
                                     </tr>
                                 @endif
                                 {{-- Representantes da Escola --}}
-                                @if(isset($termo->escola) && $termo->escola->representantes->count() > 0)
-                                    @foreach($termo->escola->representantes as $rep)
+                                @if(isset($termo->escola) && !$termo->escola->nao_assina_zapsign)
+                                    @if($termo->escola->representantes->count() > 0)
+                                        @foreach($termo->escola->representantes as $rep)
+                                            <tr>
+                                                <td><i class="fas fa-school text-success me-1"></i> Instituição</td>
+                                                <td>{{ $rep->nome }}</td>
+                                                <td>{{ $rep->email }}</td>
+                                            </tr>
+                                        @endforeach
+                                    @else
                                         <tr>
                                             <td><i class="fas fa-school text-success me-1"></i> Instituição</td>
-                                            <td>{{ $rep->nome }}</td>
-                                            <td>{{ $rep->email }}</td>
+                                            <td>{{ $termo->escola->nome_representante ?? $termo->escola->nome_escola }}</td>
+                                            <td>{{ $termo->escola->email ?? '—' }}</td>
                                         </tr>
-                                    @endforeach
-                                @elseif(isset($termo->escola))
-                                    <tr>
-                                        <td><i class="fas fa-school text-success me-1"></i> Instituição</td>
-                                        <td>{{ $termo->escola->nome_representante ?? $termo->escola->nome_escola }}</td>
-                                        <td>{{ $termo->escola->email ?? '—' }}</td>
-                                    </tr>
+                                    @endif
                                 @endif
                             </tbody>
                         </table>
                     </div>
                     <p class="text-muted small mb-0">
-                        <strong>Observação:</strong> Todos os representantes cadastrados receberão o documento para assinatura digital.
+                        <strong>Observação:</strong> Os representantes cadastrados receberão o documento para assinatura digital,
+                        exceto quando a instituição estiver marcada como não assinante do ZapSign.
                     </p>
                 </div>
                 <div class="modal-footer">
