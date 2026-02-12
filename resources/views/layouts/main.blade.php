@@ -31,7 +31,7 @@
     {{-- SweetAlert2 --}}
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     {{-- Carregar o JavaScript --}}
-    <script src="{{ asset('build/assets/app-DpAvhFZP.js') }}" defer></script>
+    <script src="{{ asset('build/assets/app-CzidfXwo.js') }}" defer></script>
 
     <style>
         /* Estilos específicos para layout com sidebar (apenas desktop) */
