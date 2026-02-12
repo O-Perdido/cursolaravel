@@ -14,9 +14,17 @@
 ## Regras Importantes
 - Somente admin tem acesso ao formulario de edicao.
 - A senha e validada no backend antes de persistir alteracoes.
-- Se o termo estiver vinculado a uma vaga, a vinculacao e atualizada conforme o novo valor.
+- A vaga vinculada nao pode ser editada; para mudar a vaga, e necessario excluir o termo e criar outro.
+- O botao de editar so fica habilitado se o termo nao estiver rescindido e nao tiver alteracoes.
+
+## Reverter Rescisao
+- Admin pode reverter uma rescisao diretamente na tela de detalhes do termo.
+- Ao reverter, a rescisao e excluida e a data final do termo volta para:
+	- a ultima alteracao de data (se existir), ou
+	- a data fixa original (data_fim_estagio_fixo).
 
 ## Rotas
 - GET /termos/{id}/edit (admin)
 - PUT /termos/{id} (admin)
+- POST /termos/{id}/reverter-rescisao (admin)
 

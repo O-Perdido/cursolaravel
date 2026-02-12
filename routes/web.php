@@ -213,6 +213,11 @@ Route::middleware(['auth'])->group(function () {
             ->middleware(['nivel:admin'])
             ->name('termos.update');
 
+        // Rota para reverter rescisao do termo
+        Route::post('/termos/{id}/reverter-rescisao', [TermoController::class, 'reverterRescisao'])
+            ->middleware(['nivel:admin'])
+            ->name('termos.reverterRescisao');
+
         // Rota para excluir um termo específico
         Route::delete('/termos/{id}', [TermoController::class, 'destroy'])->name('termos.destroy');
 

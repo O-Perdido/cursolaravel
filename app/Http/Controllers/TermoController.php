@@ -24,6 +24,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
 
 
 class TermoController extends Controller
@@ -470,6 +471,44 @@ class TermoController extends Controller
 
         return redirect()->route('termos.show', $termo->id_termo)
             ->with('success', 'Termo atualizado com sucesso!');
+    }
+
+    public function reverterRescisao($id)
+    {
+        $termo = Termo::with('rescisao')->findOrFail($id);
+
+        if (!$termo->rescisao) {
+            return redirect()->route('termos.show', $termo->id_termo)
+                ->with('error', 'Termo nao possui rescisao para reverter.');
+        }
+
+        $ultimaAlteracaoData = $termo->alteracaoTermo()
+            ->whereNotNull('data_fim_estagio_alteracao')
+            ->orderByDesc('data_alteracao')
+            ->orderByDesc('id_alteracao')
+            ->first();
+
+        $dataFinalRestaurar = $ultimaAlteracaoData
+            ? $ultimaAlteracaoData->data_fim_estagio_alteracao
+            : $termo->data_fim_estagio_fixo;
+
+        if (!$dataFinalRestaurar) {
+            $dataFinalRestaurar = $termo->data_fim_estagio;
+        }
+
+        try {
+            DB::transaction(function () use ($termo, $dataFinalRestaurar) {
+                Rescisao::where('fk_id_termo', $termo->id_termo)->delete();
+                $termo->data_fim_estagio = $dataFinalRestaurar;
+                $termo->save();
+            });
+
+            return redirect()->route('termos.show', $termo->id_termo)
+                ->with('success', 'Rescisao revertida com sucesso!');
+        } catch (\Throwable $e) {
+            return redirect()->route('termos.show', $termo->id_termo)
+                ->with('error', 'Nao foi possivel reverter a rescisao.');
+        }
     }
 
     public function show($id)

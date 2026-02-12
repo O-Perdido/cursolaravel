@@ -9,6 +9,11 @@
             {{ session('success') }}
         </div>
     @endif
+    @if(session('error'))
+        <div class="alert alert-danger">
+            {{ session('error') }}
+        </div>
+    @endif
     @push('scripts')
         <script>
             document.addEventListener('DOMContentLoaded', function () {
@@ -16,6 +21,25 @@
                 tooltipTriggerList.forEach(function (tooltipTriggerEl) {
                     new bootstrap.Tooltip(tooltipTriggerEl);
                 });
+
+                var reverterBtn = document.getElementById('reverter-rescisao-btn');
+                var reverterForm = document.getElementById('reverter-rescisao-form');
+                if (reverterBtn && reverterForm) {
+                    reverterBtn.addEventListener('click', function () {
+                        Swal.fire({
+                            title: 'Reverter rescisao? ',
+                            text: 'Esta acao nao pode ser desfeita.',
+                            icon: 'warning',
+                            showCancelButton: true,
+                            confirmButtonText: 'Sim, reverter',
+                            cancelButtonText: 'Cancelar'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                reverterForm.submit();
+                            }
+                        });
+                    });
+                }
             });
         </script>
     @endpush
@@ -75,6 +99,16 @@
                         style="pointer-events: auto;">
                         <i class="fas fa-pen"></i> Editar TCE
                     </span>
+                @endif
+                @if($termo->rescisao)
+                    <form id="reverter-rescisao-form" action="{{ route('termos.reverterRescisao', $termo->id_termo) }}"
+                        method="POST" class="d-none">
+                        @csrf
+                    </form>
+                    <button type="button" id="reverter-rescisao-btn" class="btn btn-outline-danger" data-bs-toggle="tooltip"
+                        data-bs-placement="top" title="Reverter rescisão e restaurar data final do termo.">
+                        <i class="fas fa-undo"></i> Reverter Rescisão
+                    </button>
                 @endif
             @endif
         </div>
