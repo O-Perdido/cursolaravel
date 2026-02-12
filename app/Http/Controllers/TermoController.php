@@ -466,6 +466,15 @@ class TermoController extends Controller
                         'tipo' => 'Pela Concedente'
                     ];
                 }
+            } elseif ($termo->empresa && $termo->empresa->nome_representante && $termo->empresa->email) {
+                $signatarios[] = [
+                    'name' => $termo->empresa->nome_representante,
+                    'email' => $termo->empresa->email,
+                ];
+                $signatariosParaPdf[] = [
+                    'nome' => $termo->empresa->nome_representante,
+                    'tipo' => 'Pela Concedente'
+                ];
             }
 
             // 2. Representantes da Instituição de Ensino (Escola)
@@ -480,6 +489,15 @@ class TermoController extends Controller
                         'tipo' => 'Pela Instituição de Ensino'
                     ];
                 }
+            } elseif ($termo->escola && $termo->escola->nome_representante && $termo->escola->email) {
+                $signatarios[] = [
+                    'name' => $termo->escola->nome_representante,
+                    'email' => $termo->escola->email,
+                ];
+                $signatariosParaPdf[] = [
+                    'nome' => $termo->escola->nome_representante,
+                    'tipo' => 'Pela Instituição de Ensino'
+                ];
             }
             
             // 3. Estagiário

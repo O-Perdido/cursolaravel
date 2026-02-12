@@ -79,6 +79,12 @@ Certifique-se que o estagiário possui:
 - ✅ Email cadastrado (recomendado)
 - ✅ Telefone (opcional, mas útil para WhatsApp)
 
+### Dados de Representantes (Empresa/Escola)
+
+- O envio prioriza representantes cadastrados na tabela `tb_representantes`
+- Se não houver representantes, usa `nome_representante` + `email` da empresa/escola
+- Garanta que o email esteja preenchido para que o convite seja enviado
+
 ## 🎯 Funcionalidades Implementadas
 
 - ✅ Criar documento no ZapSign via upload de PDF
