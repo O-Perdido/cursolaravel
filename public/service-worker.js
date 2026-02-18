@@ -1,4 +1,4 @@
-const CACHE_NAME = 'sigebr-v1.0.0';
+const CACHE_NAME = 'sigebr-v1.0.1';
 const OFFLINE_URL = '/offline.html';
 
 // Assets que serão cacheados imediatamente ao instalar

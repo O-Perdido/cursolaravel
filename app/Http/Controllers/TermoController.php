@@ -965,7 +965,7 @@ class TermoController extends Controller
             'ja_usado' => $jaUsado,
             'saldo_recesso' => (int)($termo->saldo_recesso ?? 30),
             'recesso_disponivel' => $recessoDisponivel,
-            'recesso_disponivel_inteiro' => (int)floor($recessoDisponivel),
+            'recesso_disponivel_inteiro' => (int)round($recessoDisponivel),
         ];
     }
 

@@ -211,7 +211,7 @@
                             $saldoAtual = (int) ($termo->saldo_recesso ?? 30);
                             $jaUsado = 30 - $saldoAtual;
                             $recessoDisponivel = max(0, $recessoAcumulado - $jaUsado);
-                            $recessoDisponivelInt = (int) floor($recessoDisponivel);
+                            $recessoDisponivelInt = (int) round($recessoDisponivel);
                         @endphp
                         <p class="mb-0" style="color: #2d3748; font-weight: 700; font-size: 0.85rem;">
                             {{ $recessoDisponivelInt }} {{ $recessoDisponivelInt === 1 ? 'dia' : 'dias' }}

@@ -1020,7 +1020,7 @@
                         $saldoAtual = (int) ($termo->saldo_recesso ?? 30);
                         $jaUsado = 30 - $saldoAtual;
                         $recessoDisponivel = max(0, $recessoAcumulado - $jaUsado);
-                        $recessoDisponivelInt = (int) floor($recessoDisponivel);
+                        $recessoDisponivelInt = (int) round($recessoDisponivel);
                     @endphp
 
                     <div class="alert alert-info">
