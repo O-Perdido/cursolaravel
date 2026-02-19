@@ -465,28 +465,34 @@
                             <ul class="list-group list-group-flush">
                                 <li class="list-group-item"><strong>Estagiário:</strong>
                                     {{ $termo->estagiario->nome_estagiario }}
-                                    <a href="{{ route('estagiario.show', $termo->estagiario->id_estagiario) }}"
-                                        target="_blank" class="ml-1" title="Ver detalhes do estagiário">
-                                        <i class="fas fa-external-link-alt"></i>
-                                    </a>
+                                    @if (Auth::user()->nivel == 'admin' || Auth::user()->nivel == 'operador')
+                                        <a href="{{ route('estagiario.show', $termo->estagiario->id_estagiario) }}"
+                                            target="_blank" class="ml-1" title="Ver detalhes do estagiário">
+                                            <i class="fas fa-external-link-alt"></i>
+                                        </a>
+                                    @endif
                                 </li>
                                 <li class="list-group-item"><strong>Unidade Concedente:</strong>
                                     {{ $termo->empresa->nome_empresa }}
-                                    <a href="{{ route('empresas.show', $termo->empresa->id_empresa) }}" target="_blank"
-                                        class="ml-1" title="Ver detalhes da empresa">
-                                        <i class="fas fa-external-link-alt"></i>
-                                    </a>
+                                    @if (Auth::user()->nivel == 'admin' || Auth::user()->nivel == 'operador')
+                                        <a href="{{ route('empresas.show', $termo->empresa->id_empresa) }}" target="_blank"
+                                            class="ml-1" title="Ver detalhes da empresa">
+                                            <i class="fas fa-external-link-alt"></i>
+                                        </a>
+                                    @endif
                                 </li>
                                 <li class="list-group-item"><strong>Instituição de Ensino:</strong>
                                     {{ $termo->escola->nome_escola }}
-                                    <a href="{{ route('escolas.show', $termo->escola->id_escola) }}" target="_blank"
-                                        class="ml-1" title="Ver detalhes da instituição">
-                                        <i class="fas fa-external-link-alt"></i>
-                                    </a>
+                                    @if (Auth::user()->nivel == 'admin' || Auth::user()->nivel == 'operador')
+                                        <a href="{{ route('escolas.show', $termo->escola->id_escola) }}" target="_blank"
+                                            class="ml-1" title="Ver detalhes da instituição">
+                                            <i class="fas fa-external-link-alt"></i>
+                                        </a>
+                                    @endif
                                 </li>
                                 <li class="list-group-item"><strong>Supervisor:</strong>
                                     {{ $termo->supervisor->nome_supervisor }}
-                                    <a href="{{ route('supervisores.index', $termo->supervisor->id_supervisor) }}"
+                                    <a href="{{ route((Auth::user()->nivel ?? '') === 'empresa' ? 'empresa.supervisores.index' : 'supervisores.index', ['id_supervisor' => $termo->supervisor->id_supervisor]) }}"
                                         target="_blank" class="ml-1" title="Ver detalhes do supervisor">
                                         <i class="fas fa-external-link-alt"></i>
                                     </a>

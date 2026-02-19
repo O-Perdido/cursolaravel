@@ -23,6 +23,10 @@ class SupervisorController extends Controller
             $query->where('fk_id_empresa', $request->empresa);
         }
 
+        if ($request->filled('id_supervisor')) {
+            $query->where('id_supervisor', $request->id_supervisor);
+        }
+
         // Filtro por nome
         if ($request->filled('nome_supervisor')) {
             $query->where('nome_supervisor', 'like', '%' . $request->nome_supervisor . '%');
