@@ -13,7 +13,7 @@ Contratos de estágio (Model `Termo`) geram PDFs e fluxo de assinatura ZapSign. 
 Campo `users.nivel` (admin | operador | empresa | estagiario) + middlewares: sempre combine `auth` com `nivel:` ou aliases (`admin_ou_operador`, `estagiario_verified`). Não adicionar rotas protegidas sem esse padrão.
 
 ## Convenções de Banco
-Tabelas prefix `tb_`; PK `id_[singular]`; FK `fk_id_[singular]`. Cada Model define explicitamente `protected $table` e `protected $primaryKey`. Ao criar novas relações, siga nomenclatura para migrações e chaves.
+Tabelas prefix `tb_`; PK `id_[singular]`; FK `fk_id_[singular]`. Cada Model define explicitamente `protected $table` e `protected $primaryKey`. Ao criar novas relações, siga nomenclatura para migrações e chaves. OUTRA COISA IMPORTANTE na maioria dos casos os IDs são INTEIROS AUTO_INCREMENT, mas pode haver casos em que esteja diferente – sempre verificar o contexto antes de escolher o tipo de chave a maioria dos campos não está marcado como unsigned, então é outra coisa para se considerar e verificar antes de criar migrations e coisas do tipo.
 
 ## Models / Campos Críticos
 `Termo`: datas início/fim, `saldo_recesso`, `zapsign_doc_token`, `zapsign_status`.

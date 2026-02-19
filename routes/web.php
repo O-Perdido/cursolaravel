@@ -413,6 +413,11 @@ Route::middleware(['auth'])->group(function () {
         // Rotas para configurações do sistema
         Route::get('/configuracoes', [App\Http\Controllers\ConfiguracaoController::class, 'index'])->name('configuracoes.index');
         Route::post('/configuracoes', [App\Http\Controllers\ConfiguracaoController::class, 'update'])->name('configuracoes.update');
+        
+        // Rotas para configurações individuais de empresas (unidades concedentes)
+        Route::get('/configuracoes/empresas', [App\Http\Controllers\ConfiguracaoController::class, 'empresas'])->name('configuracoes.empresas');
+        Route::get('/configuracoes/empresas/{id}/editar', [App\Http\Controllers\ConfiguracaoController::class, 'editarEmpresa'])->name('configuracoes.editar-empresa');
+        Route::post('/configuracoes/empresas/{id}/atualizar', [App\Http\Controllers\ConfiguracaoController::class, 'atualizarEmpresa'])->name('configuracoes.atualizar-empresa');
 
         // Rotas para gerenciamento de tipos de chamados (admin)
         Route::get('/admin/tipos-chamados', [TipoChamadoController::class, 'index'])->name('admin.tipos-chamados.index');

@@ -18,6 +18,18 @@
         </div>
     @endif
 
+    @if(Auth::user()->nivel === 'empresa')
+        <div class="alert alert-info" role="alert">
+            <i class="fas fa-info-circle me-2"></i>
+            <strong>Bem-vindo(a)!</strong> Você está visualizando os processos seletivos da sua unidade concedente. 
+            @if(\App\Models\Configuracao::obterComFallback('processos_empresa_pode_ver_inscritos', Auth::user()->fk_id_empresa, true))
+                Você pode visualizar os inscritos clicando no botão <i class="fas fa-users"></i> de cada processo.
+            @else
+                Para acessar mais informações, entre em contato com o administrador do sistema.
+            @endif
+        </div>
+    @endif
+
     <div class="card shadow-sm">
         <div class="card-body pb-2 pt-3">
             <div class="d-flex justify-content-between align-items-center mb-3">
@@ -25,7 +37,7 @@
                     <i class="fas fa-graduation-cap me-2 text-primary"></i>
                     Processos Seletivos
                 </h4>
-                @if(Auth::user()->nivel !== 'empresa' || auth()->user()->fk_id_empresa)
+                @if(Auth::user()->nivel !== 'empresa')
                     <a href="{{ route('processos-seletivos.create') }}" class="btn btn-success btn-sm">
                         <i class="fas fa-plus me-1"></i> Novo Processo
                     </a>
@@ -150,22 +162,37 @@
                                 @endif
                             </td>
                             <td>
-                                <div class="btn-group btn-group-sm" role="group">
-                                    <a href="{{ route('processos-seletivos.edit', $processo->id_processo) }}" class="btn btn-outline-primary" title="Editar">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
-                                    <a href="{{ route('processos-seletivos.inscricoes', $processo->id_processo) }}" class="btn btn-outline-info" title="Ver Inscrições">
-                                        <i class="fas fa-users"></i>
-                                    </a>
-                                    <a href="{{ route('processos-seletivos.resultados', $processo->id_processo) }}" class="btn btn-outline-success" title="Resultados">
-                                        <i class="fas fa-trophy"></i>
-                                    </a>
-                                    <button type="button" class="btn btn-outline-danger btn-delete" title="Deletar"
-                                        data-action="{{ route('processos-seletivos.destroy', $processo->id_processo) }}"
-                                        data-nome="{{ $processo->titulo }}">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </div>
+                                @if(Auth::user()->nivel === 'empresa')
+                                    {{-- Ações para Empresas --}}
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <a href="{{ route('processos-seletivos.detalhes.publico', $processo->id_processo) }}" target="_blank" class="btn btn-outline-primary" title="Visualizar Edital/Processo (Página Pública)">
+                                            <i class="fas fa-external-link-alt"></i>
+                                        </a>
+                                        @if(\App\Models\Configuracao::obterComFallback('processos_empresa_pode_ver_inscritos', Auth::user()->fk_id_empresa, true))
+                                            <a href="{{ route('processos-seletivos.inscricoes', $processo->id_processo) }}" class="btn btn-outline-info" title="Ver Inscritos">
+                                                <i class="fas fa-users"></i>
+                                            </a>
+                                        @endif
+                                    </div>
+                                @else
+                                    {{-- Ações para Admin/Operador --}}
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <a href="{{ route('processos-seletivos.edit', $processo->id_processo) }}" class="btn btn-outline-primary" title="Editar">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a href="{{ route('processos-seletivos.inscricoes', $processo->id_processo) }}" class="btn btn-outline-info" title="Ver Inscrições">
+                                            <i class="fas fa-users"></i>
+                                        </a>
+                                        <a href="{{ route('processos-seletivos.resultados', $processo->id_processo) }}" class="btn btn-outline-success" title="Resultados">
+                                            <i class="fas fa-trophy"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-outline-danger btn-delete" title="Deletar"
+                                            data-action="{{ route('processos-seletivos.destroy', $processo->id_processo) }}"
+                                            data-nome="{{ $processo->titulo }}">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                @endif
                             </td>
                         </tr>
                     @empty

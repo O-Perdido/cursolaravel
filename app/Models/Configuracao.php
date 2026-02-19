@@ -61,4 +61,29 @@ class Configuracao extends Model
     {
         return self::obter('limite_diario_remessa', 50000.00);
     }
+
+    /**
+     * Obtém uma configuração com fallback automático:
+     * 1. Tenta buscar a configuração específica da empresa
+     * 2. Se não encontrar, usa a configuração global
+     * 3. Se nem isso existir, usa o valor padrão
+     * 
+     * @param string $chave Chave da configuração
+     * @param int|null $idEmpresa ID da empresa (optional)
+     * @param mixed $valorPadrao Valor padrão se nada for encontrado
+     * @return mixed
+     */
+    public static function obterComFallback($chave, $idEmpresa = null, $valorPadrao = null)
+    {
+        // Se foi informado um ID de empresa, tenta buscar a config específica primeiro
+        if ($idEmpresa) {
+            $configEmpresa = \App\Models\EmpresaConfiguracao::obterPorEmpresa($idEmpresa, $chave);
+            if ($configEmpresa !== null) {
+                return $configEmpresa;
+            }
+        }
+
+        // Fallback: busca a configuração global
+        return self::obter($chave, $valorPadrao);
+    }
 }

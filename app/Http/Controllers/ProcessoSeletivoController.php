@@ -44,23 +44,30 @@ class ProcessoSeletivoController extends Controller
     public function create()
     {
         $user = Auth::user();
-        $empresas = [];
-        $empresaSelecionada = null;
 
+        // Apenas admin e operador podem criar processos
         if ($user->nivel === 'empresa') {
-            $empresaSelecionada = $user->fk_id_empresa;
-        } else {
-            $empresas = Empresa::orderBy('nome_empresa', 'asc')->get(['id_empresa', 'nome_empresa']);
+            return redirect()->route('processos-seletivos.index')
+                ->with('error', 'Você não tem permissão para criar processos seletivos. Entre em contato com o administrador.');
         }
 
-        return view('processos-seletivos.create', compact('empresas', 'empresaSelecionada'));
+        $empresas = Empresa::orderBy('nome_empresa', 'asc')->get(['id_empresa', 'nome_empresa']);
+
+        return view('processos-seletivos.create', compact('empresas'));
     }
 
     // Salvar novo processo
     public function store(Request $request)
     {
         $user = Auth::user();
-        $empresaId = $user->nivel === 'empresa' ? $user->fk_id_empresa : $request->input('fk_id_empresa');
+
+        // Apenas admin e operador podem criar processos
+        if ($user->nivel === 'empresa') {
+            return redirect()->route('processos-seletivos.index')
+                ->with('error', 'Você não tem permissão para criar processos seletivos.');
+        }
+
+        $empresaId = $request->input('fk_id_empresa');
         $request->merge(['fk_id_empresa' => $empresaId]);
 
         $validated = $request->validate([
@@ -142,24 +149,31 @@ class ProcessoSeletivoController extends Controller
     // Formulário de edição
     public function edit($id)
     {
-        $processo = ProcessoSeletivo::findOrFail($id);
-
         $user = Auth::user();
-        $empresas = [];
-        $empresaSelecionada = null;
 
+        // Apenas admin e operador podem editar processos
         if ($user->nivel === 'empresa') {
-            $empresaSelecionada = $user->fk_id_empresa;
-        } else {
-            $empresas = Empresa::orderBy('nome_empresa', 'asc')->get(['id_empresa', 'nome_empresa']);
+            return redirect()->route('processos-seletivos.index')
+                ->with('error', 'Você não tem permissão para editar processos seletivos.');
         }
 
-        return view('processos-seletivos.edit', compact('processo', 'empresas', 'empresaSelecionada'));
+        $processo = ProcessoSeletivo::findOrFail($id);
+        $empresas = Empresa::orderBy('nome_empresa', 'asc')->get(['id_empresa', 'nome_empresa']);
+
+        return view('processos-seletivos.edit', compact('processo', 'empresas'));
     }
 
     // Atualizar processo
     public function update(Request $request, $id)
     {
+        $user = Auth::user();
+
+        // Apenas admin e operador podem atualizar processos
+        if ($user->nivel === 'empresa') {
+            return redirect()->route('processos-seletivos.index')
+                ->with('error', 'Você não tem permissão para atualizar processos seletivos.');
+        }
+
         $processo = ProcessoSeletivo::findOrFail($id);
 
         $validated = $request->validate([
@@ -233,6 +247,14 @@ class ProcessoSeletivoController extends Controller
     // Deletar processo
     public function destroy($id)
     {
+        $user = Auth::user();
+
+        // Apenas admin e operador podem deletar processos
+        if ($user->nivel === 'empresa') {
+            return redirect()->route('processos-seletivos.index')
+                ->with('error', 'Você não tem permissão para deletar processos seletivos.');
+        }
+
         $processo = ProcessoSeletivo::findOrFail($id);
 
         // Deletar arquivos do armazenamento
@@ -324,16 +346,15 @@ class ProcessoSeletivoController extends Controller
     // Remover um arquivo específico do processo
     public function removerArquivo($id)
     {
-        $arquivo = ProcessoArquivo::with('processo')->findOrFail($id);
         $user = Auth::user();
 
-        if ($user->nivel === 'empresa' && $arquivo->processo->fk_id_empresa !== $user->fk_id_empresa) {
-            abort(403, 'Você não tem permissão para excluir este arquivo');
+        // Apenas admin e operador podem remover arquivos
+        if ($user->nivel === 'empresa') {
+            return redirect()->route('processos-seletivos.index')
+                ->with('error', 'Você não tem permissão para remover arquivos de processos seletivos.');
         }
 
-        if (!in_array($user->nivel, ['admin', 'operador', 'empresa'])) {
-            abort(403, 'Ação não permitida');
-        }
+        $arquivo = ProcessoArquivo::with('processo')->findOrFail($id);
 
         if (Storage::disk('public')->exists($arquivo->caminho_arquivo)) {
             Storage::disk('public')->delete($arquivo->caminho_arquivo);
@@ -348,18 +369,64 @@ class ProcessoSeletivoController extends Controller
     public function listarInscricoes($id)
     {
         $processo = ProcessoSeletivo::findOrFail($id);
+        $user = Auth::user();
 
-        $inscricoes = $processo->inscricoes()
-            ->with(['estagiario'])
-            ->orderByDesc('created_at')
-            ->paginate(50);
+        // Verificar se empresa tem permissão e se o processo pertence a ela
+        if ($user->nivel === 'empresa') {
+            // Verificar se empresa pode visualizar inscritos (com fallback para global)
+            $podeVerInscritos = \App\Models\Configuracao::obterComFallback('processos_empresa_pode_ver_inscritos', $user->fk_id_empresa, true);
+            
+            if (!$podeVerInscritos) {
+                return redirect()->route('processos-seletivos.index')
+                    ->with('error', 'Você não tem permissão para visualizar inscritos. Entre em contato com o administrador.');
+            }
 
-        return view('processos-seletivos.inscricoes', compact('processo', 'inscricoes'));
+            // Verificar se o processo pertence à empresa
+            if ($processo->fk_id_empresa !== $user->fk_id_empresa) {
+                return redirect()->route('processos-seletivos.index')
+                    ->with('error', 'Você não pode visualizar inscritos de processos de outras empresas.');
+            }
+        }
+
+        // Filtrar inscrições conforme configuração
+        $query = $processo->inscricoes()->with(['estagiario']);
+
+        // Se empresa só pode ver deferidos
+        if ($user->nivel === 'empresa') {
+            $apenasDeferidos = \App\Models\Configuracao::obterComFallback('processos_empresa_apenas_deferidos', $user->fk_id_empresa, false);
+            if ($apenasDeferidos) {
+                $query->where('status_inscricao', 'deferido');
+            }
+        }
+
+        $inscricoes = $query->orderByDesc('created_at')->paginate(50);
+
+        // Obter informação de restrição de apenas deferidos
+        $apenasDeferidosConfig = false;
+        if ($user->nivel === 'empresa') {
+            $apenasDeferidosConfig = \App\Models\Configuracao::obterComFallback('processos_empresa_apenas_deferidos', $user->fk_id_empresa, false);
+        }
+
+        // Passar configurações para a view
+        $config = [
+            'pode_alterar_status' => $user->nivel !== 'empresa',
+            'pode_exportar' => $user->nivel !== 'empresa' || \App\Models\Configuracao::obterComFallback('processos_empresa_pode_exportar', $user->fk_id_empresa, true),
+            'apenas_deferidos' => $apenasDeferidosConfig,
+        ];
+
+        return view('processos-seletivos.inscricoes', compact('processo', 'inscricoes', 'config'));
     }
 
     // Atualizar status de uma inscrição
     public function atualizarStatusInscricao(Request $request, $id)
     {
+        $user = Auth::user();
+
+        // Apenas admin e operador podem alterar status
+        if ($user->nivel === 'empresa') {
+            return back()->with('error', 'Você não tem permissão para alterar o status de inscrições.');
+        }
+
         $processo = ProcessoSeletivo::findOrFail($id);
         
         $validated = $request->validate([
@@ -388,6 +455,21 @@ class ProcessoSeletivoController extends Controller
     public function exportarInscricoes(Request $request, $id)
     {
         $processo = ProcessoSeletivo::findOrFail($id);
+        $user = Auth::user();
+
+        // Verificar permissões para empresas
+        if ($user->nivel === 'empresa') {
+            // Verificar se pode exportar (com fallback para global)
+            $podeExportar = \App\Models\Configuracao::obterComFallback('processos_empresa_pode_exportar', $user->fk_id_empresa, true);
+            if (!$podeExportar) {
+                return back()->with('error', 'Você não tem permissão para exportar relatórios. Entre em contato com o administrador.');
+            }
+
+            // Verificar se o processo pertence à empresa
+            if ($processo->fk_id_empresa !== $user->fk_id_empresa) {
+                return back()->with('error', 'Você não pode exportar inscritos de processos de outras empresas.');
+            }
+        }
 
         $format = $request->input('format', 'pdf');
         $statusFiltro = $request->input('status_filter', 'todos');
@@ -410,6 +492,15 @@ class ProcessoSeletivoController extends Controller
 
         // Buscar inscrições com filtro de status
         $query = $processo->inscricoes()->with(['estagiario']);
+        
+        // Para empresas, aplicar filtro de apenas deferidos se configurado
+        if ($user->nivel === 'empresa') {
+            $apenasDeferidos = \App\Models\Configuracao::obterComFallback('processos_empresa_apenas_deferidos', $user->fk_id_empresa, false);
+            if ($apenasDeferidos) {
+                // Forçar apenas deferidos, ignorando qualquer seleção do usuário
+                $statusFiltro = 'deferido';
+            }
+        }
         
         if ($statusFiltro !== 'todos') {
             $query->where('status_inscricao', $statusFiltro);
@@ -474,8 +565,17 @@ class ProcessoSeletivoController extends Controller
     }
 
     // Gerenciar resultados
+    // Gerenciar resultados
     public function resultados($id)
     {
+        $user = Auth::user();
+
+        // Apenas admin e operador podem gerenciar resultados
+        if ($user->nivel === 'empresa') {
+            return redirect()->route('processos-seletivos.index')
+                ->with('error', 'Você não tem permissão para gerenciar resultados de processos seletivos.');
+        }
+
         $processo = ProcessoSeletivo::findOrFail($id);
 
         $resultados = $processo->resultados()->orderByDesc('created_at')->get();
@@ -486,6 +586,14 @@ class ProcessoSeletivoController extends Controller
     // Publicar resultado
     public function publicarResultado(Request $request, $id)
     {
+        $user = Auth::user();
+
+        // Apenas admin e operador podem publicar resultados
+        if ($user->nivel === 'empresa') {
+            return redirect()->route('processos-seletivos.index')
+                ->with('error', 'Você não tem permissão para publicar resultados.');
+        }
+
         $processo = ProcessoSeletivo::findOrFail($id);
 
         $validated = $request->validate([
@@ -517,6 +625,14 @@ class ProcessoSeletivoController extends Controller
     // Remover resultado
     public function removerResultado($id)
     {
+        $user = Auth::user();
+
+        // Apenas admin e operador podem remover resultados
+        if ($user->nivel === 'empresa') {
+            return redirect()->route('processos-seletivos.index')
+                ->with('error', 'Você não tem permissão para remover resultados.');
+        }
+
         $resultado = \App\Models\ResultadoProcesso::findOrFail($id);
         $processoId = $resultado->fk_id_processo;
 

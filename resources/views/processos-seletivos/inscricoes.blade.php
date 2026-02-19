@@ -19,9 +19,11 @@
                     <div class="d-flex align-items-center me-2 text-primary fw-semibold">
                         <i class="fas fa-users me-2"></i>{{ $processo->inscricoesCount() }} inscrito(s)
                     </div>
-                    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#exportModal">
-                        <i class="fas fa-download me-1"></i> Exportar
-                    </button>
+                    @if($config['pode_exportar'])
+                        <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#exportModal">
+                            <i class="fas fa-download me-1"></i> Exportar
+                        </button>
+                    @endif
                     <a href="{{ route('processos-seletivos.index') }}" class="btn btn-outline-secondary btn-sm">
                         <i class="fas fa-arrow-left me-1"></i> Voltar
                     </a>
@@ -29,6 +31,18 @@
             </div>
         </div>
     </div>
+
+    @if(!$config['pode_alterar_status'])
+        <div class="alert alert-info alert-dismissible fade show" role="alert">
+            <i class="fas fa-info-circle me-2"></i>
+            <strong>Modo de Visualização Empresa:</strong> Você está visualizando os inscritos deste processo seletivo. 
+            Alterações de status são realizadas apenas pela administração do sistema.
+            @if(!\App\Models\Configuracao::obter('processos_empresa_pode_exportar', true))
+                A exportação de relatórios está desabilitada. Entre em contato com o administrador se precisar de um relatório.
+            @endif
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
 
     <div class="card shadow-sm">
         <div class="card-header bg-light d-flex justify-content-between align-items-center">
@@ -45,9 +59,13 @@
                         <th>Telefone</th>
                         <th>Curso</th>
                         <th>Status</th>
+                        @if (Auth::user()->nivel === 'admin' || Auth::user()->nivel === 'operador')
                         <th>Anexo</th>
+                        @endif
                         <th class="text-nowrap">Data</th>
-                        <th class="text-center">Ações</th>
+                        @if($config['pode_alterar_status'])
+                            <th class="text-center">Ações</th>
+                        @endif
                     </tr>
                 </thead>
                 <tbody>
@@ -67,59 +85,63 @@
                             <td>{{ $inscricao->estagiario->email }}</td>
                             <td>{{ $inscricao->estagiario->numero_celular ?? $inscricao->estagiario->numero_telefone }}</td>
                             <td>{{ $inscricao->estagiario->curso ?? '-' }}</td>
-                            <td>
+                            <td>                                
                                 <span class="badge @switch($inscricao->status_inscricao) @case('inscrito') bg-info @break @case('deferido') bg-success @break @case('indeferido') bg-danger @break @default bg-secondary @endswitch">
                                     {{ ucfirst($inscricao->status_inscricao) }}
                                 </span>
                             </td>
-                            <td>
+                            @if (Auth::user()->nivel === 'admin' || Auth::user()->nivel === 'operador')
+                            <td>                                
                                 @if($inscricao->arquivo_inscricao)
                                     <a href="{{ Storage::url($inscricao->arquivo_inscricao) }}" target="_blank" class="btn btn-outline-primary btn-sm">
                                         <i class="fas fa-paperclip me-1"></i> Abrir
                                     </a>
                                 @else
                                     <span class="text-muted">-</span>
-                                @endif
+                                @endif                                
                             </td>
+                            @endif
                             <td class="text-muted">{{ $inscricao->created_at->format('d/m/Y H:i') }}</td>
-                            <td class="text-center">
-                                <div class="btn-group btn-group-sm" role="group">
-                                    @if($inscricao->status_inscricao !== 'deferido')
-                                        <form action="{{ route('processos-seletivos.inscricoes.atualizar-status', $processo->id_processo) }}" method="POST" class="d-inline">
-                                            @csrf
-                                            <input type="hidden" name="inscricao_id" value="{{ $inscricao->id_inscricao }}">
-                                            <input type="hidden" name="novo_status" value="deferido">
-                                            <button type="submit" class="btn btn-outline-success" title="Marcar como Deferido">
-                                                <i class="fas fa-check"></i>
-                                            </button>
-                                        </form>
-                                    @endif
-                                    @if($inscricao->status_inscricao !== 'indeferido')
-                                        <form action="{{ route('processos-seletivos.inscricoes.atualizar-status', $processo->id_processo) }}" method="POST" class="d-inline">
-                                            @csrf
-                                            <input type="hidden" name="inscricao_id" value="{{ $inscricao->id_inscricao }}">
-                                            <input type="hidden" name="novo_status" value="indeferido">
-                                            <button type="submit" class="btn btn-outline-danger" title="Marcar como Indeferido">
-                                                <i class="fas fa-times"></i>
-                                            </button>
-                                        </form>
-                                    @endif
-                                    @if($inscricao->status_inscricao !== 'inscrito')
-                                        <form action="{{ route('processos-seletivos.inscricoes.atualizar-status', $processo->id_processo) }}" method="POST" class="d-inline">
-                                            @csrf
-                                            <input type="hidden" name="inscricao_id" value="{{ $inscricao->id_inscricao }}">
-                                            <input type="hidden" name="novo_status" value="inscrito">
-                                            <button type="submit" class="btn btn-outline-secondary" title="Reverter para Inscrito">
-                                                <i class="fas fa-undo"></i>
-                                            </button>
-                                        </form>
-                                    @endif
-                                </div>
-                            </td>
+                            @if($config['pode_alterar_status'])
+                                <td class="text-center">
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        @if($inscricao->status_inscricao !== 'deferido')
+                                            <form action="{{ route('processos-seletivos.inscricoes.atualizar-status', $processo->id_processo) }}" method="POST" class="d-inline">
+                                                @csrf
+                                                <input type="hidden" name="inscricao_id" value="{{ $inscricao->id_inscricao }}">
+                                                <input type="hidden" name="novo_status" value="deferido">
+                                                <button type="submit" class="btn btn-outline-success" title="Marcar como Deferido">
+                                                    <i class="fas fa-check"></i>
+                                                </button>
+                                            </form>
+                                        @endif
+                                        @if($inscricao->status_inscricao !== 'indeferido')
+                                            <form action="{{ route('processos-seletivos.inscricoes.atualizar-status', $processo->id_processo) }}" method="POST" class="d-inline">
+                                                @csrf
+                                                <input type="hidden" name="inscricao_id" value="{{ $inscricao->id_inscricao }}">
+                                                <input type="hidden" name="novo_status" value="indeferido">
+                                                <button type="submit" class="btn btn-outline-danger" title="Marcar como Indeferido">
+                                                    <i class="fas fa-times"></i>
+                                                </button>
+                                            </form>
+                                        @endif
+                                        @if($inscricao->status_inscricao !== 'inscrito')
+                                            <form action="{{ route('processos-seletivos.inscricoes.atualizar-status', $processo->id_processo) }}" method="POST" class="d-inline">
+                                                @csrf
+                                                <input type="hidden" name="inscricao_id" value="{{ $inscricao->id_inscricao }}">
+                                                <input type="hidden" name="novo_status" value="inscrito">
+                                                <button type="submit" class="btn btn-outline-secondary" title="Reverter para Inscrito">
+                                                    <i class="fas fa-undo"></i>
+                                                </button>
+                                            </form>
+                                        @endif
+                                    </div>
+                                </td>
+                            @endif
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="10" class="text-center py-4 text-muted">Nenhuma inscrição encontrada.</td>
+                            <td colspan="{{ $config['pode_alterar_status'] ? '9' : '8' }}" class="text-center py-4 text-muted">Nenhuma inscrição encontrada.</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -170,12 +192,24 @@
                     <!-- Filtro por Status -->
                     <div class="mb-4">
                         <label class="form-label fw-bold"><i class="fas fa-filter me-2 text-primary"></i>Filtrar por Status</label>
-                        <select class="form-select" name="status_filter" required>
-                            <option value="todos">📋 Todos os inscritos</option>
-                            <option value="deferido">✅ Apenas Deferidos</option>
-                            <option value="indeferido">❌ Apenas Indeferidos</option>
-                            <option value="inscrito">📝 Apenas Inscritos (pendentes)</option>
-                        </select>
+                        @if($config['apenas_deferidos'])
+                            <!-- Se apenas deferidos está ativo -->
+                            <select class="form-select" name="status_filter" required>
+                                <option value="deferido" selected>✅ Apenas Deferidos</option>
+                            </select>
+                            <small class="text-muted d-block mt-2">
+                                <i class="fas fa-info-circle me-1"></i>
+                                A exportação está restrita apenas para inscritos deferidos conforme configuração.
+                            </small>
+                        @else
+                            <!-- Opções completas se não há restrição -->
+                            <select class="form-select" name="status_filter" required>
+                                <option value="todos">📋 Todos os inscritos</option>
+                                <option value="deferido">✅ Apenas Deferidos</option>
+                                <option value="indeferido">❌ Apenas Indeferidos</option>
+                                <option value="inscrito">📝 Apenas Inscritos (pendentes)</option>
+                            </select>
+                        @endif
                     </div>
 
                     <!-- Seleção de Colunas -->
