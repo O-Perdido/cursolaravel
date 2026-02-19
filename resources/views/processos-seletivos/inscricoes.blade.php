@@ -77,9 +77,11 @@
                             <td class="fw-semibold">
                                 <div class="d-flex align-items-center gap-2">
                                     {{ $inscricao->estagiario->nome_estagiario }}
+                                    @if (Auth::user()->nivel === 'admin' || Auth::user()->nivel === 'operador')
                                     <a href="{{ route('estagiario.show', $inscricao->fk_id_estagiario) }}" target="_blank" class="btn btn-sm btn-link p-0" title="Abrir perfil em nova aba">
                                         <i class="fas fa-external-link-alt text-primary"></i>
                                     </a>
+                                    @endif
                                 </div>
                             </td>
                             <td>{{ $inscricao->estagiario->email }}</td>
