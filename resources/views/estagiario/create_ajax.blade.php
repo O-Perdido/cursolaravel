@@ -116,8 +116,14 @@
         }
 
         /* Garante que apenas o spinner rotacione, não o texto adjacente */
-        .loading-overlay .spinner-border { animation: spinner-border .75s linear infinite; }
-        .loading-overlay .loading-text { animation: none !important; transform: none !important; }
+        .loading-overlay .spinner-border {
+            animation: spinner-border .75s linear infinite;
+        }
+
+        .loading-overlay .loading-text {
+            animation: none !important;
+            transform: none !important;
+        }
 
         .terms-checkbox-wrapper {
             display: flex;
@@ -177,6 +183,44 @@
 
         .file-upload-wrapper .btn-file-upload i {
             flex-shrink: 0;
+        }
+
+        .pis-required-notification {
+            display: none;
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 4px;
+            padding: 10px 12px;
+            margin-top: 8px;
+            font-size: 13px;
+            color: #856404;
+            animation: slideDown 0.3s ease-in-out;
+        }
+
+        .pis-required-notification.show {
+            display: block;
+        }
+
+        .pis-required-icon {
+            margin-right: 6px;
+            color: #ff9800;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        #numero_pis.pis-required {
+            border-color: #ff9800;
+            background-color: #fffbf0;
         }
     </style>
 
@@ -373,6 +417,12 @@
                                     <div class="form-group">
                                         <label for="numero_pis">Número PIS</label>
                                         <input type="text" class="form-control" id="numero_pis" name="numero_pis">
+                                        <div class="pis-required-notification" id="pis-required-notification">
+                                            <i class="fas fa-exclamation-triangle pis-required-icon"></i>
+                                            <strong>Campo obrigatório!</strong> Você tem 17 anos ou mais, é necessário
+                                            preencher
+                                            o PIS.
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
@@ -581,15 +631,15 @@
                     type === 'warning' ? 'alert-warning' : 'alert-info';
 
             container.innerHTML = `
-                                                                            <div class="alert ${alertClass} alert-dismissible fade show" role="alert">
-                                                                                <ul class="mb-0">
-                                                                                    ${list.map(m => `<li>${m}</li>`).join('')}
-                                                                                </ul>
-                                                                                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                                                                                    <span aria-hidden="true">&times;</span>
-                                                                                </button>
-                                                                            </div>
-                                                                        `;
+                                                                                    <div class="alert ${alertClass} alert-dismissible fade show" role="alert">
+                                                                                        <ul class="mb-0">
+                                                                                            ${list.map(m => `<li>${m}</li>`).join('')}
+                                                                                        </ul>
+                                                                                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                                                                            <span aria-hidden="true">&times;</span>
+                                                                                        </button>
+                                                                                    </div>
+                                                                                `;
 
             // Scroll para o alerta
             container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -734,13 +784,58 @@
             const termosCheckbox = document.getElementById('aceitacao_termos');
             termosCheckbox.addEventListener('change', checkFormValid);
 
+            // Calcular idade e validar PIS obrigatório
+            const dataNascimentoInput = document.getElementById('data_nascimento');
+            const numeropisInput = document.getElementById('numero_pis');
+            const pisNotification = document.getElementById('pis-required-notification');
+
+            function calcularIdade(dataNascimento) {
+                if (!dataNascimento) return null;
+                const hoje = new Date();
+                const nascimento = new Date(dataNascimento);
+                let idade = hoje.getFullYear() - nascimento.getFullYear();
+                const mes = hoje.getMonth() - nascimento.getMonth();
+
+                if (mes < 0 || (mes === 0 && hoje.getDate() < nascimento.getDate())) {
+                    idade--;
+                }
+
+                return idade;
+            }
+
+            function atualizarValidacaoPIS() {
+                const idade = calcularIdade(dataNascimentoInput.value);
+                const isPISRequired = idade !== null && idade >= 17;
+
+                if (isPISRequired) {
+                    numeropisInput.required = true;
+                    numeropisInput.classList.add('pis-required');
+                    pisNotification.classList.add('show');
+                } else {
+                    numeropisInput.required = false;
+                    numeropisInput.classList.remove('pis-required');
+                    pisNotification.classList.remove('show');
+                }
+
+                checkFormValid();
+            }
+
+            dataNascimentoInput.addEventListener('change', atualizarValidacaoPIS);
+            numeropisInput.addEventListener('input', checkFormValid);
+
             // Verifica se o formulário está válido
             function checkFormValid() {
                 const cpfValido = validarCPF(cpfInput.value);
                 const termosAceitos = termosCheckbox.checked;
                 const senhaValida = validatePasswords();
 
-                cadastrarBtn.disabled = !(cpfValido && termosAceitos && senhaValida);
+                // Validar PIS se obrigatório
+                const idade = calcularIdade(dataNascimentoInput.value);
+                const isPISRequired = idade !== null && idade >= 17;
+                const pisFilled = numeropisInput.value.trim().length > 0;
+                const pisValido = !isPISRequired || pisFilled;
+
+                cadastrarBtn.disabled = !(cpfValido && termosAceitos && senhaValida && pisValido);
             }
 
             // Carregar cidades ao selecionar estado
@@ -844,6 +939,7 @@
 
             // Inicializar validações
             validatePasswords();
+            atualizarValidacaoPIS();
             checkFormValid();
         });
     </script>

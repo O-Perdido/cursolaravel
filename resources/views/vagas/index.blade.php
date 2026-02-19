@@ -35,54 +35,61 @@
                 </a>
             </div>
             <form method="GET" action="{{ route('vagas.index') }}">
-                <div class="row align-items-end">
-                    <div class="col-md-10">
-                        <div class="row g-2">
-                            <!-- Filtro por Unidade Concedente -->
-                            @if (Auth::user()->nivel != 'empresa')
-                                <div class="col-md-3">
-                                    <label for="empresa_search" class="form-label mb-1">Unidade Concedente</label>
-                                    <input type="text" class="form-control form-control-sm" id="empresa_search"
-                                        placeholder="Digite para buscar..." autocomplete="off"
-                                        value="{{ $empresas->firstWhere('id_empresa', request('empresa'))?->nome_empresa }}">
-                                    <div id="empresa_select_wrapper"
-                                        style="display:none; position:absolute; z-index:1050; resize:horizontal; overflow:auto; border:1px solid #ced4da; min-width:300px;">
-                                        <select name="empresa" id="empresa" class="form-select form-select-sm" size="5"
-                                            style="width:100%; border:none; margin:0; padding:0;">
-                                            <option value="">Todas</option>
-                                            @foreach ($empresas as $empresa)
-                                                <option value="{{ $empresa->id_empresa }}" {{ request('empresa') == $empresa->id_empresa ? 'selected' : '' }}>
-                                                    {{ $empresa->nome_empresa }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                </div>
-                            @endif
-                            <!-- Filtro por Status -->
-                            <div class="col-md-3">
-                                <label for="status" class="form-label mb-1">Filtrar por Status</label>
-                                <select name="status" id="status" class="form-select form-select-sm">
+                <div class="row align-items-end g-2">
+                    <!-- Filtro por Unidade Concedente -->
+                    @if (Auth::user()->nivel != 'empresa')
+                        <div class="col-md-2">
+                            <label for="empresa_search" class="form-label mb-1">Unidade Concedente</label>
+                            <input type="text" class="form-control form-control-sm" id="empresa_search"
+                                placeholder="Digite para buscar..." autocomplete="off"
+                                value="{{ $empresas->firstWhere('id_empresa', request('empresa'))?->nome_empresa }}">
+                            <div id="empresa_select_wrapper"
+                                style="display:none; position:absolute; z-index:1050; resize:horizontal; overflow:auto; border:1px solid #ced4da; min-width:300px;">
+                                <select name="empresa" id="empresa" class="form-select form-select-sm" size="5"
+                                    style="width:100%; border:none; margin:0; padding:0;">
                                     <option value="">Todas</option>
-                                    <option value="disponivel" {{ request('status') == 'disponivel' ? 'selected' : '' }}>
-                                        Disponível</option>
-                                    <option value="preenchida" {{ request('status') == 'preenchida' ? 'selected' : '' }}>
-                                        Preenchida</option>
-                                    <option value="suspensa" {{ request('status') == 'suspensa' ? 'selected' : '' }}>
-                                        Suspensa</option>
+                                    @foreach ($empresas as $empresa)
+                                        <option value="{{ $empresa->id_empresa }}" {{ request('empresa') == $empresa->id_empresa ? 'selected' : '' }}>
+                                            {{ $empresa->nome_empresa }}
+                                        </option>
+                                    @endforeach
                                 </select>
                             </div>
-                            <div class="col-md-2 d-flex flex-column align-items-end justify-content-end gap-2">
-                                <button type="submit" class="btn btn-primary btn-sm w-100">
-                                    <i class="fas fa-search"></i> Filtrar
-                                </button>
-                            </div>
-                            <div class="col-md-2 d-flex flex-column align-items-end justify-content-end gap-2">
-                                <a href="{{ route('vagas.index') }}" class="btn btn-outline-secondary btn-sm w-100">
-                                    <i class="fas fa-eraser"></i> Limpar
-                                </a>
-                            </div>
                         </div>
+                    @endif
+                    <!-- Filtro por Status -->
+                    <div class="col-md-2">
+                        <label for="status" class="form-label mb-1">Status</label>
+                        <select name="status" id="status" class="form-select form-select-sm">
+                            <option value="">Todas</option>
+                            <option value="disponivel" {{ request('status') == 'disponivel' ? 'selected' : '' }}>
+                                Disponível</option>
+                            <option value="preenchida" {{ request('status') == 'preenchida' ? 'selected' : '' }}>
+                                Preenchida</option>
+                            <option value="suspensa" {{ request('status') == 'suspensa' ? 'selected' : '' }}>
+                                Suspensa</option>
+                        </select>
+                    </div>
+                    <!-- Filtro por Data de Início -->
+                    <div class="col-md-2">
+                        <label for="data_inicio" class="form-label mb-1">Data Início do Termo</label>
+                        <input type="date" class="form-control form-control-sm" id="data_inicio" name="data_inicio"
+                            value="{{ request('data_inicio') }}">
+                    </div>
+                    <!-- Filtro por Data de Término -->
+                    <div class="col-md-2">
+                        <label for="data_termino" class="form-label mb-1">Data Término do Termo</label>
+                        <input type="date" class="form-control form-control-sm" id="data_termino" name="data_termino"
+                            value="{{ request('data_termino') }}">
+                    </div>
+                    <!-- Botões -->
+                    <div class="col-md-4 d-flex gap-2">
+                        <button type="submit" class="btn btn-primary btn-sm flex-grow-1">
+                            <i class="fas fa-search"></i> Filtrar
+                        </button>
+                        <a href="{{ route('vagas.index') }}" class="btn btn-outline-secondary btn-sm flex-grow-1">
+                            <i class="fas fa-eraser"></i> Limpar
+                        </a>
                     </div>
                 </div>
             </form>

@@ -335,7 +335,15 @@ class EstagiarioController extends Controller
             $request->merge(['numero_cpf' => preg_replace('/\D/', '', $request->numero_cpf)]);
         }
 
-        $request->validate([
+        // Calcula a idade para validação condicional do PIS
+        $dataNascimento = $request->input('data_nascimento');
+        $idade = null;
+        if ($dataNascimento) {
+            $dataNasc = \Carbon\Carbon::createFromFormat('Y-m-d', $dataNascimento);
+            $idade = $dataNasc->age;
+        }
+
+        $rules = [
             'nome_estagiario' => 'required|string|max:255',
             'numero_cpf' => [
                 'required',
@@ -364,14 +372,18 @@ class EstagiarioController extends Controller
             'foto_documento' => 'required|mimes:jpeg,png,jpg,pdf|max:20480',
             'comprovante_residencia' => 'required|mimes:jpeg,png,jpg,pdf|max:20480',
             'comprovante_escolar' => 'required|mimes:jpeg,png,jpg,pdf|max:20480',
-            'numero_pis' => 'nullable|string',
+            'numero_pis' => $idade !== null && $idade >= 17 ? 'required|string' : 'nullable|string',
             'tipo_chave_pix' => 'required|in:CPF,EMAIL,TELEFONE,ALEATORIA',
             'chave_pix' => 'required|string',
             // Senha do usuário vinculado
             'password' => 'required|min:8|confirmed',
-        ], [
+        ];
+
+        $request->validate($rules, [
             'numero_cpf.unique' => 'Já existe um estagiário cadastrado com este CPF.',
+            'numero_pis.required' => 'O PIS é obrigatório para maiores de 17 anos.',
         ]);
+
 
         $result = DB::transaction(function () use ($request) {
             if ($request->hasFile('foto_documento')) {
@@ -408,6 +420,7 @@ class EstagiarioController extends Controller
                 'foto_documento' => $fotoDocumentoPath ?? null,
                 'comprovante_residencia' => $comprovanteResidenciaPath ?? null,
                 'comprovante_escolar' => $comprovanteEscolarPath ?? null,
+                'numero_pis' => $request->numero_pis,
                 'tipo_chave_pix' => $request->tipo_chave_pix,
                 'chave_pix' => $request->chave_pix,
             ]);

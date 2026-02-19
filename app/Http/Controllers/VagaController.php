@@ -22,6 +22,12 @@ class VagaController extends Controller
         if ($request->filled('empresa') && $user->nivel !== 'empresa') {
             $query->where('fk_id_empresa', $request->input('empresa'));
         }
+        if ($request->filled('data_inicio')) {
+            $query->where('data_inicio', '>=', $request->input('data_inicio'));
+        }
+        if ($request->filled('data_termino')) {
+            $query->where('data_termino', '<=', $request->input('data_termino'));
+        }
         
         // Itens por página (25, 50, 100, 200, "all")
         $perPageParam = $request->input('per_page');
