@@ -1,5 +1,8 @@
 REGISTRO DE ALTERAÇÕES
 
+19/02/2026 - GitHub Copilot:
+* Corrigi o tipo de `fk_id_empresa` na migração de `tb_empresa_configuracoes` para `integer`, compatível com `tb_empresas`.
+
 12/01/2026 - GitHub Copilot:
 * Implementei módulo completo de Avaliação de Estágio
 * Criado Model `Avaliacao` com relações e métodos auxiliares

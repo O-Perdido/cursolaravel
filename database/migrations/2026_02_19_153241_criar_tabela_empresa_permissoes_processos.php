@@ -15,7 +15,7 @@ return new class extends Migration
         if (!Schema::hasTable('tb_empresa_configuracoes')) {
             Schema::create('tb_empresa_configuracoes', function (Blueprint $table) {
                 $table->id('id_empresa_configuracao');
-                $table->unsignedBigInteger('fk_id_empresa');
+                $table->integer('fk_id_empresa');
                 $table->string('chave', 255); // Ex: 'processos_empresa_pode_ver_inscritos'
                 $table->text('valor')->nullable();
                 $table->string('descricao', 255)->nullable();
