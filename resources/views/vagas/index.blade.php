@@ -203,7 +203,7 @@
 
                                 <!-- Botão para preencher a vaga (gerar termo) -->
                                 @if((Auth::user()->nivel == 'admin' || Auth::user()->nivel == 'operador') && $vaga->status == 'disponivel' && !$vaga->fk_id_termo)
-                                    <a href="{{ route('termos.create', ['empresa_id' => $vaga->fk_id_empresa, 'vaga_id' => $vaga->id_vaga]) }}"
+                                    <a href="{{ route('termos.create', ['empresa_id' => $vaga->fk_id_empresa, 'vaga_id' => $vaga->id_vaga, 'return_to' => 'vagas.index']) }}"
                                         class="btn btn-info btn-sm" title="Preencher Vaga (gerar termo)">
                                         <i class="fas fa-file-pen"></i>
                                     </a>

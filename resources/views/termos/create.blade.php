@@ -5,7 +5,10 @@
 @section('content')
 
     <h1>Adicionar Termo de Estágio</h1>
-    <button onclick="window.NavigationHistory?.goBack('{{ route('termos.index') }}')" class="btn btn-secondary mb-3"
+    @php
+        $returnRoute = request('return_to') ? route(request('return_to')) : route('termos.index');
+    @endphp
+    <button onclick="window.NavigationHistory?.goBack('{{ $returnRoute }}')" class="btn btn-secondary mb-3"
         title="Voltar para a página anterior com filtros preservados">Voltar</button>
 
     @if ($errors->any())
