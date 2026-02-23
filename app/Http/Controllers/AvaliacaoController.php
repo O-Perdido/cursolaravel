@@ -47,7 +47,7 @@ class AvaliacaoController extends Controller
             $query->whereHas('termo', function ($q) use ($search) {
                 $q->where('numero_termo', 'like', "%{$search}%")
                   ->orWhereHas('estagiario', function ($q2) use ($search) {
-                      $q2->where('nome', 'like', "%{$search}%");
+                      $q2->where('nome_estagiario', 'like', "%{$search}%");
                   });
             });
         }

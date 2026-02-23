@@ -34,7 +34,7 @@ class ProcessoSeletivoController extends Controller
             $query->where('fk_id_empresa', $request->input('empresa'));
         }
 
-        $processos = $query->orderByDesc('created_at')->paginate(20);
+        $processos = $query->orderByDesc(DB::raw('COALESCE(data_abertura, created_at)'))->paginate(20);
         $empresas = Empresa::orderBy('nome_empresa', 'asc')->get();
 
         return view('processos-seletivos.index', compact('processos', 'empresas'));

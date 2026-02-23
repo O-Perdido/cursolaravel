@@ -51,11 +51,11 @@
                     <div class="col-12 col-md-2">
                         <label for="status" class="form-label small fw-bold text-muted">Status</label>
                         <select id="status" name="status" class="form-select">
-                            <option value="">Em andamento (padrão)</option>
-                            <option value="encerrado" {{ request('status') == 'encerrado' ? 'selected' : '' }}>Encerrado
-                                (etapas em andamento)</option>
-                            <option value="finalizado" {{ request('status') == 'finalizado' ? 'selected' : '' }}>Concluído
-                            </option>
+                            <option value="">Todos os status</option>
+                            <option value="aberto" {{ request('status') == 'aberto' ? 'selected' : '' }}>Publicado</option>
+                            <option value="inscricoes" {{ request('status') == 'inscricoes' ? 'selected' : '' }}>Inscrições Abertas</option>
+                            <option value="encerrado" {{ request('status') == 'encerrado' ? 'selected' : '' }}>Inscrições Encerradas</option>
+                            <option value="finalizado" {{ request('status') == 'finalizado' ? 'selected' : '' }}>Processo Concluído</option>
                         </select>
                     </div>
                     <div class="col-12 col-md-2 d-grid gap-2">

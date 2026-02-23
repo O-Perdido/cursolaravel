@@ -4,6 +4,12 @@
 
 Este guia mostra como usar o novo módulo de Processos Seletivos.
 
+### Atualização de listagem (23/02/2026)
+
+- As listagens de processos (público, estagiário e gestão) agora abrem **sem filtro de status** por padrão.
+- A ordenação padrão passou a ser por **data de abertura/lançamento**, do mais recente para o mais antigo.
+- Se necessário, o usuário pode aplicar filtro manual por status na tela.
+
 ---
 
 ## 👨‍💼 Para Admin/Operador

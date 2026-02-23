@@ -252,6 +252,11 @@ public function obterQuestoesBase(): array
 
 ## Troubleshooting
 
+### Erro SQL na busca da listagem (`Unknown column 'nome'`)
+- A busca de avaliações por estagiário deve usar a coluna `tb_estagiarios.nome_estagiario`
+- Se aparecer erro de coluna `nome`, valide o filtro no `AvaliacaoController@index`
+- Após ajuste em produção, execute: `php artisan optimize:clear`
+
 ### Avaliações não são geradas automaticamente
 - Verificar se `php artisan schedule:work` está rodando
 - Verificar logs em `storage/logs/laravel.log`

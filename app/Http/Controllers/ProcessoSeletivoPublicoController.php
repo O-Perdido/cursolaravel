@@ -19,12 +19,9 @@ class ProcessoSeletivoPublicoController extends Controller
             ->with(['empresa']);
 
         $allowedStatus = ['aberto', 'inscricoes', 'encerrado', 'finalizado'];
-        $defaultStatus = ['aberto', 'inscricoes'];
 
         if ($request->filled('status') && in_array($request->status, $allowedStatus)) {
             $query->where('status', $request->status);
-        } else {
-            $query->whereIn('status', $defaultStatus);
         }
 
         if ($request->filled('search')) {
@@ -56,7 +53,7 @@ class ProcessoSeletivoPublicoController extends Controller
         }
 
         $processos = $query
-            ->orderByDesc(DB::raw('COALESCE(data_inicio_inscricoes, data_abertura, created_at)'))
+            ->orderByDesc(DB::raw('COALESCE(data_abertura, created_at)'))
             ->paginate(12);
 
         $todosCursos = [];
@@ -261,12 +258,9 @@ class ProcessoSeletivoPublicoController extends Controller
             ->with(['empresa']);
 
         $allowedStatus = ['aberto', 'inscricoes', 'encerrado', 'finalizado'];
-        $defaultStatus = ['aberto', 'inscricoes'];
 
         if ($request->filled('status') && in_array($request->status, $allowedStatus)) {
             $query->where('status', $request->status);
-        } else {
-            $query->whereIn('status', $defaultStatus);
         }
 
         // Filtro por busca
@@ -301,7 +295,7 @@ class ProcessoSeletivoPublicoController extends Controller
         }
 
         $processos = $query
-            ->orderByDesc(DB::raw('COALESCE(data_inicio_inscricoes, data_abertura, created_at)'))
+            ->orderByDesc(DB::raw('COALESCE(data_abertura, created_at)'))
             ->paginate(12);
 
         // Coletar todos os cursos únicos para o filtro
