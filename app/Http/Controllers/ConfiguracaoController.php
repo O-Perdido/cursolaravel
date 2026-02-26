@@ -119,6 +119,33 @@ class ConfiguracaoController extends Controller
                 'Permitir empresas exportarem relatórios de inscritos (PDF/Excel)',
                 'boolean'
             );
+        } elseif ($aba === 'estagio_limite') {
+            $validated = $request->validate([
+                'estagio_limite_empresa_modo' => 'required|in:anos,dias',
+                'estagio_limite_empresa_anos' => 'required|integer|min:1|max:20',
+                'estagio_limite_empresa_dias' => 'required|integer|min:1|max:10000',
+            ]);
+
+            Configuracao::definir(
+                'estagio_limite_empresa_modo',
+                $validated['estagio_limite_empresa_modo'],
+                'Modo de cálculo do limite de permanência de estágio por empresa (anos ou dias)',
+                'texto'
+            );
+
+            Configuracao::definir(
+                'estagio_limite_empresa_anos',
+                $validated['estagio_limite_empresa_anos'],
+                'Limite de permanência de estágio por empresa em anos (quando modo = anos)',
+                'numero'
+            );
+
+            Configuracao::definir(
+                'estagio_limite_empresa_dias',
+                $validated['estagio_limite_empresa_dias'],
+                'Limite de permanência de estágio por empresa em dias (quando modo = dias)',
+                'numero'
+            );
         }
 
         return redirect()->route('configuracoes.index')->with('success', 'Configurações atualizadas com sucesso!');

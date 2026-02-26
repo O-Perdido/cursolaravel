@@ -63,6 +63,36 @@ class Configuracao extends Model
     }
 
     /**
+     * Obtém o modo de cálculo do limite de estágio por empresa.
+     *
+     * Modos suportados:
+     * - anos: converte anos para dias usando base fixa
+     * - dias: utiliza diretamente o valor em dias
+     */
+    public static function obterModoLimiteEstagioPorEmpresa(): string
+    {
+        $modo = (string) self::obter('estagio_limite_empresa_modo', 'anos');
+
+        return in_array($modo, ['anos', 'dias'], true) ? $modo : 'anos';
+    }
+
+    /**
+     * Obtém o limite em anos para estágio por empresa.
+     */
+    public static function obterLimiteEstagioPorEmpresaAnos(): int
+    {
+        return max(1, (int) self::obter('estagio_limite_empresa_anos', 2));
+    }
+
+    /**
+     * Obtém o limite em dias para estágio por empresa.
+     */
+    public static function obterLimiteEstagioPorEmpresaDias(): int
+    {
+        return max(1, (int) self::obter('estagio_limite_empresa_dias', 730));
+    }
+
+    /**
      * Obtém uma configuração com fallback automático:
      * 1. Tenta buscar a configuração específica da empresa
      * 2. Se não encontrar, usa a configuração global

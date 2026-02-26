@@ -49,6 +49,13 @@
                                 </button>
                             </li>
                             <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="estagio-limite-tab" data-bs-toggle="tab"
+                                    data-bs-target="#estagio-limite" type="button" role="tab" aria-controls="estagio-limite"
+                                    aria-selected="false">
+                                    <i class="fas fa-hourglass-half"></i> Limite de Estágio
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
                                 <a class="nav-link" href="{{ route('configuracoes.empresas') }}" target="_blank">
                                     <i class="fas fa-building"></i> Por Unidade Concedente
                                     <i class="fas fa-external-link-alt" style="font-size: 0.75em;"></i>
@@ -298,6 +305,109 @@
                                         </a>
                                         <button type="submit" class="btn btn-success">
                                             <i class="fas fa-save"></i> Salvar Configurações
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+
+                            <div class="tab-pane fade" id="estagio-limite" role="tabpanel"
+                                aria-labelledby="estagio-limite-tab">
+                                <form action="{{ route('configuracoes.update') }}" method="POST">
+                                    @csrf
+                                    <input type="hidden" name="aba" value="estagio_limite">
+
+                                    <h5 class="text-secondary border-bottom pb-2 mb-3">
+                                        <i class="fas fa-hourglass-half"></i> Limite de Permanência por Empresa
+                                    </h5>
+
+                                    <p class="text-muted mb-4">
+                                        Esta regra impede que um estagiário ultrapasse o tempo máximo acumulado de estágio
+                                        na mesma unidade concedente (empresa), independente de local.
+                                    </p>
+
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <div class="mb-3">
+                                                <label for="estagio_limite_empresa_modo" class="form-label fw-bold">
+                                                    Modo de Cálculo <span class="text-danger">*</span>
+                                                </label>
+                                                <select name="estagio_limite_empresa_modo" id="estagio_limite_empresa_modo"
+                                                    class="form-select @error('estagio_limite_empresa_modo') is-invalid @enderror"
+                                                    required>
+                                                    @php
+                                                        $modoLimite = old('estagio_limite_empresa_modo', \App\Models\Configuracao::obterModoLimiteEstagioPorEmpresa());
+                                                    @endphp
+                                                    <option value="anos" {{ $modoLimite === 'anos' ? 'selected' : '' }}>Anos
+                                                    </option>
+                                                    <option value="dias" {{ $modoLimite === 'dias' ? 'selected' : '' }}>Dias
+                                                    </option>
+                                                </select>
+                                                @error('estagio_limite_empresa_modo')
+                                                    <div class="invalid-feedback">{{ $message }}</div>
+                                                @enderror
+                                                <div class="form-text">
+                                                    Define se o sistema usará o limite em anos ou em dias.
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-4">
+                                            <div class="mb-3">
+                                                <label for="estagio_limite_empresa_anos" class="form-label fw-bold">
+                                                    Limite em Anos <span class="text-danger">*</span>
+                                                </label>
+                                                <input type="number" name="estagio_limite_empresa_anos"
+                                                    id="estagio_limite_empresa_anos"
+                                                    class="form-control @error('estagio_limite_empresa_anos') is-invalid @enderror"
+                                                    min="1" max="20"
+                                                    value="{{ old('estagio_limite_empresa_anos', \App\Models\Configuracao::obterLimiteEstagioPorEmpresaAnos()) }}"
+                                                    required>
+                                                @error('estagio_limite_empresa_anos')
+                                                    <div class="invalid-feedback">{{ $message }}</div>
+                                                @enderror
+                                                <div class="form-text">
+                                                    Valor aplicado quando o modo for <strong>Anos</strong>. Padrão legal: 2.
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-4">
+                                            <div class="mb-3">
+                                                <label for="estagio_limite_empresa_dias" class="form-label fw-bold">
+                                                    Limite em Dias <span class="text-danger">*</span>
+                                                </label>
+                                                <input type="number" name="estagio_limite_empresa_dias"
+                                                    id="estagio_limite_empresa_dias"
+                                                    class="form-control @error('estagio_limite_empresa_dias') is-invalid @enderror"
+                                                    min="1" max="10000"
+                                                    value="{{ old('estagio_limite_empresa_dias', \App\Models\Configuracao::obterLimiteEstagioPorEmpresaDias()) }}"
+                                                    required>
+                                                @error('estagio_limite_empresa_dias')
+                                                    <div class="invalid-feedback">{{ $message }}</div>
+                                                @enderror
+                                                <div class="form-text">
+                                                    Valor aplicado quando o modo for <strong>Dias</strong>. Referência para
+                                                    2 anos: 730.
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="alert alert-warning">
+                                        <h6 class="alert-heading"><i class="fas fa-exclamation-triangle"></i> Comportamento
+                                            da Regra</h6>
+                                        <ul class="mb-0 small">
+                                            <li>O bloqueio acontece somente quando o novo termo <strong>excede</strong> o
+                                                limite configurado.</li>
+                                            <li>A soma considera histórico do mesmo estagiário na <strong>mesma
+                                                    empresa</strong> (CNPJ), ignorando o local.</li>
+                                            <li>Períodos sobrepostos são consolidados para evitar contagem duplicada.</li>
+                                        </ul>
+                                    </div>
+
+                                    <div class="d-flex justify-content-end gap-2">
+                                        <button type="submit" class="btn btn-success">
+                                            <i class="fas fa-save"></i> Salvar Configurações de Limite
                                         </button>
                                     </div>
                                 </form>

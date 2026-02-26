@@ -25,6 +25,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
+use App\Rules\LimiteEstagioPorEmpresaRule;
 
 
 class TermoController extends Controller
@@ -271,7 +272,16 @@ class TermoController extends Controller
             'cargo_orientador' => 'required|string',
             'cargo_orientador_fixo' => 'required|string',
             'data_inicio_estagio' => 'required|date',
-            'data_fim_estagio' => 'required|date',
+            'data_fim_estagio' => [
+                'required',
+                'date',
+                'after_or_equal:data_inicio_estagio',
+                new LimiteEstagioPorEmpresaRule(
+                    $request->integer('fk_id_estagiario'),
+                    $request->integer('fk_id_empresa'),
+                    $request->input('data_inicio_estagio')
+                ),
+            ],
             'data_fim_estagio_fixo' => 'required|date',
             'horario' => 'required|string',
             'horario_fixo' => 'required|string',
@@ -375,7 +385,17 @@ class TermoController extends Controller
             'cargo_orientador' => 'required|string',
             'cargo_orientador_fixo' => 'required|string',
             'data_inicio_estagio' => 'required|date',
-            'data_fim_estagio' => 'required|date',
+            'data_fim_estagio' => [
+                'required',
+                'date',
+                'after_or_equal:data_inicio_estagio',
+                new LimiteEstagioPorEmpresaRule(
+                    $request->integer('fk_id_estagiario'),
+                    $request->integer('fk_id_empresa'),
+                    $request->input('data_inicio_estagio'),
+                    (int) $id
+                ),
+            ],
             'data_fim_estagio_fixo' => 'required|date',
             'horario' => 'required|string',
             'horario_fixo' => 'required|string',

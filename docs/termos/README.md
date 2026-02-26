@@ -28,3 +28,9 @@
 - PUT /termos/{id} (admin)
 - POST /termos/{id}/reverter-rescisao (admin)
 
+## Limite de Estagio por Empresa
+- O sistema valida limite acumulado de permanencia do estagiario na mesma unidade concedente (empresa/CNPJ) durante criacao e edicao.
+- O bloqueio ocorre somente quando o novo periodo excede o limite configurado.
+- Configuracao global disponivel em `Configuracoes do Sistema > Limite de Estagio`.
+- Documentacao detalhada: `docs/termos/LIMITE_ESTAGIO_POR_EMPRESA.md`.
+
