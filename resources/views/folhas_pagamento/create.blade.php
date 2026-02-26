@@ -409,7 +409,7 @@
                             });
                         @endforeach
 
-                                                        const totalRegistros = todosRegistros.length;
+                                                                const totalRegistros = todosRegistros.length;
                         const TAMANHO_LOTE = 50; // Envia 50 registros por vez
                         const totalLotes = Math.ceil(totalRegistros / TAMANHO_LOTE);
 
@@ -501,18 +501,10 @@
                     totalAuxTransp += Number(document.getElementById('input_auxilio_transporte_mes_{{ $conteudo->id }}').value) || 0;
                     totalTaxaAdm += Number(document.getElementById('input_taxa_adm_{{ $conteudo->id }}').value) || 0;
                     totalDescontos += Number(document.getElementById('input_descontos_{{ $conteudo->id }}').value) || 0;
-                    totalGeral += (
-                        (Number(document.getElementById('input_bolsa_mes_{{ $conteudo->id }}').value) || 0) +
-                        (Number(document.getElementById('input_auxilio_transporte_mes_{{ $conteudo->id }}').value) || 0) +
-                        (Number({{ $conteudo->valor_recesso }}) || 0) -
-                        (Number(document.getElementById('input_descontos_{{ $conteudo->id }}').value) || 0)
-                    );
+                    totalGeral += Number(document.getElementById('input_total_{{ $conteudo->id }}').value) || 0;
                     totalGeralDestaque += (
-                        (Number(document.getElementById('input_bolsa_mes_{{ $conteudo->id }}').value) || 0) +
-                        (Number(document.getElementById('input_auxilio_transporte_mes_{{ $conteudo->id }}').value) || 0) +
-                        (Number({{ $conteudo->valor_recesso }}) || 0) +
-                        (Number(document.getElementById('input_taxa_adm_{{ $conteudo->id }}').value) || 0) +
-                        (Number(document.getElementById('input_descontos_{{ $conteudo->id }}').value) || 0)
+                        (Number(document.getElementById('input_total_{{ $conteudo->id }}').value) || 0) +
+                        (Number(document.getElementById('input_taxa_adm_{{ $conteudo->id }}').value) || 0)
                     );
                 @endforeach
 
