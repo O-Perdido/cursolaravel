@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 use App\Models\ProcessoSeletivo;
 use App\Models\InscricaoProcesso;
 use App\Models\ProcessoArquivo;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -182,33 +183,52 @@ class ProcessoSeletivoPublicoController extends Controller
         $inscricao = null;
         $numeroInscricao = null;
 
-        DB::transaction(function () use ($id, $estagiarioId, $arquivoPath, &$inscricaoJaExistia, &$inscricao, &$numeroInscricao) {
-            ProcessoSeletivo::where('id_processo', $id)
-                ->lockForUpdate()
-                ->firstOrFail();
+        $tentativa = 0;
+        $maxTentativas = 3;
 
-            $inscricaoExistente = InscricaoProcesso::where('fk_id_processo', $id)
-                ->where('fk_id_estagiario', $estagiarioId)
-                ->lockForUpdate()
-                ->first();
+        while ($tentativa < $maxTentativas) {
+            try {
+                DB::transaction(function () use ($id, $estagiarioId, $arquivoPath, &$inscricaoJaExistia, &$inscricao, &$numeroInscricao) {
+                    ProcessoSeletivo::where('id_processo', $id)
+                        ->lockForUpdate()
+                        ->firstOrFail();
 
-            if ($inscricaoExistente) {
-                $inscricaoJaExistia = true;
-                $inscricao = $inscricaoExistente;
-                $numeroInscricao = $inscricaoExistente->numero_inscricao;
-                return;
+                    $inscricaoExistente = InscricaoProcesso::where('fk_id_processo', $id)
+                        ->where('fk_id_estagiario', $estagiarioId)
+                        ->lockForUpdate()
+                        ->first();
+
+                    if ($inscricaoExistente) {
+                        $inscricaoJaExistia = true;
+                        $inscricao = $inscricaoExistente;
+                        $numeroInscricao = $inscricaoExistente->numero_inscricao;
+                        return;
+                    }
+
+                    $numeroInscricao = InscricaoProcesso::gerarNumeroInscricao($id);
+
+                    $inscricao = InscricaoProcesso::create([
+                        'fk_id_processo' => $id,
+                        'fk_id_estagiario' => $estagiarioId,
+                        'status_inscricao' => 'inscrito',
+                        'arquivo_inscricao' => $arquivoPath,
+                        'numero_inscricao' => $numeroInscricao,
+                    ]);
+                }, 3);
+
+                break;
+            } catch (QueryException $e) {
+                $tentativa++;
+                $erroDuplicidadeNumero = $e->getCode() === '23000'
+                    && str_contains($e->getMessage(), 'tb_inscricoes_processo_numero_inscricao_unique');
+
+                if (!$erroDuplicidadeNumero || $tentativa >= $maxTentativas) {
+                    throw $e;
+                }
+
+                usleep(100000 * $tentativa);
             }
-
-            $numeroInscricao = InscricaoProcesso::gerarNumeroInscricao($id);
-
-            $inscricao = InscricaoProcesso::create([
-                'fk_id_processo' => $id,
-                'fk_id_estagiario' => $estagiarioId,
-                'status_inscricao' => 'inscrito',
-                'arquivo_inscricao' => $arquivoPath,
-                'numero_inscricao' => $numeroInscricao,
-            ]);
-        }, 3);
+        }
 
         $mensagem = $inscricaoJaExistia
             ? 'Você já estava inscrito neste processo.'

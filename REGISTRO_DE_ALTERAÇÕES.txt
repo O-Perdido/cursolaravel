@@ -4,6 +4,9 @@ REGISTRO DE ALTERAÇÕES
 * Corrigi concorrência na inscrição pública de processos seletivos para evitar duplicidade em `numero_inscricao`.
 * A criação de inscrição agora roda em transação (`DB::transaction`) com lock pessimista no processo (`lockForUpdate`) e revalidação de inscrição existente dentro da transação.
 * Em envios simultâneos, o fluxo passa a responder de forma idempotente (sem erro 500), retornando a inscrição já existente quando aplicável.
+* Ajustei a geração do `numero_inscricao` para usar `MAX(sequencial)+1` por processo em vez de `COUNT()+1`, evitando reaproveitamento de números quando há exclusões/lacunas no histórico.
+* Adicionei retry automático no fluxo de inscrição pública quando ocorrer colisão de chave única em `numero_inscricao`.
+* Corrigi a model `Ebcp` para conformidade PSR-4 (nome da classe alinhado ao nome do arquivo), removendo alerta de autoload.
 
 19/02/2026 - GitHub Copilot:
 * Corrigi o tipo de `fk_id_empresa` na migração de `tb_empresa_configuracoes` para `integer`, compatível com `tb_empresas`.

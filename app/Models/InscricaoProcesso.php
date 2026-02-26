@@ -46,10 +46,15 @@ class InscricaoProcesso extends Model
             STR_PAD_LEFT
         );
         
-        // Contar inscrições neste processo para gerar sequencial
-        $proximoSeq = self::where('fk_id_processo', $fk_id_processo)
+        // Gerar próximo sequencial com base no maior número já utilizado neste processo
+        // (count()+1 pode duplicar quando existem exclusões no histórico)
+        $ultimoSeq = (int) self::where('fk_id_processo', $fk_id_processo)
+            ->whereNotNull('numero_inscricao')
             ->lockForUpdate()
-            ->count() + 1;
+            ->selectRaw("COALESCE(MAX(CAST(SUBSTRING_INDEX(numero_inscricao, '-', -1) AS UNSIGNED)), 0) as max_seq")
+            ->value('max_seq');
+
+        $proximoSeq = $ultimoSeq + 1;
         
         $numSeq = str_pad($proximoSeq, 4, '0', STR_PAD_LEFT);
         
