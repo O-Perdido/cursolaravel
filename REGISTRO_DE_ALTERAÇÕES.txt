@@ -1,5 +1,10 @@
 REGISTRO DE ALTERAÇÕES
 
+26/02/2026 - GitHub Copilot:
+* Corrigi concorrência na inscrição pública de processos seletivos para evitar duplicidade em `numero_inscricao`.
+* A criação de inscrição agora roda em transação (`DB::transaction`) com lock pessimista no processo (`lockForUpdate`) e revalidação de inscrição existente dentro da transação.
+* Em envios simultâneos, o fluxo passa a responder de forma idempotente (sem erro 500), retornando a inscrição já existente quando aplicável.
+
 19/02/2026 - GitHub Copilot:
 * Corrigi o tipo de `fk_id_empresa` na migração de `tb_empresa_configuracoes` para `integer`, compatível com `tb_empresas`.
 

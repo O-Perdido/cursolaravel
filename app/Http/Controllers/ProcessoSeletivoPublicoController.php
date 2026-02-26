@@ -177,25 +177,52 @@ class ProcessoSeletivoPublicoController extends Controller
             );
         }
 
-        // Criar inscrição
-        $numeroInscricao = InscricaoProcesso::gerarNumeroInscricao($id);
-        $inscricao = InscricaoProcesso::create([
-            'fk_id_processo' => $id,
-            'fk_id_estagiario' => $estagiarioId,
-            'status_inscricao' => 'inscrito',
-            'arquivo_inscricao' => $arquivoPath,
-            'numero_inscricao' => $numeroInscricao,
-        ]);
+        // Criar inscrição de forma atômica para evitar duplicidade em concorrência
+        $inscricaoJaExistia = false;
+        $inscricao = null;
+        $numeroInscricao = null;
+
+        DB::transaction(function () use ($id, $estagiarioId, $arquivoPath, &$inscricaoJaExistia, &$inscricao, &$numeroInscricao) {
+            ProcessoSeletivo::where('id_processo', $id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            $inscricaoExistente = InscricaoProcesso::where('fk_id_processo', $id)
+                ->where('fk_id_estagiario', $estagiarioId)
+                ->lockForUpdate()
+                ->first();
+
+            if ($inscricaoExistente) {
+                $inscricaoJaExistia = true;
+                $inscricao = $inscricaoExistente;
+                $numeroInscricao = $inscricaoExistente->numero_inscricao;
+                return;
+            }
+
+            $numeroInscricao = InscricaoProcesso::gerarNumeroInscricao($id);
+
+            $inscricao = InscricaoProcesso::create([
+                'fk_id_processo' => $id,
+                'fk_id_estagiario' => $estagiarioId,
+                'status_inscricao' => 'inscrito',
+                'arquivo_inscricao' => $arquivoPath,
+                'numero_inscricao' => $numeroInscricao,
+            ]);
+        }, 3);
+
+        $mensagem = $inscricaoJaExistia
+            ? 'Você já estava inscrito neste processo.'
+            : 'Inscrição realizada com sucesso!';
 
         if ($request->wantsJson()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Inscrição realizada com sucesso!',
+                'message' => $mensagem,
                 'numero_inscricao' => $numeroInscricao,
             ]);
         }
 
-        return redirect()->back()->with('success', "Inscrição realizada com sucesso! Número: {$numeroInscricao}");
+        return redirect()->back()->with('success', "{$mensagem} Número: {$numeroInscricao}");
     }
 
     // Download seguro de arquivos do edital
