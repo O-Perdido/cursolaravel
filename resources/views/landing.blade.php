@@ -915,8 +915,10 @@
         }
 
         .carousel-overlay {
-            position: relative !important;
-            height: auto !important;
+            position: absolute !important;
+            inset: 0;
+            width: 100% !important;
+            height: 100% !important;
         }
 
         .carousel-item .container {
