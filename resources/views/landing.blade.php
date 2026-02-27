@@ -116,12 +116,14 @@
             <div class="carousel-inner" style="height: 100%;">
                 <!-- Slide 1: Bem-vindo -->
                 <!-- 📸 IMAGEM DE FUNDO (OPCIONAL): Adicione background-image abaixo -->
+                <!-- Sugestão: Imagem de estudantes felizes, ambiente de trabalho moderno ou ilustração relacionada a estágio -->
                 <!-- Tamanho recomendado: 1920x650px (landscape) | Formato: JPG/PNG -->
                 <!-- Exemplo de uso: style="background: url('{{ asset('images/hero-slide1.jpg') }}') center/cover; height: 100%;" -->
-                <div class="carousel-item active" style="height: 100%;">
+                <div class="carousel-item active"
+                    style="background: url('{{ asset('images/hero-slide1.jpg') }}') center/cover; height: 100%;">
                     <!-- Overlay escuro sobre a imagem de fundo (remova se não usar imagem) -->
                     <div class="carousel-overlay"
-                        style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(16, 46, 108, 0.85); z-index: 1;">
+                        style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(16, 47, 108, 0.685); z-index: 1;">
                     </div>
                     <div class="d-flex align-items-center justify-content-center"
                         style="height: 100%; position: relative; z-index: 2;">
@@ -149,6 +151,7 @@
                                         @endguest
                                     </div>
                                 </div>
+                                <!--
                                 <div class="col-lg-5 text-center hero-illustration">
                                     <div class="bg-white bg-opacity-10 rounded-3 d-flex align-items-center justify-content-center mx-auto backdrop-blur"
                                         style="height: 320px; max-width: 420px; border: 2px solid rgba(255,255,255,0.1);">
@@ -156,6 +159,7 @@
                                             style="font-size: 140px; opacity: 0.2;"></i>
                                     </div>
                                 </div>
+                                -->
                             </div>
                         </div>
                     </div>
@@ -165,15 +169,17 @@
                 <!-- 📸 IMAGEM DE FUNDO (OPCIONAL): Adicione background-image abaixo -->
                 <!-- Sugestão: Imagem de estudantes/profissionais trabalhando em equipe -->
                 <!-- Tamanho recomendado: 1920x650px | Formato: JPG/PNG -->
-                <div class="carousel-item" style="height: 100%;">
+                <div class="carousel-item"
+                    style="background: url('{{ asset('images/hero-slide2.jpg') }}') center/cover; height: 100%;">
                     <!-- Overlay escuro sobre a imagem de fundo -->
                     <div class="carousel-overlay"
-                        style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(10, 31, 77, 0.88); z-index: 1;">
+                        style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(10, 31, 77, 0.685); z-index: 1;">
                     </div>
                     <div class="d-flex align-items-center justify-content-center"
                         style="height: 100%; position: relative; z-index: 2;">
                         <div class="container px-4">
                             <div class="row align-items-center g-4">
+                                <!--
                                 <div class="col-lg-6 order-lg-2 text-center mb-4 mb-lg-0 hero-illustration">
                                     <div class="bg-white bg-opacity-10 rounded-3 d-flex align-items-center justify-content-center mx-auto p-4 backdrop-blur"
                                         style="border: 2px solid rgba(255,255,255,0.1); max-width: 350px; height: 300px;">
@@ -181,6 +187,7 @@
                                             style="font-size: 100px; opacity: 0.2;"></i>
                                     </div>
                                 </div>
+                                -->
                                 <div class="col-lg-6 order-lg-1 text-white px-3 px-lg-4">
                                     <h2 class="display-4 fw-bold mb-3">Conectando Talentos a Oportunidades</h2>
                                     <p class="lead mb-4" style="font-size: 1.15rem; opacity: 0.95; line-height: 1.7;">
@@ -206,16 +213,17 @@
                 <!-- 📸 IMAGEM DE FUNDO (OPCIONAL): Adicione background-image abaixo -->
                 <!-- Sugestão: Imagem de estagiário feliz, conquista, ou workspace moderno -->
                 <!-- Tamanho recomendado: 1920x650px | Formato: JPG/PNG -->
-                <div class="carousel-item" style="height: 100%;">
+                <div class="carousel-item"
+                    style="background: url('{{ asset('images/hero-slide3.jpg') }}') center/cover; height: 100%;">
                     <!-- Overlay escuro sobre a imagem de fundo -->
                     <div class="carousel-overlay"
-                        style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(26, 58, 138, 0.85); z-index: 1;">
+                        style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(26, 58, 138, 0.685); z-index: 1;">
                     </div>
                     <div class="d-flex align-items-center justify-content-center"
                         style="height: 100%; position: relative; z-index: 2;">
                         <div class="container text-center text-white px-4">
                             <div class="mb-4">
-                                <i class="fas fa-rocket" style="font-size: 70px; opacity: 0.25;"></i>
+                                <i class="fas fa-rocket" style="font-size: 70px; opacity: 0;"></i>
                             </div>
                             <h2 class="display-3 fw-bold mb-3">Comece Agora Mesmo!</h2>
                             <p class="lead mb-4"
@@ -502,11 +510,13 @@
                             <!-- Dimensão ideal: 300x300px (quadrado) -->
                             <div class="bg-white bg-opacity-20 rounded-circle d-inline-flex align-items-center justify-content-center"
                                 style="width: 200px; height: 200px;">
-                                <i class="fas fa-lightbulb text-white" style="font-size: 80px;"></i>
+
+                                <img src="{{ asset('images/tips-icon.png') }}" alt="Dicas"
+                                    class="img-fluid rounded-circle" style="max-width: 200px;">
+                                <!-- <i class="fas fa-lightbulb text-white" style="font-size: 80px;"></i> -->
                                 <!-- Após criar imagem, substituir por: -->
                                 <!-- <img src="{{ asset('images/tips-icon.png') }}" alt="Dicas" class="img-fluid rounded-circle" style="max-width: 200px;"> -->
                             </div>
-                            <p class="small text-white-50 mt-2 mb-0">💡 Adicione uma imagem 300x300px aqui</p>
                         </div>
                     </div>
                 </div>
