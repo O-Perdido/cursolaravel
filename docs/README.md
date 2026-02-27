@@ -24,6 +24,7 @@
 
 ### 👤 Estagiário
 - [Upload de Documentos no Perfil](./estagiario/UPLOAD_DOCUMENTOS_PERFIL.md)
+- [Atualização por Admin/Operador](./estagiario/ATUALIZACAO_DOCUMENTOS_ADMIN_OPERADOR.md)
 
 ### ⭐ Avaliações de Estágio
 - [Documentação Completa](./avaliacoes/README.md)

@@ -24,6 +24,7 @@ A documentação está organizada em pastas temáticas para facilitar a localiza
 
 ### 👤 [Estagiário](./estagiario/)
 - **[UPLOAD_DOCUMENTOS_PERFIL.md](./estagiario/UPLOAD_DOCUMENTOS_PERFIL.md)** - Diagnóstico e solução para instabilidade no upload de documentos
+- **[ATUALIZACAO_DOCUMENTOS_ADMIN_OPERADOR.md](./estagiario/ATUALIZACAO_DOCUMENTOS_ADMIN_OPERADOR.md)** - Correção no fluxo de atualização de documentos por admin/operador
 
 ### ⭐ [Avaliações](./avaliacoes/)
 - **[README.md](./avaliacoes/README.md)** - Documentação técnica completa

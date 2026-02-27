@@ -649,9 +649,9 @@ class EstagiarioController extends Controller
             'nivel_curso' => 'nullable|string|max:255',
             'area_de_estagio' => 'nullable|string|max:255',
             'nome_mae' => 'nullable|string|max:255',
-            'foto_documento' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048', // Arquivo de foto_documento
-            'comprovante_residencia' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048', // Arquivo de comprovante_residencia
-            'comprovante_escolar' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048', // Arquivo de comprovante_escolar
+            'foto_documento' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120', // 5MB
+            'comprovante_residencia' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120', // 5MB
+            'comprovante_escolar' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120', // 5MB
             'numero_pis' => 'nullable|string|max:255',
             'tipo_chave_pix' => 'nullable|in:CPF,EMAIL,TELEFONE,ALEATORIA',
             'chave_pix' => 'nullable|string|max:255',
@@ -659,54 +659,61 @@ class EstagiarioController extends Controller
             'numero_cpf.unique' => 'Já existe um estagiário cadastrado com este CPF.',
         ]);
 
+        $novosArquivos = [];
+        $arquivosAntigos = [
+            'foto_documento' => $estagiario->foto_documento,
+            'comprovante_residencia' => $estagiario->comprovante_residencia,
+            'comprovante_escolar' => $estagiario->comprovante_escolar,
+        ];
 
-        // Atualizar os campos do estagiário
-        $estagiario->update($request->except(['foto_documento', 'comprovante_residencia', 'comprovante_escolar']));
+        try {
+            foreach (['foto_documento', 'comprovante_residencia', 'comprovante_escolar'] as $campoArquivo) {
+                if (!$request->hasFile($campoArquivo)) {
+                    continue;
+                }
 
-        $comprovanteResidenciaPath = $estagiario->comprovante_residencia;
-        $comprovanteEscolarPath = $estagiario->comprovante_escolar;
-        $fotoDocumentoPath = $estagiario->foto_documento;
+                $arquivo = $request->file($campoArquivo);
+                if (!$arquivo->isValid()) {
+                    return redirect()->back()->with('error', 'Falha no upload de um dos documentos. Verifique o arquivo e tente novamente.');
+                }
 
-        // Verificar se há novos arquivos e processá-los
-        if ($request->hasFile('foto_documento')) {
-
-            // Verificar se o arquivo existe antes de tentar apagá-lo
-            if ($estagiario->foto_documento) {
-                Storage::disk('public')->delete($fotoDocumentoPath);
+                $pasta = $campoArquivo === 'foto_documento' ? 'uploads/fotos' : 'uploads/comprovantes';
+                $novosArquivos[$campoArquivo] = $arquivo->store($pasta, 'public');
             }
 
+            DB::beginTransaction();
 
-            // Armazenar o novo arquivo
-            $fotoDocumentoPath = $request->file('foto_documento')->store('uploads/fotos', 'public');
-            $estagiario->foto_documento = $fotoDocumentoPath;
-        }
-
-        if ($request->hasFile('comprovante_residencia')) {
-
-            // Verificar se o arquivo existe antes de tentar apagá-lo
-            if ($estagiario->comprovante_residencia) {
-                Storage::disk('public')->delete($comprovanteResidenciaPath);
+            $dadosAtualizacao = $request->except(['foto_documento', 'comprovante_residencia', 'comprovante_escolar']);
+            foreach ($novosArquivos as $campo => $path) {
+                $dadosAtualizacao[$campo] = $path;
             }
 
-            // Armazenar o novo arquivo
-            $comprovanteResidenciaPath = $request->file('comprovante_residencia')->store('uploads/comprovantes', 'public');
-            $estagiario->comprovante_residencia = $comprovanteResidenciaPath;
-        }
+            $estagiario->update($dadosAtualizacao);
+            DB::commit();
 
-        if ($request->hasFile('comprovante_escolar')) {
+            foreach ($novosArquivos as $campo => $pathNovo) {
+                $pathAntigo = $arquivosAntigos[$campo] ?? null;
+                if ($pathAntigo && $pathAntigo !== $pathNovo && Storage::disk('public')->exists($pathAntigo)) {
+                    Storage::disk('public')->delete($pathAntigo);
+                }
+            }
+        } catch (\Throwable $exception) {
+            DB::rollBack();
 
-            // Verificar se o arquivo existe antes de tentar apagá-lo
-            if ($estagiario->comprovante_escolar) {
-                Storage::disk('public')->delete($comprovanteEscolarPath);
+            foreach ($novosArquivos as $pathNovo) {
+                if ($pathNovo && Storage::disk('public')->exists($pathNovo)) {
+                    Storage::disk('public')->delete($pathNovo);
+                }
             }
 
-            // Armazenar o novo arquivo
-            $comprovanteEscolarPath = $request->file('comprovante_escolar')->store('uploads/comprovantes', 'public');
-            $estagiario->comprovante_escolar = $comprovanteEscolarPath;
-        }
+            Log::error('Falha ao atualizar estagiário com documentos (admin/operator)', [
+                'id_estagiario' => $estagiario->id_estagiario,
+                'erro' => $exception->getMessage(),
+                'ip' => $request->ip(),
+            ]);
 
-        // Salvar as alterações no banco de dados
-        $estagiario->save();
+            return redirect()->back()->with('error', 'Erro ao atualizar dados e documentos do estagiário. Tente novamente.');
+        }
 
         // Redirecionar o usuário de volta com uma mensagem de sucesso
         return redirect()->route('estagiarios.index')->with('success', 'Estagiário atualizado com sucesso!');
