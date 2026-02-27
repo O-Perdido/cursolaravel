@@ -845,48 +845,70 @@ class EstagiarioController extends Controller
         $request->validate([
             'novo_documento' => 'required|file|mimes:jpg,jpeg,png,pdf|max:5120', // 5MB
         ]);
+
+        if (!$request->hasFile('novo_documento')) {
+            return redirect()->back()->with('error', 'Nenhum arquivo foi recebido. Tente novamente.');
+        }
+
+        $arquivo = $request->file('novo_documento');
+
+        if (!$arquivo->isValid()) {
+            Log::warning('Upload de documento inválido para estagiário', [
+                'id_estagiario' => $estagiario->id_estagiario,
+                'campo' => $campo,
+                'upload_error_code' => $arquivo->getError(),
+                'upload_error_message' => $arquivo->getErrorMessage(),
+                'ip' => $request->ip(),
+            ]);
+
+            return redirect()->back()->with('error', 'Falha no upload do arquivo. Verifique sua conexão e tente novamente.');
+        }
         
         // Guardar path antigo ANTES de fazer upload do novo
         $caminhoAntigo = $estagiario->$campo;
-        
-        // Upload do novo documento
-        $pasta = ($campo === 'foto_documento') ? 'uploads/fotos' : 'uploads/comprovantes';
-        $novoPath = $request->file('novo_documento')->store($pasta, 'public');
-        
-        Log::info('Atualizando documento do estagiário', [
-            'id_estagiario' => $estagiario->id_estagiario,
-            'campo' => $campo,
-            'caminho_antigo' => $caminhoAntigo,
-            'caminho_novo' => $novoPath,
-        ]);
-        
-        // Atualizar no banco com o novo path
-        $updateResult = $estagiario->update([$campo => $novoPath]);
-        
-        Log::info('Resultado da atualização no banco', [
-            'id_estagiario' => $estagiario->id_estagiario,
-            'sucesso' => $updateResult,
-        ]);
-        
-        if (!$updateResult) {
-            // Se a atualização falhar, não deletar o arquivo antigo
-            return redirect()->back()->with('error', 'Erro ao atualizar documento. Tente novamente.');
-        }
-        
-        // Recarregar estagiário do banco para confirmar
-        $estagiario->refresh();
-        
-        Log::info('Estagiário recarregado do banco', [
-            'id_estagiario' => $estagiario->id_estagiario,
-            'campo_valor_atual' => $estagiario->$campo,
-        ]);
-        
-        // Só deletar o arquivo antigo DEPOIS que a atualização no banco foi bem-sucedida
-        if ($caminhoAntigo && Storage::disk('public')->exists($caminhoAntigo)) {
-            Storage::disk('public')->delete($caminhoAntigo);
-            Log::info('Arquivo antigo deletado', [
-                'caminho' => $caminhoAntigo,
+
+        try {
+            $pasta = ($campo === 'foto_documento') ? 'uploads/fotos' : 'uploads/comprovantes';
+            $novoPath = $arquivo->store($pasta, 'public');
+
+            DB::beginTransaction();
+            $updateResult = $estagiario->update([$campo => $novoPath]);
+
+            if (!$updateResult) {
+                DB::rollBack();
+
+                if (Storage::disk('public')->exists($novoPath)) {
+                    Storage::disk('public')->delete($novoPath);
+                }
+
+                return redirect()->back()->with('error', 'Erro ao atualizar documento. Tente novamente.');
+            }
+
+            DB::commit();
+
+            if ($caminhoAntigo && $caminhoAntigo !== $novoPath && Storage::disk('public')->exists($caminhoAntigo)) {
+                Storage::disk('public')->delete($caminhoAntigo);
+            }
+        } catch (\Throwable $exception) {
+            DB::rollBack();
+
+            if (isset($novoPath) && $novoPath && Storage::disk('public')->exists($novoPath)) {
+                Storage::disk('public')->delete($novoPath);
+            }
+
+            Log::error('Falha ao atualizar documento do estagiário', [
+                'id_estagiario' => $estagiario->id_estagiario,
+                'campo' => $campo,
+                'caminho_antigo' => $caminhoAntigo,
+                'arquivo_nome' => $arquivo->getClientOriginalName(),
+                'arquivo_tamanho' => $arquivo->getSize(),
+                'arquivo_mime' => $arquivo->getClientMimeType(),
+                'ip' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+                'erro' => $exception->getMessage(),
             ]);
+
+            return redirect()->back()->with('error', 'Não foi possível concluir o upload agora. Tente novamente em alguns instantes.');
         }
         
         $nomeDocumento = match($campo) {

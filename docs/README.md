@@ -22,6 +22,9 @@
 ### 📝 Termos
 - [Edicao do TCE](./termos/README.md)
 
+### 👤 Estagiário
+- [Upload de Documentos no Perfil](./estagiario/UPLOAD_DOCUMENTOS_PERFIL.md)
+
 ### ⭐ Avaliações de Estágio
 - [Documentação Completa](./avaliacoes/README.md)
 - [Quick Start](./avaliacoes/QUICK_START.md)

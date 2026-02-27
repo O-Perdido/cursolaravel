@@ -385,6 +385,7 @@
                             <label for="novoDocumento" class="form-label">Selecione o novo arquivo</label>
                             <input type="file" class="form-control" id="novoDocumento" name="novo_documento" accept=".pdf,.jpg,.jpeg,.png" required>
                             <small class="text-muted">Formatos aceitos: PDF, JPG, JPEG, PNG (máx. 5MB)</small>
+                            <div class="alert alert-danger mt-2 d-none" id="uploadDocumentoErro"></div>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -418,14 +419,64 @@
     </div>
 
     <script>
+        const TAMANHO_MAXIMO_DOCUMENTO = 5 * 1024 * 1024;
+
+        function exibirErroUploadDocumento(mensagem) {
+            const caixaErro = document.getElementById('uploadDocumentoErro');
+            caixaErro.textContent = mensagem;
+            caixaErro.classList.remove('d-none');
+        }
+
+        function limparErroUploadDocumento() {
+            const caixaErro = document.getElementById('uploadDocumentoErro');
+            caixaErro.textContent = '';
+            caixaErro.classList.add('d-none');
+        }
+
         function abrirModalDocumento(campo) {
             document.getElementById('campoDocumento').value = campo;
+            limparErroUploadDocumento();
             const modal = new bootstrap.Modal(document.getElementById('modalDocumento'));
             modal.show();
         }
 
+        document.getElementById('novoDocumento').addEventListener('change', function() {
+            limparErroUploadDocumento();
+
+            if (!this.files || !this.files.length) {
+                return;
+            }
+
+            const arquivo = this.files[0];
+            if (arquivo.size > TAMANHO_MAXIMO_DOCUMENTO) {
+                exibirErroUploadDocumento('O arquivo selecionado excede 5MB. Reduza o tamanho e tente novamente.');
+                this.value = '';
+            }
+        });
+
         // Gerenciar o envio do formulário com modal de loading
         document.getElementById('formAtualizarDocumento').addEventListener('submit', function(e) {
+            limparErroUploadDocumento();
+
+            const inputArquivo = document.getElementById('novoDocumento');
+            if (!inputArquivo.files || !inputArquivo.files.length) {
+                e.preventDefault();
+                exibirErroUploadDocumento('Selecione um arquivo antes de atualizar.');
+                return;
+            }
+
+            if (inputArquivo.files[0].size > TAMANHO_MAXIMO_DOCUMENTO) {
+                e.preventDefault();
+                exibirErroUploadDocumento('O arquivo selecionado excede 5MB. Reduza o tamanho e tente novamente.');
+                return;
+            }
+
+            if (!navigator.onLine) {
+                e.preventDefault();
+                exibirErroUploadDocumento('Sem conexão com a internet. Verifique a rede e tente novamente.');
+                return;
+            }
+
             // Desabilitar botões para evitar múltiplos envios
             document.getElementById('btnSubmitDocumento').disabled = true;
             document.getElementById('btnCancelarDocumento').disabled = true;
@@ -447,6 +498,7 @@
             
             // Limpar o arquivo selecionado
             document.getElementById('novoDocumento').value = '';
+            limparErroUploadDocumento();
         });
     </script>
 

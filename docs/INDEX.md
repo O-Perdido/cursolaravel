@@ -22,6 +22,9 @@ A documentação está organizada em pastas temáticas para facilitar a localiza
 ### 📝 [Termos](./termos/)
 - **[README.md](./termos/README.md)** - Edição do TCE e regras de acesso
 
+### 👤 [Estagiário](./estagiario/)
+- **[UPLOAD_DOCUMENTOS_PERFIL.md](./estagiario/UPLOAD_DOCUMENTOS_PERFIL.md)** - Diagnóstico e solução para instabilidade no upload de documentos
+
 ### ⭐ [Avaliações](./avaliacoes/)
 - **[README.md](./avaliacoes/README.md)** - Documentação técnica completa
 - **[QUICK_START.md](./avaliacoes/QUICK_START.md)** - Guia rápido de início
