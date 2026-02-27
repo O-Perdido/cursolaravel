@@ -1,3 +1,4 @@
+text/x-generic gerarPdfAlteracao.blade.php ( HTML document, UTF-8 Unicode text, with CRLF line terminators )
 <!DOCTYPE html>
 <html lang="pt-BR">
 
@@ -228,6 +229,7 @@
 
     <p class="titulo2">DADOS DO ESTÁGIO:</p>
     <table style="border: 2px solid black;">
+        <!--
         <tr>
             <th style="width: 10%; border-right: 1px solid black;">INÍCIO DO ESTÁGIO:</th>
             <td style="width: 40%;">{{ \Carbon\Carbon::parse($alteracao->termo->data_inicio_estagio)->format('d/m/Y') }}
@@ -236,6 +238,7 @@
             <td style="width: 40%;">{{ \Carbon\Carbon::parse($alteracao->termo->data_fim_estagio)->format('d/m/Y') }}
             </td>
         </tr>
+        -->
         <tr>
             <th colspan="4" style="text-align: center; border: 2px solid black;">HORÁRIO DE ESTÁGIO</th>
         </tr>

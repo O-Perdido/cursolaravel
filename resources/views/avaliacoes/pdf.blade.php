@@ -254,7 +254,8 @@
         <div class="header">
             <div class="header-title">Relatório de Avaliação de Desempenho</div>
             <div class="header-subtitle">Termo de Estágio Nº
-                {{ $avaliacao->termo->numero_termo }}/{{ $avaliacao->termo->ano_termo }}</div>
+                {{ $avaliacao->termo->numero_termo }}/{{ $avaliacao->termo->ano_termo }}
+            </div>
             <div class="header-info">
                 <div><span>Status:</span>
                     @if ($avaliacao->status === 'respondida')
@@ -273,8 +274,25 @@
                     @endif
                 </div>
                 @if ($avaliacao->respondida_em)
-                    <div><span>Data:</span> {{ $avaliacao->respondida_em->format('d/m/Y H:i') }}</div>
+                    <div><span>Data:</span> {{ optional($avaliacao->respondida_em)->format('d/m/Y H:i') ?? '-' }}</div>
                 @endif
+                <!-- Período -->
+                @php
+                    $termo = $avaliacao->termo;
+                    $dataInicioEstagio = optional($termo)->data_inicio_estagio ?? optional($termo)->data_inicio ?? null;
+                    $dataFimContrato = optional($termo)->data_fim_estagio ?? optional($termo)->data_fim ?? null;
+
+                    $dataInicioPeriodo = $dataInicioEstagio;
+                    $dataFimPeriodo = $dataFimContrato;
+
+                    if ($avaliacao->tipo_avaliacao === 'seis_meses' && $dataInicioEstagio) {
+                        $dataFimPeriodo = \Carbon\Carbon::parse($dataInicioEstagio)->addMonthsNoOverflow(6);
+                    }
+                @endphp
+                <div><span>Período:</span>
+                    {{ optional($dataInicioPeriodo)->format('d/m/Y') ?? '-' }} -
+                    {{ optional($dataFimPeriodo)->format('d/m/Y') ?? '-' }}
+                </div>
             </div>
         </div>
 
