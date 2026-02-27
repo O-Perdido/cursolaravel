@@ -4,10 +4,10 @@
 
 @section('content')
 <!-- Background decorativo da página inteira -->
-<div
+<div class="page-ambient-bg"
     style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; overflow: hidden;">
     <!-- Padrão de pontos -->
-    <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; opacity: 0.04;">
+    <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; opacity: 0.07;">
         <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
             <defs>
                 <pattern id="dots-bg" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
@@ -16,6 +16,16 @@
             </defs>
             <rect width="100%" height="100%" fill="url(#dots-bg)" />
         </svg>
+    </div>
+
+    <!-- Camada de linhas diagonais suaves -->
+    <div
+        style="position: absolute; top: -20%; left: -20%; width: 140%; height: 140%; opacity: 0.07; background-image: repeating-linear-gradient(120deg, rgba(16, 46, 108, 0.16) 0px, rgba(16, 46, 108, 0.16) 1px, transparent 1px, transparent 120px); transform: rotate(-6deg);">
+    </div>
+
+    <!-- Glow radial central -->
+    <div
+        style="position: absolute; top: 20%; left: 50%; width: 900px; height: 900px; transform: translateX(-50%); background: radial-gradient(circle at center, rgba(16, 46, 108, 0.06), rgba(16, 46, 108, 0.02) 35%, transparent 70%); border-radius: 50%;">
     </div>
 
     <!-- Linhas horizontais -->
@@ -46,6 +56,24 @@
         style="position: absolute; top: 0; left: 85%; bottom: 0; width: 1px; background: linear-gradient(180deg, transparent, rgba(16, 46, 108, 0.08), transparent);">
     </div>
 
+    <!-- Formas geométricas em outline -->
+    <div
+        style="position: absolute; top: 18%; right: 12%; width: 130px; height: 130px; border: 2px solid rgba(16, 46, 108, 0.12); transform: rotate(18deg); border-radius: 16px;">
+    </div>
+    <div
+        style="position: absolute; bottom: 18%; left: 12%; width: 110px; height: 110px; border: 2px solid rgba(236, 208, 11, 0.16); transform: rotate(-14deg); border-radius: 14px;">
+    </div>
+    <div style="position: absolute; top: 42%; left: 8%; width: 90px; height: 90px; opacity: 0.18;">
+        <svg width="100%" height="100%" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            <polygon points="50,5 93,28 93,72 50,95 7,72 7,28" fill="none" stroke="#102E6C" stroke-width="2" />
+        </svg>
+    </div>
+    <div style="position: absolute; top: 62%; right: 10%; width: 100px; height: 100px; opacity: 0.2;">
+        <svg width="100%" height="100%" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            <polygon points="50,8 88,30 88,70 50,92 12,70 12,30" fill="none" stroke="#ECD00B" stroke-width="2" />
+        </svg>
+    </div>
+
     <!-- Formas circulares flutuantes -->
     <div
         style="position: absolute; top: 25%; left: 5%; width: 400px; height: 400px; background: radial-gradient(circle at 30% 30%, rgba(236, 208, 11, 0.05), transparent); border-radius: 50%; animation: float 8s ease-in-out infinite;">
@@ -55,6 +83,17 @@
     </div>
     <div
         style="position: absolute; bottom: 10%; left: 25%; width: 300px; height: 300px; background: radial-gradient(circle at 30% 30%, rgba(236, 208, 11, 0.04), transparent); border-radius: 50%; animation: float 12s ease-in-out infinite;">
+    </div>
+
+    <!-- Pontos de destaque geométricos -->
+    <div
+        style="position: absolute; top: 12%; left: 52%; width: 18px; height: 18px; border-radius: 4px; background: rgba(236, 208, 11, 0.25); transform: rotate(45deg);">
+    </div>
+    <div
+        style="position: absolute; bottom: 24%; right: 35%; width: 14px; height: 14px; border-radius: 3px; background: rgba(16, 46, 108, 0.28); transform: rotate(30deg);">
+    </div>
+    <div
+        style="position: absolute; top: 46%; right: 48%; width: 10px; height: 10px; border-radius: 50%; background: rgba(236, 208, 11, 0.35);">
     </div>
 </div>
 
@@ -994,6 +1033,16 @@
     body {
         background-color: #ffffff;
         background-attachment: fixed;
+    }
+
+    .page-ambient-bg {
+        opacity: 1;
+    }
+
+    @media (max-width: 768px) {
+        .page-ambient-bg {
+            opacity: 0.75;
+        }
     }
 </style>
 @endsection
