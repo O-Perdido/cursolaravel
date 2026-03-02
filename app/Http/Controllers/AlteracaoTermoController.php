@@ -10,6 +10,7 @@ use App\Models\Ebcp;
 use App\Models\Local;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Services\ZapSignService;
+use App\Rules\LimiteEstagioPorEmpresaRule;
 
 class AlteracaoTermoController extends Controller
 {
@@ -111,6 +112,8 @@ class AlteracaoTermoController extends Controller
 
     public function store(Request $request, $id)
     {
+        $termo = Termo::findOrFail($id);
+
         $validatedData = $request->validate([
             'id_alteracao' => 'nullable|integer',
             'fk_id_termo' => 'nullable|integer',
@@ -118,7 +121,17 @@ class AlteracaoTermoController extends Controller
             'desc_atividades_alteracao' => 'nullable|string',
             'nome_orientador_alteracao' => 'nullable|string',
             'cargo_orientador_alteracao' => 'nullable|string',
-            'data_fim_estagio_alteracao' => 'nullable|date',
+            'data_fim_estagio_alteracao' => [
+                'nullable',
+                'date',
+                'after_or_equal:' . $termo->data_inicio_estagio,
+                new LimiteEstagioPorEmpresaRule(
+                    (int) $termo->fk_id_estagiario,
+                    (int) $termo->fk_id_empresa,
+                    $termo->data_inicio_estagio ? (string) $termo->data_inicio_estagio : null,
+                    (int) $termo->id_termo
+                ),
+            ],
             'data_alteracao' => 'nullable|date',
             'horario_alteracao' => 'nullable|string',
             'valor_bolsa_alteracao' => 'nullable',
@@ -132,7 +145,6 @@ class AlteracaoTermoController extends Controller
         $validatedData['fk_id_termo'] = $id;
 
         // Fazer o update na tabela original
-        $termo = Termo::findOrFail($id);
 
         // Armazenar os valores antigos
         $validatedData['old_fk_id_supervisor'] = $termo->fk_id_supervisor;

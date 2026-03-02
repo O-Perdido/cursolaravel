@@ -5,6 +5,7 @@ Impedir cadastro/edição de termo que faça o estagiário ultrapassar o tempo m
 
 ## Escopo da Regra
 - Aplica para criação e edição de termo.
+- Aplica também na criação de alteração de termo quando houver mudança em `data_fim_estagio_alteracao`.
 - Considera somente termos do mesmo estagiário e da mesma empresa (`fk_id_empresa`).
 - Não depende de local (`fk_id_local`).
 - Bloqueia somente quando o novo total **excede** o limite configurado.
@@ -39,6 +40,8 @@ Chaves globais utilizadas na tabela `configuracoes`:
   - `app/Rules/LimiteEstagioPorEmpresaRule.php`
 - Integração no fluxo de termo:
   - `app/Http/Controllers/TermoController.php`
+- Integração no fluxo de alteração de termo:
+  - `app/Http/Controllers/AlteracaoTermoController.php`
 - Configurações globais:
   - `app/Models/Configuracao.php`
   - `app/Http/Controllers/ConfiguracaoController.php`

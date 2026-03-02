@@ -42,8 +42,12 @@
             <div class="col-md-6 mb-3">
                 <div class="form-group">
                     <label for="data_fim_estagio_alteracao">Data de Término do Estágio</label>
-                    <input type="date" class="form-control" id="data_fim_estagio_alteracao"
-                        name="data_fim_estagio_alteracao">
+                    <input type="date" class="form-control @error('data_fim_estagio_alteracao') is-invalid @enderror"
+                        id="data_fim_estagio_alteracao" name="data_fim_estagio_alteracao"
+                        value="{{ old('data_fim_estagio_alteracao') }}">
+                    @error('data_fim_estagio_alteracao')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
                 </div>
             </div>
 
@@ -99,13 +103,13 @@
                 <div class="form-group">
                     <label for="descricao">Descrição das Alterações</label>
                     <textarea class="form-control" id="descricao" name="descricao" rows="10" required>
-            Cláusula Única:
-                Fica estabelecido as seguintes alterações:
+                Cláusula Única:
+                    Fica estabelecido as seguintes alterações:
 
-                a) [Descreva as alterações aqui]
+                    a) [Descreva as alterações aqui]
 
-                E, por estarem as partes certas e compromissadas, assinam o presente instrumento de maneira eletrônica na forma da lei 14063/2020 que dispõe sobre assinaturas eletrônicas.
-                                                </textarea>
+                    E, por estarem as partes certas e compromissadas, assinam o presente instrumento de maneira eletrônica na forma da lei 14063/2020 que dispõe sobre assinaturas eletrônicas.
+                                                    </textarea>
                 </div>
             </div>
 
