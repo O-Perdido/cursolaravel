@@ -46,11 +46,11 @@ class TermosExport implements FromView
         }
 
         if ($this->request->filled('data_inicial')) {
-            $query->whereDate('data', '>=', $this->request->data_inicial);
+            $query->whereDate('data_fim_estagio', '>=', $this->request->data_inicial);
         }
 
         if ($this->request->filled('data_final')) {
-            $query->whereDate('data', '<=', $this->request->data_final);
+            $query->whereDate('data_fim_estagio', '<=', $this->request->data_final);
         }
 
         // Filtrar os termos que tem rescisão

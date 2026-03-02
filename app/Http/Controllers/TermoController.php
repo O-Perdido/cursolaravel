@@ -148,11 +148,11 @@ class TermoController extends Controller
         }
 
         if ($request->filled('data_inicial')) {
-            $query->whereDate('data', '>=', $request->input('data_inicial'));
+            $query->whereDate('data_fim_estagio', '>=', $request->input('data_inicial'));
         }
 
         if ($request->filled('data_final')) {
-            $query->whereDate('data', '<=', $request->input('data_final'));
+            $query->whereDate('data_fim_estagio', '<=', $request->input('data_final'));
         }
 
         // Filtrar os termos que tem rescisão

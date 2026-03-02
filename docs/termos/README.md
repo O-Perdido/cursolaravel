@@ -28,6 +28,10 @@
 - PUT /termos/{id} (admin)
 - POST /termos/{id}/reverter-rescisao (admin)
 
+## Relatorios de Termos (PDF/Excel)
+- O filtro de periodo na listagem e nos relatorios usa a data de termino do estagio (`data_fim_estagio`).
+- Os campos `data_inicial` e `data_final` aplicam intervalo sobre `data_fim_estagio` para manter consistencia entre tela, PDF e Excel.
+
 ## Limite de Estagio por Empresa
 - O sistema valida limite acumulado de permanencia do estagiario na mesma unidade concedente (empresa/CNPJ) durante criacao e edicao.
 - O bloqueio ocorre somente quando o novo periodo excede o limite configurado.
