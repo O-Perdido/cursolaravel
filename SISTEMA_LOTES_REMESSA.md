@@ -165,6 +165,22 @@ Route::post('/folha-pagamento/remessa-lote/{id}', [FolhaPagamentoController::cla
 3. **Numeração sequencial:** Cada lote recebe um número único no nome do arquivo
 4. **Compatibilidade:** O método antigo `gerarRemessa()` permanece funcional
 
+### Validação PIX (atualização 03/03/2026)
+
+- O sistema não gera mais chave de telefone com preenchimento em zeros (ex.: `+5500000000000`).
+- Em caso de chave PIX inválida (telefone com quantidade incorreta de dígitos, e-mail inválido, CPF inválido, chave aleatória vazia), a remessa é bloqueada.
+- A tela retorna uma lista com os estagiários pendentes para correção antes de novo download do `.REM`.
+- O campo **Forma de Iniciação** do Segmento B foi ajustado para os códigos do manual (`01`, `02`, `03`, `04`) em campo alfa de 3 posições.
+- Para tipo `03` (CPF), a **Chave Pix (pos. 128-226)** permanece em branco, e o CPF/CNPJ vai no campo próprio (pos. 19-32).
+- O final do Segmento B passou a ser preenchido explicitamente com: `227-232` em branco e `233-240` (ISPB) numérico.
+- Foi adicionada validação preventiva para e-mail PIX que, ao extrair apenas dígitos, resulte em zeros (`^0+$`), padrão que pode ser rejeitado pelo validador do banco.
+
+### Retorno de erro detalhado para o usuário
+
+- Quando houver pendências de chave PIX, a geração da remessa é bloqueada com uma mensagem explicativa.
+- O retorno mostra tabela com: número da ocorrência, ID do registro, nome do estagiário e problema identificado.
+- Para casos de incompatibilidade bancária (ex.: e-mail PIX com dígitos somente zero), a mensagem orienta que o cadastro precisa ser ajustado antes de nova geração do arquivo.
+
 ## 🛠️ Instalação
 
 Para instalar este recurso em produção:

@@ -90,6 +90,155 @@ class FolhaPagamentoController extends Controller
         return $lotes;
     }
 
+    private function resolverFormaIniciacaoPix(?string $tipoChavePix): string
+    {
+        $tipo = strtoupper(trim((string)$tipoChavePix));
+
+        return match ($tipo) {
+            'TELEFONE' => '01 ',
+            'EMAIL' => '02 ',
+            'CPF' => '03 ',
+            'ALEATORIA' => '04 ',
+            default => '03 ',
+        };
+    }
+
+    private function normalizarDadosPix($estagiario, string $formaIniciacao): array
+    {
+        $chavePixRaw = trim((string)($estagiario->chave_pix ?? ''));
+        $cpfSomenteDigitos = preg_replace('/\D/', '', (string)($estagiario->numero_cpf ?? ''));
+        $cpf14 = str_repeat(' ', 14);
+
+        if ($formaIniciacao === '03 ') {
+            if (strlen($cpfSomenteDigitos) !== 11 || preg_match('/^0+$/', $cpfSomenteDigitos)) {
+                return [
+                    'valido' => false,
+                    'mensagem' => 'CPF inválido para chave PIX do tipo CPF.',
+                ];
+            }
+
+            $cpf14 = str_pad($cpfSomenteDigitos, 14, '0', STR_PAD_LEFT);
+
+            return [
+                'valido' => true,
+                'chave' => '',
+                'cpf14' => $cpf14,
+            ];
+        }
+
+        if ($formaIniciacao === '01 ') {
+            $digits = preg_replace('/\D/', '', $chavePixRaw);
+
+            if (str_starts_with($digits, '55') && strlen($digits) > 11) {
+                $digits = substr($digits, 2);
+            }
+
+            if (strlen($digits) !== 11 || preg_match('/^0+$/', $digits)) {
+                return [
+                    'valido' => false,
+                    'mensagem' => 'Telefone PIX inválido. Informe DDD + número com 11 dígitos válidos.',
+                ];
+            }
+
+            return [
+                'valido' => true,
+                'chave' => '+55' . $digits,
+                'cpf14' => $cpf14,
+            ];
+        }
+
+        if ($formaIniciacao === '02 ') {
+            if (empty($chavePixRaw) || filter_var($chavePixRaw, FILTER_VALIDATE_EMAIL) === false) {
+                return [
+                    'valido' => false,
+                    'mensagem' => 'E-mail da chave PIX inválido.',
+                ];
+            }
+
+            $digitsEmail = preg_replace('/\D/', '', $chavePixRaw);
+            if ($digitsEmail !== '' && preg_match('/^0+$/', $digitsEmail)) {
+                return [
+                    'valido' => false,
+                    'mensagem' => 'E-mail da chave PIX incompatível com a validação bancária (contém apenas dígitos zero). Use um e-mail sem esse padrão ou outro tipo de chave PIX.',
+                ];
+            }
+
+            return [
+                'valido' => true,
+                'chave' => substr($chavePixRaw, 0, 77),
+                'cpf14' => $cpf14,
+            ];
+        }
+
+        if ($formaIniciacao === '04 ') {
+            if (empty($chavePixRaw) || preg_match('/^[0-]+$/', $chavePixRaw)) {
+                return [
+                    'valido' => false,
+                    'mensagem' => 'Chave PIX aleatória inválida.',
+                ];
+            }
+
+            return [
+                'valido' => true,
+                'chave' => substr($chavePixRaw, 0, 99),
+                'cpf14' => $cpf14,
+            ];
+        }
+
+        return [
+            'valido' => false,
+            'mensagem' => 'Tipo de chave PIX inválido.',
+        ];
+    }
+
+    private function respostaErrosRemessa(array $errors)
+    {
+        usort($errors, function ($a, $b) {
+            return strcmp((string)($a['nome'] ?? ''), (string)($b['nome'] ?? ''));
+        });
+
+        $temIncompatibilidadeBanco = collect($errors)->contains(function ($error) {
+            $mensagem = strtolower((string)($error['mensagem'] ?? ''));
+            return str_contains($mensagem, 'incompatível com a validação bancária');
+        });
+
+        $formattedErrors = "<div style='font-family: Arial, sans-serif; padding: 20px;'>";
+        $formattedErrors .= "<h3 style='color: #dc3545;'>⚠️ Atenção: Foram encontrados problemas de chave PIX na remessa</h3>";
+        $formattedErrors .= "<div style='margin: 12px 0 16px; padding: 12px; border: 1px solid #ffeeba; background: #fff3cd; color: #856404;'>";
+        $formattedErrors .= "<strong>O que aconteceu:</strong> o arquivo de remessa foi bloqueado para evitar rejeição no banco.<br>";
+        $formattedErrors .= "<strong>Como corrigir:</strong> ajuste a chave PIX dos estagiários listados abaixo e gere o arquivo novamente.";
+        if ($temIncompatibilidadeBanco) {
+            $formattedErrors .= "<br><strong>Observação importante:</strong> alguns bancos podem rejeitar e-mails PIX quando, após remover caracteres não numéricos, restam apenas zeros (ex.: endereço com dígitos somente \"0\").";
+        }
+        $formattedErrors .= "</div>";
+        $formattedErrors .= "<table style='border-collapse: collapse; width: 100%;'>";
+        $formattedErrors .= "<thead><tr>";
+        $formattedErrors .= "<th style='border: 1px solid #ddd; padding: 8px; text-align: left; background: #f8d7da;'>Nº</th>";
+        $formattedErrors .= "<th style='border: 1px solid #ddd; padding: 8px; text-align: left; background: #f8d7da;'>ID</th>";
+        $formattedErrors .= "<th style='border: 1px solid #ddd; padding: 8px; text-align: left; background: #f8d7da;'>Nome</th>";
+        $formattedErrors .= "<th style='border: 1px solid #ddd; padding: 8px; text-align: left; background: #f8d7da;'>Problema</th>";
+        $formattedErrors .= "</tr></thead><tbody>";
+
+        $i = 1;
+        foreach ($errors as $error) {
+            $formattedErrors .= "<tr>";
+            $formattedErrors .= "<td style='border: 1px solid #ddd; padding: 8px; vertical-align: top;'>" . $i . "</td>";
+            $formattedErrors .= "<td style='border: 1px solid #ddd; padding: 8px; vertical-align: top;'>" . htmlentities((string)($error['id'] ?? '-'), ENT_QUOTES, 'UTF-8') . "</td>";
+            $formattedErrors .= "<td style='border: 1px solid #ddd; padding: 8px; vertical-align: top;'>" . htmlentities((string)($error['nome'] ?? ''), ENT_QUOTES, 'UTF-8') . "</td>";
+            $formattedErrors .= "<td style='border: 1px solid #ddd; padding: 8px; vertical-align: top;'>" . htmlentities((string)($error['mensagem'] ?? 'Chave PIX inválida.'), ENT_QUOTES, 'UTF-8') . "</td>";
+            $formattedErrors .= "</tr>";
+            $i++;
+        }
+
+        $formattedErrors .= "</tbody></table>";
+        $formattedErrors .= "<p style='margin-top: 20px; color: #666;'>Total de estagiários com pendências: " . count($errors) . "</p>";
+        $formattedErrors .= "<p style='margin-top: 8px; color: #666;'>Após correção dos cadastros, gere a remessa novamente para concluir o envio.</p>";
+        $formattedErrors .= "</div>";
+
+        return response($formattedErrors, 422)
+            ->header('Content-Type', 'text/html; charset=utf-8');
+    }
+
     /**
      * Gera arquivo de remessa para um lote específico
      */
@@ -201,24 +350,16 @@ class FolhaPagamentoController extends Controller
                 $termo = $item->termo;
                 $estagiario = $termo->estagiario;
 
-                // Validações
-                $tipoChave = isset($estagiario->tipo_chave_pix) ? trim((string)$estagiario->tipo_chave_pix) : '';
-                $chavePixRaw = isset($estagiario->chave_pix) ? trim((string)$estagiario->chave_pix) : '';
+                $forma_iniciacao = $this->resolverFormaIniciacaoPix($estagiario->tipo_chave_pix ?? '');
+                $dadosPix = $this->normalizarDadosPix($estagiario, $forma_iniciacao);
 
-                if (empty($tipoChave)) {
+                if (!($dadosPix['valido'] ?? false)) {
                     $errors[] = [
                         'id' => $termo->id_termo ?? ($estagiario->id ?? 'N/A'),
                         'nome' => $estagiario->nome_estagiario ?? 'N/D',
-                        'mensagem' => "Tipo de chave PIX não especificado."
+                        'mensagem' => $dadosPix['mensagem'] ?? 'Chave PIX inválida.',
                     ];
-                } else {
-                    if (empty($chavePixRaw)) {
-                        $errors[] = [
-                            'id' => $termo->id_termo ?? ($estagiario->id ?? 'N/A'),
-                            'nome' => $estagiario->nome_estagiario ?? 'N/D',
-                            'mensagem' => "Tipo de chave PIX '{$tipoChave}' selecionado, mas a chave PIX não foi informada."
-                        ];
-                    }
+                    continue;
                 }
                 
                 $valor = number_format($item->total, 2, '', '');
@@ -265,18 +406,6 @@ class FolhaPagamentoController extends Controller
                 $linhas[] = $linhaA;
 
                 // SEGMENTO B (PIX - chave)
-                if ($estagiario->tipo_chave_pix == 'CPF') {
-                    $forma_iniciacao = ' 03';
-                } elseif ($estagiario->tipo_chave_pix == 'TELEFONE') {
-                    $forma_iniciacao = ' 01';
-                } elseif ($estagiario->tipo_chave_pix == 'EMAIL') {
-                    $forma_iniciacao = ' 02';
-                } elseif ($estagiario->tipo_chave_pix == 'ALEATORIA') {
-                    $forma_iniciacao = ' 04';
-                } else {
-                    $forma_iniciacao = ' 03';
-                }
-
                 $linhaB =
                     '077' . // Código do banco
                     '0001' . // Lote
@@ -285,40 +414,17 @@ class FolhaPagamentoController extends Controller
                     'B' . // Código segmento
                     $forma_iniciacao . // Forma de iniciação
                     '1' . // Tipo de documento favorecido
-                    (
-                        $forma_iniciacao === ' 03'
-                            ? str_pad(preg_replace('/\D/', '', $estagiario->numero_cpf), 14, '0', STR_PAD_LEFT)
-                            : str_repeat(' ', 14)
-                    );
+                    ($dadosPix['cpf14'] ?? str_repeat(' ', 14));
 
-                // Chave PIX
-                $chavePix = isset($estagiario->chave_pix) ? $estagiario->chave_pix : '';
-
-                if ($forma_iniciacao === ' 01') { // telefone
-                    $digits = preg_replace('/\D/', '', $chavePix);
-                    if (str_starts_with($digits, '55')) {
-                        $digits = preg_replace('/^55/', '', $digits);
-                    }
-                    if (preg_match('/(\d{11})$/', $digits, $m)) {
-                        $num11 = $m[1];
-                    } else {
-                        $num11 = substr($digits, -11);
-                        $num11 = str_pad($num11, 11, '0', STR_PAD_LEFT);
-                    }
-                    $chavePix = '+' . '55' . $num11;
-                } elseif ($forma_iniciacao === ' 02') { // email
-                    $chavePix = substr($chavePix, 0, 77);
-                } elseif ($forma_iniciacao === ' 03') { // CPF
-                    $chavePix = '';
-                } elseif ($forma_iniciacao === ' 04') { // chave aleatória
-                    $chavePix = trim($chavePix);
-                }
+                $chavePix = $dadosPix['chave'] ?? '';
 
                 // TX ID
                 $linhaB .= str_repeat(' ', 35);
                 // Campo em branco de 60 caracteres
                 $linhaB .= str_repeat(' ', 60);
                 $linhaB .= str_pad($chavePix, 99, ' ', STR_PAD_RIGHT);
+                $linhaB .= str_repeat(' ', 6);
+                $linhaB .= str_pad('0', 8, '0', STR_PAD_LEFT);
 
                 // Completar até 240 caracteres
                 $tamanhoAtual = mb_strlen($linhaB, 'UTF-8');
@@ -330,6 +436,10 @@ class FolhaPagamentoController extends Controller
                 $linhas[] = $linhaB;
                 
                 $sequencialRegistro++;
+            }
+
+            if (!empty($errors)) {
+                return $this->respostaErrosRemessa($errors);
             }
 
             // TRAILER DO LOTE
@@ -483,25 +593,16 @@ class FolhaPagamentoController extends Controller
             $termo = $item->termo;
             $estagiario = $termo->estagiario;
 
-            // Validações simplificadas: verificar se existe tipo de chave PIX; se houver tipo, checar apenas se a chave PIX está preenchida
-            $tipoChave = isset($estagiario->tipo_chave_pix) ? trim((string)$estagiario->tipo_chave_pix) : '';
-            $chavePixRaw = isset($estagiario->chave_pix) ? trim((string)$estagiario->chave_pix) : '';
+            $forma_iniciacao = $this->resolverFormaIniciacaoPix($estagiario->tipo_chave_pix ?? '');
+            $dadosPix = $this->normalizarDadosPix($estagiario, $forma_iniciacao);
 
-            if (empty($tipoChave)) {
+            if (!($dadosPix['valido'] ?? false)) {
                 $errors[] = [
                     'id' => $termo->id_termo ?? ($estagiario->id ?? 'N/A'),
                     'nome' => $estagiario->nome_estagiario ?? 'N/D',
-                    'mensagem' => "Tipo de chave PIX não especificado."
+                    'mensagem' => $dadosPix['mensagem'] ?? 'Chave PIX inválida.',
                 ];
-            } else {
-                // Se o tipo existe, apenas assegura que a chave PIX em si não está vazia
-                if (empty($chavePixRaw)) {
-                    $errors[] = [
-                        'id' => $termo->id_termo ?? ($estagiario->id ?? 'N/A'),
-                        'nome' => $estagiario->nome_estagiario ?? 'N/D',
-                        'mensagem' => "Tipo de chave PIX '{$tipoChave}' selecionado, mas a chave PIX não foi informada."
-                    ];
-                }
+                continue;
             }
             
             $valor = number_format($item->total, 2, '', '');
@@ -548,20 +649,6 @@ class FolhaPagamentoController extends Controller
             $linhas[] = $linhaA;
 
             // SEGMENTO B (PIX - chave)
-            //Função para gerar a forma de iniciação baseada no tipo da chave PIX
-            if ($estagiario->tipo_chave_pix == 'CPF') {
-                $forma_iniciacao = ' 03';
-            } elseif ($estagiario->tipo_chave_pix == 'TELEFONE') {
-                $forma_iniciacao = ' 01';
-            } elseif ($estagiario->tipo_chave_pix == 'EMAIL') {
-                $forma_iniciacao = ' 02';
-            } elseif ($estagiario->tipo_chave_pix == 'ALEATORIA') {
-                $forma_iniciacao = ' 04';
-            } else {
-                // Usar um valor padrão para permitir que o loop continue
-                $forma_iniciacao = ' 03';
-            }
-
             $linhaB =
                 '077' . // Código do banco
                 '0001' . // Lote
@@ -570,41 +657,9 @@ class FolhaPagamentoController extends Controller
                 'B' . // Código segmento
                 $forma_iniciacao . // Forma de iniciação (03 = CPF/CNPJ, 01 = telefone, 02 = email, 04 = aleatória)
                 '1' . // Tipo de documento favorecido (1 = CPF, 2 = CNPJ)
-                (
-                    $forma_iniciacao === ' 03'
-                        ? str_pad(preg_replace('/\D/', '', $estagiario->numero_cpf), 14, '0', STR_PAD_LEFT)
-                        : str_repeat(' ', 14)
-                ); // CPF/CNPJ favorecido (preenche apenas quando forma_iniciacao == '03')*/
-                //str_pad(preg_replace('/\D/', '', $estagiario->numero_cpf), 14, '0', STR_PAD_LEFT);
+                ($dadosPix['cpf14'] ?? str_repeat(' ', 14));
 
-            // Chave PIX (até 99 caracteres, alinhada à esquerda)
-            $chavePix = isset($estagiario->chave_pix) ? $estagiario->chave_pix : '';
-
-            if ($forma_iniciacao === ' 01') { // telefone
-                // Normaliza várias formas de entrada e produz +55XXXXXXXXXXX (11 dígitos após o 55)
-                $digits = preg_replace('/\D/', '', $chavePix); // remove tudo que não é dígito
-                // Remove código do país se já vier (55)
-                if (str_starts_with($digits, '55')) {
-                    $digits = preg_replace('/^55/', '', $digits);
-                }
-                // Pega os últimos 11 dígitos (DDD + 9 dígitos). Se houver menos, pad com zeros à esquerda.
-                if (preg_match('/(\d{11})$/', $digits, $m)) {
-                    $num11 = $m[1];
-                } else {
-                    $num11 = substr($digits, -11);
-                    $num11 = str_pad($num11, 11, '0', STR_PAD_LEFT);
-                }
-                $chavePix = '+' . '55' . $num11;
-            } elseif ($forma_iniciacao === ' 02') { // email
-                // Limita email a 77 caracteres
-                $chavePix = substr($chavePix, 0, 77);
-            } elseif ($forma_iniciacao === ' 03') { // CPF
-                // Se for CPF, deixa vazio já que o CPF foi incluído anteriormente
-                $chavePix = '';
-            } elseif ($forma_iniciacao === ' 04') { // chave aleatória
-                // Mantém formato UUID XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
-                $chavePix = trim($chavePix);
-            }
+            $chavePix = $dadosPix['chave'] ?? '';
             // TX ID (em branco, opcional)
             $linhaB .= str_repeat(' ', 35);
 
@@ -612,6 +667,8 @@ class FolhaPagamentoController extends Controller
             $linhaB .= str_repeat(' ', 60);
 
             $linhaB .= str_pad($chavePix, 99, ' ', STR_PAD_RIGHT);
+            $linhaB .= str_repeat(' ', 6);
+            $linhaB .= str_pad('0', 8, '0', STR_PAD_LEFT);
 
             // Demais campos em branco até 240 caracteres
             $tamanhoAtual = mb_strlen($linhaB, 'UTF-8');
@@ -624,6 +681,10 @@ class FolhaPagamentoController extends Controller
             
             // Incrementa o sequencial apenas APÓS adicionar tanto A quanto B
             $sequencialRegistro++;
+        }
+
+        if (!empty($errors)) {
+            return $this->respostaErrosRemessa($errors);
         }
 
         // TRAILER DO LOTE
