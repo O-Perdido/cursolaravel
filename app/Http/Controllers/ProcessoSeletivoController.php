@@ -41,7 +41,7 @@ class ProcessoSeletivoController extends Controller
     }
 
     // Formulário de criação
-    public function create()
+    public function create(Request $request)
     {
         $user = Auth::user();
 
@@ -52,8 +52,18 @@ class ProcessoSeletivoController extends Controller
         }
 
         $empresas = Empresa::orderBy('nome_empresa', 'asc')->get(['id_empresa', 'nome_empresa']);
+        $empresaSelecionada = null;
 
-        return view('processos-seletivos.create', compact('empresas'));
+        if ($request->filled('empresa')) {
+            $empresaId = (int) $request->input('empresa');
+            $empresaExiste = Empresa::where('id_empresa', $empresaId)->exists();
+
+            if ($empresaExiste) {
+                $empresaSelecionada = $empresaId;
+            }
+        }
+
+        return view('processos-seletivos.create', compact('empresas', 'empresaSelecionada'));
     }
 
     // Salvar novo processo

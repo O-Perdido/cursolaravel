@@ -260,6 +260,12 @@ resources/views/welcome_estagiario.blade.php (card substitído)
 5. **CSRF protection** incluído em todos os formulários
 6. **Validações** implementadas nos controllers
 
+### Correção recente (03/03/2026)
+
+- Ajustado o método `create()` de `ProcessoSeletivoController` para sempre enviar `empresaSelecionada` para a view de criação.
+- Adicionado fallback defensivo em `resources/views/processos-seletivos/create.blade.php` para evitar `Undefined variable $empresaSelecionada`.
+- O formulário `/processos-seletivos/create` volta a carregar normalmente sem erro 500.
+
 ---
 
 ## 🎯 Conclusão
