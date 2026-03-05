@@ -263,6 +263,15 @@
     </script>
 
     <script>
+        function normalizeForSearch(text) {
+            return (text || '')
+                .toString()
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .toLowerCase()
+                .trim();
+        }
+
         function setupFilter(searchId, selectId) {
             const searchInput = document.getElementById(searchId);
             const select = document.getElementById(selectId);
@@ -276,14 +285,14 @@
             });
 
             searchInput.addEventListener('input', function () {
-                const value = this.value.toLowerCase();
+                const value = normalizeForSearch(this.value);
                 select.innerHTML = '';
                 // Sempre mantém o primeiro option (placeholder)
                 if (originalOptions.length > 0 && originalOptions[0].value === '') {
                     select.appendChild(originalOptions[0].cloneNode(true));
                 }
                 originalOptions.slice(1).forEach(option => {
-                    if (option.text.toLowerCase().includes(value)) {
+                    if (normalizeForSearch(option.text).includes(value)) {
                         select.appendChild(option.cloneNode(true));
                     }
                 });
