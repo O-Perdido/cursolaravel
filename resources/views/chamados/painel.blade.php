@@ -353,6 +353,13 @@
                                         <h5 class="mb-0">
                                             <strong>#{{ $chamado->protocolo }}</strong>
                                         </h5>
+                                        @if(($chamado->mensagens_nao_lidas_count ?? 0) > 0)
+                                            <span class="badge bg-danger position-relative" 
+                                                style="animation: pulse 1.5s ease-in-out infinite; font-size: 0.95rem;" 
+                                                title="Mensagens novas da unidade concedente">
+                                                <i class="fas fa-bell me-1"></i>{{ $chamado->mensagens_nao_lidas_count }} nova(s)
+                                            </span>
+                                        @endif
                                         <span class="status-badge status-{{ $chamado->status }}">
                                             {{ ucfirst(str_replace('_', ' ', $chamado->status)) }}
                                         </span>
@@ -526,6 +533,18 @@
 @endsection
 
 @section('scripts')
+    <style>
+        @keyframes pulse {
+            0%, 100% { 
+                opacity: 1; 
+                transform: scale(1);
+            }
+            50% { 
+                opacity: 0.8; 
+                transform: scale(1.05);
+            }
+        }
+    </style>
     <script>
         // Contador de caracteres nas observações
         document.addEventListener('DOMContentLoaded', function() {

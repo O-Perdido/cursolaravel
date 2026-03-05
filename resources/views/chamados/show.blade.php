@@ -193,7 +193,100 @@
                     @endif
                 </div>
             </div>
+
+            <div class="card shadow-sm mt-3">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0"><i class="fas fa-comments me-2"></i>Conversa do Chamado</h6>
+                    <span class="badge bg-secondary">{{ $chamado->mensagens->count() }}</span>
+                </div>
+                <div class="card-body">
+                    <div class="border rounded p-2 mb-3" style="max-height: 360px; overflow-y: auto; background: #f8fafc;">
+                        @forelse($chamado->mensagens as $mensagem)
+                            @php
+                                $isEmpresa = $mensagem->remetente_nivel === 'empresa';
+                            @endphp
+                            <div class="mb-2 d-flex {{ $isEmpresa ? 'justify-content-start' : 'justify-content-end' }}">
+                                <div class="p-2 rounded"
+                                    style="max-width: 90%; background: {{ $isEmpresa ? '#e2e8f0' : '#dbeafe' }};">
+                                    <div class="small text-muted mb-1">
+                                        {{ $mensagem->remetente?->name ?? 'Usuário removido' }}
+                                        ({{ $isEmpresa ? 'Unidade concedente' : 'Equipe SIGE' }})
+                                    </div>
+                                    <div class="small">{!! nl2br(e($mensagem->mensagem)) !!}</div>
+                                    @if($mensagem->anexos && count($mensagem->anexos) > 0)
+                                        <div class="small mt-2">
+                                            <i class="fas fa-paperclip me-1"></i>
+                                            @foreach($mensagem->anexos as $anexo)
+                                                <a href="{{ asset('storage/' . $anexo) }}" target="_blank"
+                                                    class="badge bg-light text-dark me-1" title="Baixar anexo">
+                                                    <i class="fas fa-download me-1"></i>{{ basename($anexo) }}
+                                                </a>
+                                            @endforeach
+                                        </div>
+                                    @endif
+                                    <div class="small text-muted mt-1">{{ $mensagem->created_at->format('d/m/Y H:i') }}</div>
+                                </div>
+                            </div>
+                        @empty
+                            <p class="text-muted small mb-0">Nenhuma mensagem ainda. Use o campo abaixo para iniciar a conversa.
+                            </p>
+                        @endforelse
+                    </div>
+
+                    @php
+                        $empresaBloqueada = Auth::user()->nivel === 'empresa' && in_array($chamado->status, ['concluido', 'cancelado']);
+                    @endphp
+
+                    @if($empresaBloqueada)
+                        <div class="alert alert-warning mb-0">
+                            Este chamado foi finalizado. Se precisar de novo atendimento, abra um novo chamado.
+                        </div>
+                    @else
+                        <form action="{{ route('chamados.enviar-mensagem', $chamado->id_chamado) }}" method="POST"
+                            enctype="multipart/form-data" id="formEnviarMensagem">
+                            @csrf
+                            <div class="mb-2">
+                                <textarea name="mensagem" rows="3" class="form-control" maxlength="2000"
+                                    placeholder="Escreva sua mensagem para a equipe..."
+                                    required>{{ old('mensagem') }}</textarea>
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label small">Anexar arquivos (opcional)</label>
+                                <input type="file" name="anexos[]" class="form-control form-control-sm" multiple
+                                    accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" max="5">
+                                <small class="text-muted">Máx. 5 arquivos de 5MB cada</small>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-sm w-100" id="btnEnviarMensagem">
+                                <span class="spinner-border spinner-border-sm me-1 d-none" id="loadingMensagem"></span>
+                                <i class="fas fa-paper-plane me-1" id="iconEnviar"></i>
+                                <span id="textoEnviar">Enviar mensagem</span>
+                            </button>
+                        </form>
+                    @endif
+                </div>
+            </div>
         </div>
     </div>
 
+@endsection
+
+@section('scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const form = document.getElementById('formEnviarMensagem');
+            if (form) {
+                form.addEventListener('submit', function () {
+                    const btn = document.getElementById('btnEnviarMensagem');
+                    const loading = document.getElementById('loadingMensagem');
+                    const icon = document.getElementById('iconEnviar');
+                    const texto = document.getElementById('textoEnviar');
+
+                    btn.disabled = true;
+                    loading.classList.remove('d-none');
+                    icon.classList.add('d-none');
+                    texto.textContent = 'Enviando...';
+                });
+            }
+        });
+    </script>
 @endsection

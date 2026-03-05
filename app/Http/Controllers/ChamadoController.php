@@ -3,15 +3,17 @@
 namespace App\Http\Controllers;
 
 use App\Models\Chamado;
+use App\Models\ChamadoMensagem;
 use App\Models\TipoChamado;
 use App\Models\Termo;
 use App\Models\User;
+use App\Mail\ChamadoMensagemRecebidaMail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
 
 class ChamadoController extends Controller
 {
@@ -24,12 +26,24 @@ class ChamadoController extends Controller
 
         if ($user->nivel === 'empresa') {
             $chamados = Chamado::with(['tipoChamado', 'termo.estagiario', 'responsavel'])
+                ->withCount([
+                    'mensagens as mensagens_nao_lidas_count' => function ($query) {
+                        $query->where('remetente_nivel', 'operador')
+                            ->whereNull('lido_empresa_em');
+                    },
+                ])
                 ->where('fk_id_empresa', $user->empresa->id_empresa)
                 ->orderBy('created_at', 'desc')
                 ->paginate(15);
         } else {
             // Admin e operador veem todos
             $chamados = Chamado::with(['tipoChamado', 'empresa', 'termo.estagiario', 'solicitante', 'responsavel'])
+                ->withCount([
+                    'mensagens as mensagens_nao_lidas_count' => function ($query) {
+                        $query->where('remetente_nivel', 'empresa')
+                            ->whereNull('lido_operador_em');
+                    },
+                ])
                 ->orderBy('created_at', 'desc')
                 ->paginate(15);
         }
@@ -145,7 +159,14 @@ class ChamadoController extends Controller
     {
         $user = Auth::user();
 
-        $query = Chamado::with(['tipoChamado', 'empresa', 'termo.estagiario', 'solicitante', 'responsavel']);
+        $query = Chamado::with([
+            'tipoChamado',
+            'empresa',
+            'termo.estagiario',
+            'solicitante',
+            'responsavel',
+            'mensagens.remetente',
+        ]);
 
         // Empresa só vê seus próprios chamados
         if ($user->nivel === 'empresa') {
@@ -154,12 +175,67 @@ class ChamadoController extends Controller
 
         $chamado = $query->findOrFail($id);
 
+        $this->marcarMensagensComoLidas($chamado, $user);
+        $chamado->load('mensagens.remetente');
+
            // Renderiza view diferente para admin/operador
            if (in_array($user->nivel, ['admin', 'operador'])) {
                return view('chamados.detalhes-admin', compact('chamado'));
            }
 
            return view('chamados.show', compact('chamado'));
+    }
+
+    /**
+     * Envia mensagem no chat do chamado
+     */
+    public function enviarMensagem(Request $request, $id)
+    {
+        $request->validate([
+            'mensagem' => 'required|string|max:2000',
+            'anexos.*' => 'nullable|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:5120',
+        ]);
+
+        $user = Auth::user();
+        $query = Chamado::query();
+
+        if ($user->nivel === 'empresa') {
+            $query->where('fk_id_empresa', $user->empresa->id_empresa);
+        }
+
+        $chamado = $query->findOrFail($id);
+
+        if (in_array($chamado->status, ['concluido', 'cancelado']) && $user->nivel === 'empresa') {
+            return back()->with('error', 'Este chamado foi finalizado e não pode receber novas mensagens da unidade concedente.');
+        }
+
+        $remetenteNivel = $user->nivel === 'empresa' ? 'empresa' : 'operador';
+
+        // Processa anexos se houver
+        $anexosPaths = [];
+        if ($request->hasFile('anexos')) {
+            $count = 0;
+            foreach ($request->file('anexos') as $anexo) {
+                if ($count >= 5) break;
+                $path = $anexo->store('chamados/mensagens/anexos', 'public');
+                $anexosPaths[] = $path;
+                $count++;
+            }
+        }
+
+        $mensagem = ChamadoMensagem::create([
+            'fk_id_chamado' => $chamado->id_chamado,
+            'fk_id_user_remetente' => $user->id,
+            'remetente_nivel' => $remetenteNivel,
+            'mensagem' => trim($request->mensagem),
+            'anexos' => !empty($anexosPaths) ? $anexosPaths : null,
+            'lido_empresa_em' => $remetenteNivel === 'empresa' ? now() : null,
+            'lido_operador_em' => $remetenteNivel === 'operador' ? now() : null,
+        ]);
+
+        $this->notificarNovaMensagem($chamado, $mensagem, $user);
+
+        return back()->with('success', 'Mensagem enviada com sucesso.');
     }
 
     /**
@@ -281,6 +357,12 @@ class ChamadoController extends Controller
         $tipo = $request->get('tipo', '');
 
         $query = Chamado::with('tipoChamado', 'empresa', 'solicitante', 'responsavel', 'termo.estagiario');
+        $query->withCount([
+            'mensagens as mensagens_nao_lidas_count' => function ($subQuery) {
+                $subQuery->where('remetente_nivel', 'empresa')
+                    ->whereNull('lido_operador_em');
+            },
+        ]);
 
         // Filtrar por status
         if ($filtro !== 'todos') {
@@ -449,6 +531,126 @@ class ChamadoController extends Controller
 
         $fullPath = Storage::disk('public')->path($pathRelativo);
         return response()->download($fullPath);
+    }
+
+    /**
+     * Marca mensagens recebidas como lidas para o perfil atual
+     */
+    protected function marcarMensagensComoLidas(Chamado $chamado, User $user): void
+    {
+        if ($user->nivel === 'empresa') {
+            ChamadoMensagem::where('fk_id_chamado', $chamado->id_chamado)
+                ->where('remetente_nivel', 'operador')
+                ->whereNull('lido_empresa_em')
+                ->update(['lido_empresa_em' => now()]);
+
+            return;
+        }
+
+        ChamadoMensagem::where('fk_id_chamado', $chamado->id_chamado)
+            ->where('remetente_nivel', 'empresa')
+            ->whereNull('lido_operador_em')
+            ->update(['lido_operador_em' => now()]);
+    }
+
+    /**
+     * Dispara e-mail para os destinatários do outro lado da conversa
+     */
+    protected function notificarNovaMensagem(Chamado $chamado, ChamadoMensagem $mensagem, User $remetente): void
+    {
+        $emails = [];
+
+        if ($mensagem->remetente_nivel === 'operador') {
+            $emails = User::where('fk_id_empresa', $chamado->fk_id_empresa)
+                ->where('nivel', 'empresa')
+                ->whereNotNull('email')
+                ->pluck('email')
+                ->filter()
+                ->unique()
+                ->values()
+                ->all();
+        } else {
+            $emails = User::whereIn('nivel', ['admin', 'operador'])
+                ->whereNotNull('email')
+                ->pluck('email')
+                ->filter()
+                ->unique()
+                ->values()
+                ->all();
+        }
+
+        if (empty($emails)) {
+            return;
+        }
+
+        $urlChamado = route('chamados.show', $chamado->id_chamado);
+
+        foreach ($emails as $email) {
+            try {
+                Mail::to($email)->send(new ChamadoMensagemRecebidaMail(
+                    $chamado,
+                    $mensagem,
+                    $remetente->name,
+                    $urlChamado
+                ));
+            } catch (\Throwable $e) {
+                Log::warning('Falha ao enviar e-mail de mensagem de chamado', [
+                    'chamado' => $chamado->id_chamado,
+                    'email' => $email,
+                    'erro' => $e->getMessage(),
+                ]);
+            }
+        }
+    }
+
+    /**
+     * Exclui chamado completamente (com mensagens e anexos)
+     */
+    public function destroy($id)
+    {
+        $user = Auth::user();
+
+        if (!in_array($user->nivel, ['admin', 'operador'])) {
+            abort(403, 'Acesso negado');
+        }
+
+        $chamado = Chamado::findOrFail($id);
+
+        // Remove anexos do chamado principal
+        if ($chamado->anexos && is_array($chamado->anexos)) {
+            foreach ($chamado->anexos as $anexo) {
+                $path = str_replace('\\', '/', $anexo);
+                if (str_starts_with($path, 'storage/')) {
+                    $path = substr($path, 8);
+                }
+                if (!str_starts_with($path, 'chamados/anexos/')) {
+                    $path = 'chamados/anexos/' . basename($path);
+                }
+                Storage::disk('public')->delete($path);
+            }
+        }
+
+        // Remove anexos de todas as mensagens
+        $mensagens = ChamadoMensagem::where('fk_id_chamado', $chamado->id_chamado)->get();
+        foreach ($mensagens as $mensagem) {
+            if ($mensagem->anexos && is_array($mensagem->anexos)) {
+                foreach ($mensagem->anexos as $anexo) {
+                    Storage::disk('public')->delete($anexo);
+                }
+            }
+        }
+
+        // Exclui mensagens (cascade vai apagar automaticamente via DB, mas garantimos aqui)
+        ChamadoMensagem::where('fk_id_chamado', $chamado->id_chamado)->delete();
+
+        // Exclui o chamado
+        $protocolo = $chamado->protocolo;
+        $chamado->delete();
+
+        Log::info("Chamado #{$protocolo} excluído por " . $user->name);
+
+        return redirect()->route('chamados.painel')
+            ->with('success', "Chamado #{$protocolo} excluído com sucesso.");
     }
 }
 

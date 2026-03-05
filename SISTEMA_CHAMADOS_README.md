@@ -14,12 +14,23 @@ Sistema modular de chamados para unidades concedentes (empresas) com suporte a t
   - **Outros/Personalizados**: Título + detalhes + anexos
 - ✅ Busca de termos com filtro por CPF/Nome/Número
 - ✅ Visualizar e cancelar chamados próprios
+- ✅ Conversa em formato chat dentro do detalhe do chamado
+- ✅ **Enviar até 5 anexos por mensagem** ⭐
+- ✅ **Loading state ao enviar mensagens** (previne duplicação) ⭐
+- ✅ **Badge de notificação no card da home** ⭐
+- ✅ Notificação visual de mensagens não lidas na listagem
 - ✅ Sistema de protocolo único automático
 
 ### Para Admin/Operador
 - ✅ CRUD completo de tipos de chamados
 - ✅ Tipos do sistema (Rescisão/Alteração) não podem ser removidos
 - ✅ Visualizar todos os chamados do sistema
+- ✅ Responder chamados via chat no detalhe administrativo
+- ✅ **Enviar múltiplos anexos em respostas** ⭐
+- ✅ **Excluir chamados completos** (com cascata) ⭐
+- ✅ **Badges animados com sino** para novas mensagens ⭐
+- ✅ Notificação visual de novas mensagens da unidade concedente no painel
+- ✅ Notificação por e-mail para o outro lado da conversa
 - ✅ Gerenciar tipos personalizados nas configurações
 
 ## Instalação
@@ -33,6 +44,8 @@ php artisan migrate
 Isso criará as tabelas:
 - `tb_tipos_chamados`: Armazena os tipos de chamados
 - `tb_chamados`: Armazena os chamados abertos
+- `tb_chamados_mensagens`: Armazena o histórico de mensagens do chat
+  - Campo `anexos` (json): Armazena array de caminhos de arquivos anexados
 
 ### 2. Executar Seeder
 
@@ -58,14 +71,20 @@ Necessário para anexos de chamados funcionarem.
 ### Migrations
 - `2025_12_20_000001_create_tipos_chamados_table.php`
 - `2025_12_20_000002_create_chamados_table.php`
+- `2026_03_05_000001_create_chamados_mensagens_table.php`
+- `2026_03_05_000002_add_anexos_to_chamados_mensagens.php` ⭐ Nova
 
 ### Models
 - `app/Models/TipoChamado.php`
 - `app/Models/Chamado.php`
+- `app/Models/ChamadoMensagem.php`
 
 ### Controllers
 - `app/Http/Controllers/ChamadoController.php`
 - `app/Http/Controllers/TipoChamadoController.php`
+
+### Mail
+- `app/Mail/ChamadoMensagemRecebidaMail.php`
 
 ### Views
 
@@ -74,6 +93,10 @@ Necessário para anexos de chamados funcionarem.
 - `resources/views/chamados/create.blade.php` - Formulário de criação
 - `resources/views/chamados/show.blade.php` - Detalhes do chamado
 - `resources/views/chamados/partials/modal-novo-chamado.blade.php` - Modal de seleção
+- `resources/views/chamados/detalhes-admin.blade.php` - Detalhes administrativos com chat
+
+#### E-mails
+- `resources/views/emails/chamado_mensagem_recebida.blade.php`
 
 #### Admin (Tipos de Chamados)
 - `resources/views/admin/tipos-chamados/index.blade.php`
@@ -86,11 +109,13 @@ Necessário para anexos de chamados funcionarem.
 ## Rotas Adicionadas
 
 ### Empresas, Admin e Operador
-```php
-GET  /chamados                      # Lista de chamados
-GET  /chamados/create               # Formulário de criação
-POST /chamados                      # Criar chamado
-GET  /chamados/{id}                 # Detalhes do chamado
+```ph  /chamados                      # Lista de chamados
+GET    /chamados/create               # Formulário de criação
+POST   /chamados                      # Criar chamado
+GET    /chamados/{id}                 # Detalhes do chamado
+POST   /chamados/{id}/mensagens       # Enviar mensagem no chat (com anexos)
+PUT    /chamados/{id}/cancelar        # Cancelar chamado (empresa)
+DELETE /chamados/{id}                 # Excluir chamado (admin/operador) ⭐ Nova
 PUT  /chamados/{id}/cancelar        # Cancelar chamado (empresa)
 ```
 
@@ -171,6 +196,16 @@ DELETE /admin/tipos-chamados/{id}      # Remover tipo
 - `observacoes_internas`: Notas do operador (não visível para empresa)
 - `data_conclusao`: Data de conclusão
 
+## Campos da Tabela `tb_chamados_mensagens`
+
+- `id_chamado_mensagem`: ID da mensagem
+- `fk_id_chamado`: Chamado relacionado
+- `fk_id_user_remetente`: Usuário que enviou a mensagem
+- `remetente_nivel`: `empresa` ou `operador`
+- `mensagem`: Conteúdo textual da resposta
+- `lido_empresa_em`: Data/hora de leitura pela unidade concedente
+- `lido_operador_em`: Data/hora de leitura por admin/operador
+
 ## Validações
 
 ### Rescisão
@@ -204,6 +239,16 @@ O campo de seleção de termos nos formulários de Rescisão e Alteração usa S
 - **Concluído** (verde): Finalizado com sucesso
 - **Cancelado** (vermelho): Cancelado pela empresa ou admin
 
+## Chat e Notificações
+
+- Cada chamado possui um histórico de mensagens na página de detalhes
+- Ao abrir o chamado, as mensagens do outro lado são marcadas como lidas
+- A listagem (`/chamados`) mostra badge de mensagens novas para empresa/admin/operador
+- O painel (`/painel/chamados`) mostra badge de mensagens novas enviadas pela unidade concedente
+- Ao enviar mensagem, o sistema notifica por e-mail o outro lado da conversa
+- Quando operador/admin responde, usuários da empresa recebem e-mail com link do chamado
+- Quando empresa responde, usuários admin/operador recebem e-mail com link do chamado
+
 ## Permissões
 
 ### Empresa
@@ -218,14 +263,13 @@ O campo de seleção de termos nos formulários de Rescisão e Alteração usa S
 - Alterar status
 - Atribuir responsáveis
 
-## Próximos Passos (Não Implementados)
+## Próximos Passos (Sugestões)
 
-- [ ] Painel de gestão de chamados para admin/operador
-- [ ] Sistema de atribuição de responsáveis
-- [ ] Respostas e comentários em chamados
-- [ ] Notificações por email
-- [ ] Relatórios e estatísticas
-- [ ] Integração com rescisão/alteração automática
+- [ ] Incluir anexos por mensagem no chat
+- [ ] Adicionar notificação em tempo real (WebSocket/polling)
+- [ ] Registrar eventos de mudança de status no histórico do chat
+- [ ] Criar filtros por chamados com mensagens não lidas
+- [ ] Expandir relatórios e métricas de tempo de resposta
 
 ## Notas Técnicas
 
@@ -234,6 +278,54 @@ O campo de seleção de termos nos formulários de Rescisão e Alteração usa S
 - Select2 requer bibliotecas CSS/JS (já incluídas nas views)
 - Soft deletes habilitado em ambos models
 - Relacionamentos eager loading para performance
+
+## Melhorias e Recursos Avançados (2026)
+
+### 📎 Anexos em Mensagens do Chat
+- Suporte a até **5 arquivos por mensagem**
+- Tamanho máximo de **5MB por arquivo**
+- Formatos: PDF, DOC, DOCX, XLS, XLSX, JPG, JPEG, PNG, GIF, TXT, ZIP, RAR
+- Download direto dos anexos nas mensagens
+- Limpeza automática de arquivos ao excluir chamado
+
+**Migration adicional necessária:**
+```bash
+php artisan migrate  # Executa 2026_03_05_000002_add_anexos_to_chamados_mensagens.php
+```
+
+### ⏳ Loading States
+- Spinner de loading ao enviar mensagens
+- Botão desabilitado durante envio
+- Previne duplicação de mensagens por cliques múltiplos
+
+### 🔔 Notificações Visuais Aprimoradas
+- **Badge na Home**: Card de "Chamados" mostra total de mensagens não lidas
+- **Badges Animados**: Efeito pulse em notificações do painel de operadores
+- **Ícones Intuitivos**: Sino (🔔) para notificações, clipe (📎) para anexos
+- **Cores Chamativas**: Vermelho com texto "nova(s)" para operadores
+
+### 🗑️ Exclusão Completa de Chamados
+- Operadores e admin podem excluir chamados
+- Modal de confirmação antes da exclusão
+- Exclusão em cascata: chamado + mensagens + arquivos anexos
+- Limpeza automática do storage (sem arquivos órfãos)
+
+**Rota adicional:**
+```php
+DELETE /chamados/{id}  # Apenas admin/operador
+```
+
+### 📧 Sistema de E-mail
+- Notificações automáticas quando mensagem é recebida
+- Empresa recebe e-mail quando operador/admin responde
+- Operador/Admin recebem e-mail quando empresa responde
+- Link direto para o chamado no corpo do e-mail
+
+**Configuração:** Veja [CHAMADOS_CONFIGURACAO_EMAIL.md](CHAMADOS_CONFIGURACAO_EMAIL.md) para configurar SMTP/SendGrid/Gmail
+
+### 📚 Documentação Adicional
+- **[CHAMADOS_MELHORIAS_RESUMO.md](CHAMADOS_MELHORIAS_RESUMO.md)** - Resumo completo de todas as melhorias
+- **[CHAMADOS_CONFIGURACAO_EMAIL.md](CHAMADOS_CONFIGURACAO_EMAIL.md)** - Guia de configuração de e-mail
 
 ## Troubleshooting
 

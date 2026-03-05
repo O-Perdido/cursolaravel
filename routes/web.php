@@ -434,6 +434,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/chamados/create', [ChamadoController::class, 'create'])->name('chamados.create');
         Route::post('/chamados', [ChamadoController::class, 'store'])->name('chamados.store');
         Route::get('/chamados/{id}', [ChamadoController::class, 'show'])->name('chamados.show');
+        Route::post('/chamados/{id}/mensagens', [ChamadoController::class, 'enviarMensagem'])->name('chamados.enviar-mensagem');
         
         // Empresas podem cancelar seus próprios chamados
         Route::put('/chamados/{id}/cancelar', [ChamadoController::class, 'cancelar'])->name('chamados.cancelar');
@@ -471,6 +472,7 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/painel/chamados/{id}/status', [ChamadoController::class, 'atualizarStatus'])->name('chamados.atualizar-status');
         Route::put('/painel/chamados/{id}/responsavel', [ChamadoController::class, 'atribuirResponsavel'])->name('chamados.atribuir-responsavel');
         Route::post('/painel/chamados/{id}/observacao', [ChamadoController::class, 'adicionarObservacao'])->name('chamados.adicionar-observacao');
+        Route::delete('/chamados/{id}', [ChamadoController::class, 'destroy'])->name('chamados.destroy');
     });
 
 

@@ -58,6 +58,11 @@
                                 <tr>
                                     <td>
                                         <strong class="text-primary">{{ $chamado->protocolo }}</strong>
+                                        @if(($chamado->mensagens_nao_lidas_count ?? 0) > 0)
+                                            <span class="badge bg-danger ms-1" title="Mensagens não lidas">
+                                                <i class="fas fa-comment-dots me-1"></i>{{ $chamado->mensagens_nao_lidas_count }}
+                                            </span>
+                                        @endif
                                     </td>
                                     <td>
                                         <span class="badge bg-info">{{ $chamado->tipoChamado->nome }}</span>

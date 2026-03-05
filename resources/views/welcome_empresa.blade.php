@@ -37,7 +37,14 @@
             </div>
         </div>
         <div class="col col-md-4">
-            <div class="card text-center" style="margin-bottom: 10px;">
+            <div class="card text-center" style="margin-bottom: 10px; position: relative;">
+                @if(isset($totalMensagensNaoLidas) && $totalMensagensNaoLidas > 0)
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                        style="font-size: 0.85rem; animation: pulse 1.5s ease-in-out infinite;">
+                        {{ $totalMensagensNaoLidas }}
+                        <span class="visually-hidden">mensagens não lidas</span>
+                    </span>
+                @endif
                 <div class="card-body">
                     <h5 class="card-title">Chamados</h5>
                     <p class="card-text">Abra e acompanhe chamados de suporte.</p>
@@ -198,10 +205,10 @@
                 cache.forEach(l => {
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
-                                                                                        <td>${l.descricao ?? ''}</td>
-                                                                                        <td class="text-end">
-                                                                                            <button class="btn btn-sm btn-outline-primary" data-action="editar" data-id="${l.id_local}">Editar</button>
-                                                                                        </td>`;
+                                                                                            <td>${l.descricao ?? ''}</td>
+                                                                                            <td class="text-end">
+                                                                                                <button class="btn btn-sm btn-outline-primary" data-action="editar" data-id="${l.id_local}">Editar</button>
+                                                                                            </td>`;
                     body.appendChild(tr);
                 });
             }
@@ -284,4 +291,22 @@
 
     <!-- Incluir modal de novo chamado -->
     @include('chamados.partials.modal-novo-chamado')
+@endsection
+
+@section('styles')
+    <style>
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 0.75;
+                transform: scale(1.1);
+            }
+        }
+    </style>
 @endsection

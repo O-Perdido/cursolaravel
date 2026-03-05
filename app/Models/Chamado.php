@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Str;
 
 class Chamado extends Model
 {
@@ -109,6 +108,14 @@ class Chamado extends Model
     }
 
     /**
+     * Relacionamento com mensagens do chat do chamado
+     */
+    public function mensagens()
+    {
+        return $this->hasMany(ChamadoMensagem::class, 'fk_id_chamado', 'id_chamado')->orderBy('created_at');
+    }
+
+    /**
      * Scope para chamados de uma empresa
      */
     public function scopeDaEmpresa($query, $empresaId)
@@ -162,5 +169,27 @@ class Chamado extends Model
     public function isAlteracao(): bool
     {
         return $this->tipoChamado && $this->tipoChamado->isAlteracao();
+    }
+
+    /**
+     * Total de mensagens ainda não lidas pela empresa
+     */
+    public function getNaoLidasParaEmpresaAttribute(): int
+    {
+        return (int) $this->mensagens()
+            ->where('remetente_nivel', 'operador')
+            ->whereNull('lido_empresa_em')
+            ->count();
+    }
+
+    /**
+     * Total de mensagens ainda não lidas por operador/admin
+     */
+    public function getNaoLidasParaOperadorAttribute(): int
+    {
+        return (int) $this->mensagens()
+            ->where('remetente_nivel', 'empresa')
+            ->whereNull('lido_operador_em')
+            ->count();
     }
 }

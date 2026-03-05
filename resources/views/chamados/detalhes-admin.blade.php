@@ -637,6 +637,68 @@
         </div>
     </div>
 
+    <div class="section-card">
+        <h3><i class="fas fa-comments"></i> Chat do Chamado</h3>
+
+        <div
+            style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; max-height: 380px; overflow-y: auto; padding: 12px; margin-bottom: 16px;">
+            @forelse($chamado->mensagens as $mensagem)
+                @php
+                    $isEmpresa = $mensagem->remetente_nivel === 'empresa';
+                @endphp
+                <div
+                    style="display: flex; {{ $isEmpresa ? 'justify-content: flex-start;' : 'justify-content: flex-end;' }} margin-bottom: 10px;">
+                    <div
+                        style="max-width: 85%; background: {{ $isEmpresa ? '#e2e8f0' : '#dbeafe' }}; border-radius: 8px; padding: 10px 12px;">
+                        <div style="font-size: 0.8rem; color: #666; margin-bottom: 6px;">
+                            {{ $mensagem->remetente?->name ?? 'Usuário removido' }}
+                            ({{ $isEmpresa ? 'Unidade concedente' : 'Equipe SIGE' }})
+                        </div>
+                        <div style="white-space: pre-wrap; word-break: break-word;">{{ $mensagem->mensagem }}</div>
+                        @if($mensagem->anexos && count($mensagem->anexos) > 0)
+                            <div style="margin-top: 8px; font-size: 0.85rem;">
+                                <i class="fas fa-paperclip" style="margin-right: 4px;"></i>
+                                @foreach($mensagem->anexos as $anexo)
+                                    <a href="{{ asset('storage/' . $anexo) }}" 
+                                        target="_blank" 
+                                        style="display: inline-block; background: #fff; color: #333; text-decoration: none; padding: 2px 8px; border-radius: 4px; margin-right: 4px; border: 1px solid #ddd;" 
+                                        title="Baixar anexo">
+                                        <i class="fas fa-download" style="font-size: 0.75rem; margin-right: 3px;"></i>{{ basename($anexo) }}
+                                    </a>
+                                @endforeach
+                            </div>
+                        @endif
+                        <div style="font-size: 0.78rem; color: #888; margin-top: 6px;">
+                            {{ $mensagem->created_at->format('d/m/Y H:i') }}</div>
+                    </div>
+                </div>
+            @empty
+                <p style="margin: 0; color: #666;">Nenhuma mensagem registrada ainda.</p>
+            @endforelse
+        </div>
+
+        <form action="{{ route('chamados.enviar-mensagem', $chamado->id_chamado) }}" method="POST" 
+            enctype="multipart/form-data" id="formEnviarRespostaAdmin">
+            @csrf
+            <div class="mb-3">
+                <label class="form-label">Responder chamado</label>
+                <textarea name="mensagem" rows="4" class="form-control" maxlength="2000"
+                    placeholder="Digite uma resposta para a unidade concedente..." required>{{ old('mensagem') }}</textarea>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Anexar arquivos (opcional)</label>
+                <input type="file" name="anexos[]" class="form-control" 
+                    multiple accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" max="5">
+                <small class="text-muted">Máx. 5 arquivos de 5MB cada</small>
+            </div>
+            <button type="submit" class="btn btn-primary" id="btnEnviarRespostaAdmin">
+                <span class="spinner-border spinner-border-sm me-2 d-none" id="loadingRespostaAdmin"></span>
+                <i class="fas fa-paper-plane me-2" id="iconEnviarAdmin"></i>
+                <span id="textoEnviarAdmin">Enviar resposta</span>
+            </button>
+        </form>
+    </div>
+
     <!-- Ações -->
     <div class="actions-footer">
         <a href="{{ route('chamados.painel') }}" class="btn btn-outline-secondary">
@@ -645,6 +707,130 @@
         <a href="javascript:window.print()" class="btn btn-outline-info">
             <i class="fas fa-print me-2"></i>Imprimir
         </a>
+        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#modalExcluirChamado">
+            <i class="fas fa-trash me-2"></i>Excluir Chamado
+        </button>
     </div>
 
+    <!-- Modal de Confirmação de Exclusão -->
+    <div class="modal fade" id="modalExcluirChamado" tabindex="-1" aria-labelledby="modalExcluirChamadoLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header bg-danger text-white border-0">
+                    <h5 class="modal-title d-flex align-items-center" id="modalExcluirChamadoLabel">
+                        <i class="fas fa-exclamation-triangle me-2 fa-lg"></i>
+                        Confirmar Exclusão
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                </div>
+                <div class="modal-body py-4">
+                    <div class="text-center mb-4">
+                        <div class="warning-icon-circle mb-3">
+                            <i class="fas fa-trash-alt fa-3x text-danger"></i>
+                        </div>
+                        <h5 class="fw-bold text-dark mb-3">Tem certeza que deseja excluir este chamado?</h5>
+                        <p class="text-muted mb-0">Esta ação é <strong class="text-danger">irreversível</strong> e não pode ser desfeita.</p>
+                    </div>
+                    
+                    <div class="alert alert-warning border-0 bg-warning bg-opacity-10">
+                        <h6 class="alert-heading mb-2">
+                            <i class="fas fa-info-circle me-2"></i>O que será excluído:
+                        </h6>
+                        <ul class="mb-0 ps-3">
+                            <li>O chamado <strong>{{ $chamado->protocolo }}</strong></li>
+                            <li>Todo o histórico de mensagens</li>
+                            <li>Todos os arquivos anexados</li>
+                            <li>Informações e dados relacionados</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 bg-light">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i>Cancelar
+                    </button>
+                    <form action="{{ route('chamados.destroy', $chamado->id_chamado) }}" method="POST" class="d-inline">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash-alt me-2"></i>Sim, Excluir Permanentemente
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+@endsection
+
+@section('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('formEnviarRespostaAdmin');
+        if (form) {
+            form.addEventListener('submit', function() {
+                const btn = document.getElementById('btnEnviarRespostaAdmin');
+                const loading = document.getElementById('loadingRespostaAdmin');
+                const icon = document.getElementById('iconEnviarAdmin');
+                const texto = document.getElementById('textoEnviarAdmin');
+                
+                btn.disabled = true;
+                loading.classList.remove('d-none');
+                icon.classList.add('d-none');
+                texto.textContent = 'Enviando...';
+            });
+        }
+    });
+</script>
+@endsection
+
+@section('styles')
+<style>
+    .warning-icon-circle {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto;
+        box-shadow: 0 4px 12px rgba(220, 38, 38, 0.15);
+    }
+    
+    #modalExcluirChamado .modal-content {
+        border-radius: 12px;
+        overflow: hidden;
+    }
+    
+    #modalExcluirChamado .modal-header {
+        background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+        padding: 1.25rem 1.5rem;
+    }
+    
+    #modalExcluirChamado .modal-body {
+        padding: 2rem 1.5rem;
+    }
+    
+    #modalExcluirChamado .modal-footer {
+        padding: 1rem 1.5rem;
+    }
+    
+    #modalExcluirChamado .btn {
+        padding: 0.5rem 1.5rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+    
+    #modalExcluirChamado .btn-danger:hover {
+        background-color: #991b1b;
+        border-color: #991b1b;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+    }
+    
+    #modalExcluirChamado .btn-secondary:hover {
+        background-color: #4b5563;
+        border-color: #4b5563;
+    }
+</style>
 @endsection
