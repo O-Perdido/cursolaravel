@@ -31,6 +31,12 @@ class ConfiguracaoController extends Controller
      */
     public function update(Request $request)
     {
+        // Log de entrada
+        \Log::info('ConfiguracaoController@update chamado', [
+            'aba' => $request->input('aba'),
+            'all_inputs' => $request->except('_token'),
+        ]);
+
         // Verificar se o usuário é admin
         if (Auth::user()->nivel !== 'admin') {
             return redirect()->back()->with('error', 'Acesso negado.');
@@ -59,11 +65,49 @@ class ConfiguracaoController extends Controller
                 'numero'
             );
         } elseif ($aba === 'chamados') {
-            $validated = $request->validate([
-                'chamados_max_anexos' => 'nullable|integer|min:0',
-                'chamados_max_tamanho_anexo_mb' => 'nullable|numeric|min:0',
-                'chamados_permitir_outros_empresa' => 'nullable|boolean',
-            ]);
+            \Log::info('Processando aba chamados na configuração');
+            
+            // Validação especial para email geral (pode ser vazio)
+            $emailGeral = trim($request->input('chamados_email_geral', ''));
+            \Log::info('Email geral validado', ['email' => $emailGeral]);
+            
+            if (!empty($emailGeral) && !filter_var($emailGeral, FILTER_VALIDATE_EMAIL)) {
+                \Log::warning('Email geral inválido', ['email' => $emailGeral]);
+                return redirect()
+                    ->route('configuracoes.index', ['tab' => 'chamados'])
+                    ->withErrors(['chamados_email_geral' => 'Por favor, digite um email válido ou deixe em branco.'])
+                    ->withInput();
+            }
+
+            // Converter valores "on" dos checkboxes para "1" antes de validar
+            if ($request->has('chamados_permitir_outros_empresa')) {
+                $request->merge(['chamados_permitir_outros_empresa' => '1']);
+            }
+            if ($request->has('chamados_notificar_operadores_email')) {
+                $request->merge(['chamados_notificar_operadores_email' => '1']);
+            }
+            if ($request->has('chamados_incluir_email_geral_quando_responsavel')) {
+                $request->merge(['chamados_incluir_email_geral_quando_responsavel' => '1']);
+            }
+
+            try {
+                \Log::info('Antes de validate - inputs:', $request->all());
+                
+                $validated = $request->validate([
+                    'chamados_max_anexos' => 'nullable|integer|min:0',
+                    'chamados_max_tamanho_anexo_mb' => 'nullable|numeric|min:0',
+                    'chamados_permitir_outros_empresa' => 'nullable|boolean',
+                    'chamados_notificar_operadores_email' => 'nullable|boolean',
+                    'chamados_incluir_email_geral_quando_responsavel' => 'nullable|boolean',
+                ]);
+                
+                \Log::info('Validação da aba chamados passou', ['validated' => $validated]);
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                \Log::error('Erro de validação chamados', [
+                    'errors' => $e->errors()
+                ]);
+                throw $e;
+            }
 
             // Salvar configurações do módulo de chamados
             Configuracao::definir(
@@ -72,6 +116,7 @@ class ConfiguracaoController extends Controller
                 'Quantidade máxima de anexos por chamado',
                 'numero'
             );
+            \Log::info('Salvou chamados_max_anexos');
 
             Configuracao::definir(
                 'chamados_max_tamanho_anexo_mb',
@@ -79,6 +124,7 @@ class ConfiguracaoController extends Controller
                 'Tamanho máximo de cada anexo (MB)',
                 'decimal'
             );
+            \Log::info('Salvou chamados_max_tamanho_anexo_mb');
 
             // Checkbox pode não vir no request quando desmarcado; garantir persistência
             $permitirOutros = $request->boolean('chamados_permitir_outros_empresa');
@@ -88,6 +134,38 @@ class ConfiguracaoController extends Controller
                 'Permitir empresas abrirem chamados do tipo "Outros" (genérico)',
                 'boolean'
             );
+            \Log::info('Salvou chamados_permitir_outros_empresa', ['value' => $permitirOutros ? '1' : '0']);
+
+            // Notificar operadores por email
+            $notificarOperadores = $request->boolean('chamados_notificar_operadores_email');
+            Configuracao::definir(
+                'chamados_notificar_operadores_email',
+                $notificarOperadores ? '1' : '0',
+                'Habilitar notificações por e-mail para operadores/admin',
+                'boolean'
+            );
+            \Log::info('Salvou chamados_notificar_operadores_email', ['value' => $notificarOperadores ? '1' : '0']);
+
+            // Email geral/administrativo - já validado acima
+            Configuracao::definir(
+                'chamados_email_geral',
+                $emailGeral,
+                'Email geral que recebe cópia das notificações de chamados',
+                'texto'
+            );
+            \Log::info('Salvou chamados_email_geral', ['value' => $emailGeral]);
+
+            // Incluir email geral quando há responsável
+            // Usar (bool) para converter corretamente o valor do checkbox
+            $incluirEmailGeral = (bool) $request->input('chamados_incluir_email_geral_quando_responsavel', false);
+            
+            Configuracao::definir(
+                'chamados_incluir_email_geral_quando_responsavel',
+                $incluirEmailGeral ? '1' : '0',
+                'Se true, inclui email geral nas notificações mesmo quando há responsável definido',
+                'boolean'
+            );
+            \Log::info('Salvou chamados_incluir_email_geral_quando_responsavel', ['value' => $incluirEmailGeral ? '1' : '0']);
         } elseif ($aba === 'processos') {
             $validated = $request->validate([
                 'processos_empresa_pode_ver_inscritos' => 'nullable|boolean',
@@ -148,7 +226,16 @@ class ConfiguracaoController extends Controller
             );
         }
 
-        return redirect()->route('configuracoes.index')->with('success', 'Configurações atualizadas com sucesso!');
+        // Se for aba de chamados, redirecionar pra ela com query param
+        if ($aba === 'chamados') {
+            return redirect()
+                ->route('configuracoes.index', ['tab' => 'chamados'])
+                ->with('success', 'Configurações atualizadas com sucesso!');
+        }
+
+        
+        \Log::info('Todas as configurações foram salvas com sucesso para aba: ' . $aba);
+        return redirect()->route('configuracoes.index', ['tab' => $aba])->with('success', 'Configurações atualizadas com sucesso!');
     }
 
     /**

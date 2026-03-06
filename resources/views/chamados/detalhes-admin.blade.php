@@ -419,6 +419,74 @@
         @endif
     </div>
 
+    <!-- Gerenciamento do Chamado -->
+    <div class="section-card">
+        <h3><i class="fas fa-cogs"></i> Gerenciar Chamado</h3>
+
+        <div class="row g-3">
+            <!-- Atribuir Responsável -->
+            <div class="col-md-6">
+                <form action="{{ route('chamados.atribuir-responsavel', $chamado->id_chamado) }}" method="POST">
+                    @csrf
+                    @method('PUT')
+                    <div class="mb-2">
+                        <label for="responsavel" class="form-label">
+                            <i class="fas fa-user-tie me-2"></i>Responsável pelo Atendimento
+                        </label>
+                        <div class="input-group">
+                            <select name="fk_id_user_responsavel" id="responsavel" class="form-select">
+                                <option value="">Não atribuído</option>
+                                @foreach($operadores as $operador)
+                                    <option value="{{ $operador->id }}" {{ $chamado->fk_id_user_responsavel == $operador->id ? 'selected' : '' }}>
+                                        {{ $operador->name }}
+                                        <small class="text-muted">({{ ucfirst($operador->nivel) }})</small>
+                                    </option>
+                                @endforeach
+                            </select>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Salvar
+                            </button>
+                        </div>
+                        <small class="text-muted d-block mt-1">
+                            <i class="fas fa-info-circle"></i>
+                            Quando atribuído, apenas o responsável receberá notificações por e-mail
+                        </small>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Atualizar Status -->
+            <div class="col-md-6">
+                <form action="{{ route('chamados.atualizar-status', $chamado->id_chamado) }}" method="POST">
+                    @csrf
+                    @method('PUT')
+                    <div class="mb-2">
+                        <label for="status" class="form-label">
+                            <i class="fas fa-flag me-2"></i>Status do Chamado
+                        </label>
+                        <div class="input-group">
+                            <select name="status" id="status" class="form-select">
+                                <option value="pendente" {{ $chamado->status == 'pendente' ? 'selected' : '' }}>Pendente
+                                </option>
+                                <option value="em_analise" {{ $chamado->status == 'em_analise' ? 'selected' : '' }}>Em Análise
+                                </option>
+                                <option value="em_andamento" {{ $chamado->status == 'em_andamento' ? 'selected' : '' }}>Em
+                                    Andamento</option>
+                                <option value="concluido" {{ $chamado->status == 'concluido' ? 'selected' : '' }}>Concluído
+                                </option>
+                                <option value="cancelado" {{ $chamado->status == 'cancelado' ? 'selected' : '' }}>Cancelado
+                                </option>
+                            </select>
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-check"></i> Atualizar
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <!-- Informações do Termo (se aplicável) -->
     @if($chamado->termo)
         <div class="section-card">
@@ -659,17 +727,18 @@
                             <div style="margin-top: 8px; font-size: 0.85rem;">
                                 <i class="fas fa-paperclip" style="margin-right: 4px;"></i>
                                 @foreach($mensagem->anexos as $anexo)
-                                    <a href="{{ asset('storage/' . $anexo) }}" 
-                                        target="_blank" 
-                                        style="display: inline-block; background: #fff; color: #333; text-decoration: none; padding: 2px 8px; border-radius: 4px; margin-right: 4px; border: 1px solid #ddd;" 
+                                    <a href="{{ asset('storage/' . $anexo) }}" target="_blank"
+                                        style="display: inline-block; background: #fff; color: #333; text-decoration: none; padding: 2px 8px; border-radius: 4px; margin-right: 4px; border: 1px solid #ddd;"
                                         title="Baixar anexo">
-                                        <i class="fas fa-download" style="font-size: 0.75rem; margin-right: 3px;"></i>{{ basename($anexo) }}
+                                        <i class="fas fa-download"
+                                            style="font-size: 0.75rem; margin-right: 3px;"></i>{{ basename($anexo) }}
                                     </a>
                                 @endforeach
                             </div>
                         @endif
                         <div style="font-size: 0.78rem; color: #888; margin-top: 6px;">
-                            {{ $mensagem->created_at->format('d/m/Y H:i') }}</div>
+                            {{ $mensagem->created_at->format('d/m/Y H:i') }}
+                        </div>
                     </div>
                 </div>
             @empty
@@ -677,7 +746,7 @@
             @endforelse
         </div>
 
-        <form action="{{ route('chamados.enviar-mensagem', $chamado->id_chamado) }}" method="POST" 
+        <form action="{{ route('chamados.enviar-mensagem', $chamado->id_chamado) }}" method="POST"
             enctype="multipart/form-data" id="formEnviarRespostaAdmin">
             @csrf
             <div class="mb-3">
@@ -687,8 +756,8 @@
             </div>
             <div class="mb-3">
                 <label class="form-label">Anexar arquivos (opcional)</label>
-                <input type="file" name="anexos[]" class="form-control" 
-                    multiple accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" max="5">
+                <input type="file" name="anexos[]" class="form-control" multiple accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                    max="5">
                 <small class="text-muted">Máx. 5 arquivos de 5MB cada</small>
             </div>
             <button type="submit" class="btn btn-primary" id="btnEnviarRespostaAdmin">
@@ -713,7 +782,8 @@
     </div>
 
     <!-- Modal de Confirmação de Exclusão -->
-    <div class="modal fade" id="modalExcluirChamado" tabindex="-1" aria-labelledby="modalExcluirChamadoLabel" aria-hidden="true">
+    <div class="modal fade" id="modalExcluirChamado" tabindex="-1" aria-labelledby="modalExcluirChamadoLabel"
+        aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0 shadow-lg">
                 <div class="modal-header bg-danger text-white border-0">
@@ -721,7 +791,8 @@
                         <i class="fas fa-exclamation-triangle me-2 fa-lg"></i>
                         Confirmar Exclusão
                     </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Fechar"></button>
                 </div>
                 <div class="modal-body py-4">
                     <div class="text-center mb-4">
@@ -729,9 +800,10 @@
                             <i class="fas fa-trash-alt fa-3x text-danger"></i>
                         </div>
                         <h5 class="fw-bold text-dark mb-3">Tem certeza que deseja excluir este chamado?</h5>
-                        <p class="text-muted mb-0">Esta ação é <strong class="text-danger">irreversível</strong> e não pode ser desfeita.</p>
+                        <p class="text-muted mb-0">Esta ação é <strong class="text-danger">irreversível</strong> e não pode
+                            ser desfeita.</p>
                     </div>
-                    
+
                     <div class="alert alert-warning border-0 bg-warning bg-opacity-10">
                         <h6 class="alert-heading mb-2">
                             <i class="fas fa-info-circle me-2"></i>O que será excluído:
@@ -763,74 +835,74 @@
 @endsection
 
 @section('scripts')
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const form = document.getElementById('formEnviarRespostaAdmin');
-        if (form) {
-            form.addEventListener('submit', function() {
-                const btn = document.getElementById('btnEnviarRespostaAdmin');
-                const loading = document.getElementById('loadingRespostaAdmin');
-                const icon = document.getElementById('iconEnviarAdmin');
-                const texto = document.getElementById('textoEnviarAdmin');
-                
-                btn.disabled = true;
-                loading.classList.remove('d-none');
-                icon.classList.add('d-none');
-                texto.textContent = 'Enviando...';
-            });
-        }
-    });
-</script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const form = document.getElementById('formEnviarRespostaAdmin');
+            if (form) {
+                form.addEventListener('submit', function () {
+                    const btn = document.getElementById('btnEnviarRespostaAdmin');
+                    const loading = document.getElementById('loadingRespostaAdmin');
+                    const icon = document.getElementById('iconEnviarAdmin');
+                    const texto = document.getElementById('textoEnviarAdmin');
+
+                    btn.disabled = true;
+                    loading.classList.remove('d-none');
+                    icon.classList.add('d-none');
+                    texto.textContent = 'Enviando...';
+                });
+            }
+        });
+    </script>
 @endsection
 
 @section('styles')
-<style>
-    .warning-icon-circle {
-        width: 80px;
-        height: 80px;
-        background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin: 0 auto;
-        box-shadow: 0 4px 12px rgba(220, 38, 38, 0.15);
-    }
-    
-    #modalExcluirChamado .modal-content {
-        border-radius: 12px;
-        overflow: hidden;
-    }
-    
-    #modalExcluirChamado .modal-header {
-        background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
-        padding: 1.25rem 1.5rem;
-    }
-    
-    #modalExcluirChamado .modal-body {
-        padding: 2rem 1.5rem;
-    }
-    
-    #modalExcluirChamado .modal-footer {
-        padding: 1rem 1.5rem;
-    }
-    
-    #modalExcluirChamado .btn {
-        padding: 0.5rem 1.5rem;
-        font-weight: 500;
-        transition: all 0.3s ease;
-    }
-    
-    #modalExcluirChamado .btn-danger:hover {
-        background-color: #991b1b;
-        border-color: #991b1b;
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
-    }
-    
-    #modalExcluirChamado .btn-secondary:hover {
-        background-color: #4b5563;
-        border-color: #4b5563;
-    }
-</style>
+    <style>
+        .warning-icon-circle {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto;
+            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.15);
+        }
+
+        #modalExcluirChamado .modal-content {
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        #modalExcluirChamado .modal-header {
+            background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+            padding: 1.25rem 1.5rem;
+        }
+
+        #modalExcluirChamado .modal-body {
+            padding: 2rem 1.5rem;
+        }
+
+        #modalExcluirChamado .modal-footer {
+            padding: 1rem 1.5rem;
+        }
+
+        #modalExcluirChamado .btn {
+            padding: 0.5rem 1.5rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        #modalExcluirChamado .btn-danger:hover {
+            background-color: #991b1b;
+            border-color: #991b1b;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+        }
+
+        #modalExcluirChamado .btn-secondary:hover {
+            background-color: #4b5563;
+            border-color: #4b5563;
+        }
+    </style>
 @endsection

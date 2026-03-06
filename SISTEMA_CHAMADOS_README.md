@@ -28,6 +28,8 @@ Sistema modular de chamados para unidades concedentes (empresas) com suporte a t
 - ✅ Responder chamados via chat no detalhe administrativo
 - ✅ **Enviar múltiplos anexos em respostas** ⭐
 - ✅ **Excluir chamados completos** (com cascata) ⭐
+- ✅ **Atribuir responsável ao chamado** ⭐ Novo
+- ✅ **Notificações inteligentes por e-mail** (apenas responsável ou todos) ⭐ Novo
 - ✅ **Badges animados com sino** para novas mensagens ⭐
 - ✅ Notificação visual de novas mensagens da unidade concedente no painel
 - ✅ Notificação por e-mail para o outro lado da conversa
@@ -245,9 +247,16 @@ O campo de seleção de termos nos formulários de Rescisão e Alteração usa S
 - Ao abrir o chamado, as mensagens do outro lado são marcadas como lidas
 - A listagem (`/chamados`) mostra badge de mensagens novas para empresa/admin/operador
 - O painel (`/painel/chamados`) mostra badge de mensagens novas enviadas pela unidade concedente
-- Ao enviar mensagem, o sistema notifica por e-mail o outro lado da conversa
-- Quando operador/admin responde, usuários da empresa recebem e-mail com link do chamado
-- Quando empresa responde, usuários admin/operador recebem e-mail com link do chamado
+- **Notificações por e-mail inteligentes:**
+  - ✅ Operador responde → **Sempre** notifica todos usuários da empresa
+  - 🔧 Empresa responde → **Depende da configuração:**
+    - Se desabilitado → Nenhum operador recebe e-mail
+    - Se habilitado + responsável definido → **Apenas o responsável** recebe
+    - Se habilitado + sem responsável → **Todos operadores/admin** recebem
+- Possibilidade de atribuir **responsável** ao chamado (operador/admin específico)
+- Configuração global para habilitar/desabilitar notificações de operadores
+
+**Veja mais:** [CHAMADOS_NOTIFICACOES_INTELIGENTES.md](CHAMADOS_NOTIFICACOES_INTELIGENTES.md)
 
 ## Permissões
 
@@ -319,6 +328,7 @@ DELETE /chamados/{id}  # Apenas admin/operador
 - Notificações automáticas quando mensagem é recebida
 - Empresa recebe e-mail quando operador/admin responde
 - Operador/Admin recebem e-mail quando empresa responde
+- **[CHAMADOS_NOTIFICACOES_INTELIGENTES.md](CHAMADOS_NOTIFICACOES_INTELIGENTES.md)** - Sistema de notificações com responsável ⭐ Novo
 - Link direto para o chamado no corpo do e-mail
 
 **Configuração:** Veja [CHAMADOS_CONFIGURACAO_EMAIL.md](CHAMADOS_CONFIGURACAO_EMAIL.md) para configurar SMTP/SendGrid/Gmail

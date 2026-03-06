@@ -38,7 +38,7 @@
                             </li>
                             <li class="nav-item" role="presentation">
                                 <button class="nav-link" id="chamados-tab" data-bs-toggle="tab" data-bs-target="#chamados"
-                                    type="button" role="tab" aria-controls="chamados" aria-selected="false">
+                                    type="button" role="tab" aria-controls="chamados" aria-selected="false" data-tab-name="chamados">
                                     <i class="fas fa-headset"></i> Chamados
                                 </button>
                             </li>
@@ -159,6 +159,20 @@
                                 <form action="{{ route('configuracoes.update') }}" method="POST">
                                     @csrf
                                     <input type="hidden" name="aba" value="chamados">
+                                    
+                                    {{-- Exibir erros de validação --}}
+                                    @if ($errors->any())
+                                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                            <strong><i class="fas fa-exclamation-circle"></i> Erro ao salvar:</strong>
+                                            <ul class="mb-0 mt-2">
+                                                @foreach ($errors->all() as $error)
+                                                    <li>{{ $error }}</li>
+                                                @endforeach
+                                            </ul>
+                                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                        </div>
+                                    @endif
+                                    
                                     <h5 class="text-secondary border-bottom pb-2 mb-3">
                                         <i class="fas fa-tools"></i> Configurações de Chamados
                                     </h5>
@@ -168,10 +182,13 @@
                                                 <label for="chamados_max_anexos" class="form-label fw-bold">Máx. Anexos por
                                                     Chamado</label>
                                                 <input type="number" name="chamados_max_anexos" id="chamados_max_anexos"
-                                                    min="0" class="form-control"
+                                                    min="0" class="form-control @error('chamados_max_anexos') is-invalid @enderror"
                                                     value="{{ old('chamados_max_anexos', \App\Models\Configuracao::obter('chamados_max_anexos', 5)) }}">
                                                 <div class="form-text">Define quantos arquivos podem ser anexados em um
                                                     chamado.</div>
+                                                @error('chamados_max_anexos')
+                                                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                                                @enderror
                                             </div>
                                         </div>
                                         <div class="col-md-4">
@@ -180,9 +197,12 @@
                                                     class="form-label fw-bold">Tamanho Máx. por Anexo (MB)</label>
                                                 <input type="number" step="0.01" min="0"
                                                     name="chamados_max_tamanho_anexo_mb" id="chamados_max_tamanho_anexo_mb"
-                                                    class="form-control"
+                                                    class="form-control @error('chamados_max_tamanho_anexo_mb') is-invalid @enderror"
                                                     value="{{ old('chamados_max_tamanho_anexo_mb', \App\Models\Configuracao::obter('chamados_max_tamanho_anexo_mb', 10)) }}">
                                                 <div class="form-text">Limite de tamanho para cada arquivo anexado.</div>
+                                                @error('chamados_max_tamanho_anexo_mb')
+                                                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                                                @enderror
                                             </div>
                                         </div>
                                         <div class="col-md-4">
@@ -197,7 +217,80 @@
                                         </div>
                                     </div>
 
-                                    <div class="d-flex justify-content-end gap-2">
+                                    <div class="row mt-3">
+                                        <div class="col-md-12">
+                                            <div class="card bg-light">
+                                                <div class="card-body">
+                                                    <h6 class="fw-bold mb-3">
+                                                        <i class="fas fa-envelope text-primary"></i> Notificações por E-mail
+                                                    </h6>
+                                                    <div class="form-check form-switch mb-3">
+                                                        <input class="form-check-input" type="checkbox" role="switch" 
+                                                            id="chamados_notificar_operadores_email"
+                                                            name="chamados_notificar_operadores_email" 
+                                                            {{ \App\Models\Configuracao::obter('chamados_notificar_operadores_email', true) ? 'checked' : '' }}>
+                                                        <label class="form-check-label fw-bold" for="chamados_notificar_operadores_email">
+                                                            Habilitar notificações por e-mail para operadores/admin
+                                                        </label>
+                                                    </div>
+                                                    <div class="form-text mt-2 mb-3">
+                                                        <i class="fas fa-info-circle"></i> 
+                                                        <strong>Como funciona:</strong>
+                                                        <ul class="mb-0 mt-2" style="font-size: 0.875rem;">
+                                                            <li><strong>Se desabilitado:</strong> Operadores NÃO receberão e-mails quando empresas responderem chamados</li>
+                                                            <li><strong>Se habilitado com responsável:</strong> Apenas o operador/admin responsável pelo chamado receberá notificações</li>
+                                                            <li><strong>Se habilitado sem responsável:</strong> Todos operadores/admin receberão notificações</li>
+                                                            <li class="text-muted mt-1"><em>Nota: Empresas sempre recebem notificações quando operadores respondem seus chamados</em></li>
+                                                        </ul>
+                                                    </div>
+                                                    
+                                                    <hr class="my-3">
+                                                    
+                                                    <h6 class="fw-bold mb-3">
+                                                        <i class="fas fa-copy text-secondary"></i> E-mail Geral/Administrativo
+                                                    </h6>
+                                                    
+                                                    <div class="row">
+                                                        <div class="col-md-8">
+                                                            <div class="mb-3">
+                                                                <label for="chamados_email_geral" class="form-label">
+                                                                    E-mail para Cópia (opcional)
+                                                                </label>
+                                                                <input type="text" 
+                                                                    name="chamados_email_geral" 
+                                                                    id="chamados_email_geral"
+                                                                    class="form-control @error('chamados_email_geral') is-invalid @enderror" 
+                                                                    placeholder="contato@empresa.com.br"
+                                                                    value="{{ old('chamados_email_geral', \App\Models\Configuracao::obter('chamados_email_geral')) }}">
+                                                                <small class="form-text text-muted">
+                                                                    Email administrativo que receberá cópia das notificações (deixe em branco para desabilitar)
+                                                                </small>
+                                                                @error('chamados_email_geral')
+                                                                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                                                                @enderror
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-4">
+                                                            <div class="form-check mt-4">
+                                                                <input class="form-check-input" type="checkbox" value="1"
+                                                                    id="chamados_incluir_email_geral_quando_responsavel"
+                                                                    name="chamados_incluir_email_geral_quando_responsavel" 
+                                                                    {{ \App\Models\Configuracao::obter('chamados_incluir_email_geral_quando_responsavel', false) ? 'checked' : '' }}>
+                                                                <label class="form-check-label" for="chamados_incluir_email_geral_quando_responsavel">
+                                                                    Incluir quando há responsável
+                                                                </label>
+                                                                <small class="form-text text-muted d-block mt-2">
+                                                                    Se marcado, o email geral receberá notificações mesmo quando há um responsável definido
+                                                                </small>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="d-flex justify-content-end gap-2 mt-3">
                                         <button type="submit" class="btn btn-success">
                                             <i class="fas fa-save"></i> Salvar Configurações de Chamados
                                         </button>
@@ -418,4 +511,45 @@
             </div>
         </div>
     </div>
+@endsection
+
+@section('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Verificar query parameter 'tab' na URL (ex: ?tab=chamados)
+        const urlParams = new URLSearchParams(window.location.search);
+        const tabParam = urlParams.get('tab');
+        
+        if (tabParam === 'chamados') {
+            // Usar setTimeout pequeno para garantir que o Bootstrap já inicializou
+            setTimeout(function() {
+                const tabButton = document.getElementById('chamados-tab');
+                if (tabButton) {
+                    // Remover active de todas as abas
+                    document.querySelectorAll('[role="tab"]').forEach(btn => {
+                        btn.classList.remove('active');
+                        btn.setAttribute('aria-selected', 'false');
+                    });
+                    
+                    // Remover active de todos os tabs
+                    document.querySelectorAll('[role="tabpanel"]').forEach(panel => {
+                        panel.classList.remove('show', 'active');
+                    });
+                    
+                    // Ativar a aba chamados
+                    tabButton.classList.add('active');
+                    tabButton.setAttribute('aria-selected', 'true');
+                    
+                    // Ativar o conteúdo da aba
+                    const tabContent = document.getElementById('chamados');
+                    if (tabContent) {
+                        tabContent.classList.add('show', 'active');
+                    }
+                    
+                    console.log('Aba Chamados ativada com sucesso');
+                }
+            }, 100);
+        }
+    });
+</script>
 @endsection

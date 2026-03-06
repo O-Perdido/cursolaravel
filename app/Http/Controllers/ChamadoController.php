@@ -180,7 +180,12 @@ class ChamadoController extends Controller
 
            // Renderiza view diferente para admin/operador
            if (in_array($user->nivel, ['admin', 'operador'])) {
-               return view('chamados.detalhes-admin', compact('chamado'));
+               // Busca operadores/admin para seleção de responsável
+               $operadores = User::whereIn('nivel', ['admin', 'operador'])
+                   ->orderBy('name')
+                   ->get();
+               
+               return view('chamados.detalhes-admin', compact('chamado', 'operadores'));
            }
 
            return view('chamados.show', compact('chamado'));
@@ -561,6 +566,7 @@ class ChamadoController extends Controller
         $emails = [];
 
         if ($mensagem->remetente_nivel === 'operador') {
+            // Operador respondeu → notificar empresa
             $emails = User::where('fk_id_empresa', $chamado->fk_id_empresa)
                 ->where('nivel', 'empresa')
                 ->whereNotNull('email')
@@ -570,13 +576,75 @@ class ChamadoController extends Controller
                 ->values()
                 ->all();
         } else {
-            $emails = User::whereIn('nivel', ['admin', 'operador'])
-                ->whereNotNull('email')
-                ->pluck('email')
-                ->filter()
-                ->unique()
-                ->values()
-                ->all();
+            // Empresa respondeu → verificar configuração de notificação para operadores
+            $notificarOperadores = \App\Models\Configuracao::obter('chamados_notificar_operadores_email', true);
+            
+            if (!$notificarOperadores) {
+                // Configuração desabilitada, não envia e-mail para operadores
+                return;
+            }
+
+            // Se tiver responsável vinculado, notificar ele (e possivelmente email geral)
+            if ($chamado->fk_id_user_responsavel) {
+                $responsavel = User::find($chamado->fk_id_user_responsavel);
+                
+                if ($responsavel && $responsavel->email) {
+                    $emails = [$responsavel->email];
+                    $logEmails = [$responsavel->email];
+                    
+                    // Verificar se deve incluir também email geral
+                    // Converter para boolean explicitamente para evitar valores string '0' / '1'
+                    $incluirEmailGeralConfig = \App\Models\Configuracao::obter('chamados_incluir_email_geral_quando_responsavel', false);
+                    $incluirEmailGeral = (bool) $incluirEmailGeralConfig;
+                    $emailGeral = trim((string) \App\Models\Configuracao::obter('chamados_email_geral', ''));
+                    
+                    \Log::info('Debug - Incluir Email Geral ao Responsável', [
+                        'chamado' => $chamado->protocolo,
+                        'incluirEmailGeralConfig' => $incluirEmailGeralConfig,
+                        'incluirEmailGeral (bool)' => $incluirEmailGeral,
+                        'emailGeral' => $emailGeral,
+                        'temEmail' => !empty($emailGeral),
+                        'emailValido' => filter_var($emailGeral, FILTER_VALIDATE_EMAIL),
+                    ]);
+                    
+                    // APENAS se checkbox está MARCADO (true) E email válido
+                    if ($incluirEmailGeral === true && !empty($emailGeral) && filter_var($emailGeral, FILTER_VALIDATE_EMAIL)) {
+                        $emails[] = $emailGeral;
+                        $logEmails[] = $emailGeral;
+                        
+                        \Log::info("Email geral INCLUÍDO nas notificações", [
+                            'chamado' => $chamado->protocolo,
+                            'emailGeral' => $emailGeral,
+                        ]);
+                    } else {
+                        \Log::info("Email geral NÃO incluído nas notificações", [
+                            'chamado' => $chamado->protocolo,
+                            'motivo' => !$incluirEmailGeral ? 'checkbox desmarcado' : (!empty($emailGeral) ? 'email vazio/inválido' : 'outro motivo'),
+                        ]);
+                    }
+                    
+                    Log::info("Notificação de chamado enviada para responsável" . (count($logEmails) > 1 ? " + email geral" : ""), [
+                        'chamado' => $chamado->protocolo,
+                        'responsavel' => $responsavel->name,
+                        'emails' => $logEmails,
+                        'total_emails' => count($logEmails),
+                    ]);
+                }
+            } else {
+                // Sem responsável → notificar todos operadores/admin (comportamento padrão)
+                $emails = User::whereIn('nivel', ['admin', 'operador'])
+                    ->whereNotNull('email')
+                    ->pluck('email')
+                    ->filter()
+                    ->unique()
+                    ->values()
+                    ->all();
+                    
+                Log::info("Notificação de chamado enviada para todos operadores (sem responsável definido)", [
+                    'chamado' => $chamado->protocolo,
+                    'total_emails' => count($emails),
+                ]);
+            }
         }
 
         if (empty($emails)) {
