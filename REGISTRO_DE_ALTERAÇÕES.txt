@@ -1,5 +1,12 @@
 REGISTRO DE ALTERAÇÕES
 
+09/03/2026 - GitHub Copilot:
+* Corrigi o fluxo AJAX do cadastro de estagiário para reduzir erros de "Falha de rede" em produção:
+* A action do formulário `create_ajax` agora usa rota relativa (`route(..., [], false)`), evitando conflito de esquema `http/https` em ambientes com proxy.
+* Adicionei validação client-side de tamanho dos 3 anexos usando os limites de `upload_max_filesize` e `post_max_size` do servidor, com mensagens claras antes do envio.
+* Reforcei o tratamento da resposta do `fetch` para diferenciar JSON inválido de erro de rede real.
+* Mensagem de erro no `catch` agora inclui detalhe técnico (`error.message`) para facilitar diagnóstico.
+
 26/02/2026 - GitHub Copilot:
 * Corrigi concorrência na inscrição pública de processos seletivos para evitar duplicidade em `numero_inscricao`.
 * A criação de inscrição agora roda em transação (`DB::transaction`) com lock pessimista no processo (`lockForUpdate`) e revalidação de inscrição existente dentro da transação.

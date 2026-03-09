@@ -232,7 +232,7 @@
             <div class="card-body">
                 <div id="alerts"></div>
 
-                <form id="form-estagiario" action="{{ route('novo-estagiario-ajax-store') }}" method="POST"
+                <form id="form-estagiario" action="{{ route('novo-estagiario-ajax-store', [], false) }}" method="POST"
                     enctype="multipart/form-data">
                     @csrf
 
@@ -631,15 +631,15 @@
                     type === 'warning' ? 'alert-warning' : 'alert-info';
 
             container.innerHTML = `
-                                                                                    <div class="alert ${alertClass} alert-dismissible fade show" role="alert">
-                                                                                        <ul class="mb-0">
-                                                                                            ${list.map(m => `<li>${m}</li>`).join('')}
-                                                                                        </ul>
-                                                                                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                                                                                            <span aria-hidden="true">&times;</span>
-                                                                                        </button>
-                                                                                    </div>
-                                                                                `;
+                                                                                            <div class="alert ${alertClass} alert-dismissible fade show" role="alert">
+                                                                                                <ul class="mb-0">
+                                                                                                    ${list.map(m => `<li>${m}</li>`).join('')}
+                                                                                                </ul>
+                                                                                                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                                                                                    <span aria-hidden="true">&times;</span>
+                                                                                                </button>
+                                                                                            </div>
+                                                                                        `;
 
             // Scroll para o alerta
             container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -650,6 +650,45 @@
             const form = document.getElementById('form-estagiario');
             const loading = document.getElementById('form-loading');
             const cadastrarBtn = document.getElementById('cadastrarBtn');
+            const fotoDocumentoInput = document.getElementById('foto_documento');
+            const comprovanteResidenciaInput = document.getElementById('comprovante_residencia');
+            const comprovanteEscolarInput = document.getElementById('comprovante_escolar');
+
+            // Limites do backend (php.ini + validação do Laravel).
+            const maxFileByValidation = 20 * 1024 * 1024;
+            const uploadMaxIni = '{{ ini_get('upload_max_filesize') }}';
+            const postMaxIni = '{{ ini_get('post_max_size') }}';
+
+            function parseShorthandBytes(sizeValue) {
+                if (!sizeValue || typeof sizeValue !== 'string') return 0;
+                const trimmed = sizeValue.trim();
+                const match = trimmed.match(/^(\d+(?:\.\d+)?)([KMG])?$/i);
+                if (!match) return 0;
+
+                const number = parseFloat(match[1]);
+                const unit = (match[2] || '').toUpperCase();
+
+                if (unit === 'G') return Math.floor(number * 1024 * 1024 * 1024);
+                if (unit === 'M') return Math.floor(number * 1024 * 1024);
+                if (unit === 'K') return Math.floor(number * 1024);
+                return Math.floor(number);
+            }
+
+            function formatBytes(bytes) {
+                if (!bytes || bytes < 1024) return `${bytes || 0} B`;
+                const units = ['KB', 'MB', 'GB'];
+                let value = bytes / 1024;
+                let unitIndex = 0;
+                while (value >= 1024 && unitIndex < units.length - 1) {
+                    value /= 1024;
+                    unitIndex++;
+                }
+                return `${value.toFixed(1)} ${units[unitIndex]}`;
+            }
+
+            const uploadMaxBytes = parseShorthandBytes(uploadMaxIni);
+            const postMaxBytes = parseShorthandBytes(postMaxIni);
+            const maxPerFile = uploadMaxBytes > 0 ? Math.min(maxFileByValidation, uploadMaxBytes) : maxFileByValidation;
 
             // Elementos de senha
             const pwd = document.getElementById('password_usuario');
@@ -869,17 +908,17 @@
             });
 
             // Atualizar labels dos arquivos
-            document.getElementById('foto_documento').addEventListener('change', function (e) {
+            fotoDocumentoInput.addEventListener('change', function (e) {
                 const fileName = e.target.files[0] ? e.target.files[0].name : 'Escolher arquivo';
                 document.getElementById('label_foto_documento').textContent = fileName;
             });
 
-            document.getElementById('comprovante_residencia').addEventListener('change', function (e) {
+            comprovanteResidenciaInput.addEventListener('change', function (e) {
                 const fileName = e.target.files[0] ? e.target.files[0].name : 'Escolher arquivo';
                 document.getElementById('label_comprovante_residencia').textContent = fileName;
             });
 
-            document.getElementById('comprovante_escolar').addEventListener('change', function (e) {
+            comprovanteEscolarInput.addEventListener('change', function (e) {
                 const fileName = e.target.files[0] ? e.target.files[0].name : 'Escolher arquivo';
                 document.getElementById('label_comprovante_escolar').textContent = fileName;
             });
@@ -888,12 +927,43 @@
             form.addEventListener('submit', function (e) {
                 e.preventDefault();
 
+                const uploadFields = [
+                    { label: 'Foto do Documento', input: fotoDocumentoInput },
+                    { label: 'Comprovante de Residência', input: comprovanteResidenciaInput },
+                    { label: 'Comprovante Escolar', input: comprovanteEscolarInput },
+                ];
+
+                const fileErrors = [];
+                let totalUploadSize = 0;
+
+                uploadFields.forEach(({ label, input }) => {
+                    const file = input.files && input.files[0] ? input.files[0] : null;
+                    if (!file) return;
+
+                    totalUploadSize += file.size;
+                    if (file.size > maxPerFile) {
+                        fileErrors.push(`${label}: arquivo com ${formatBytes(file.size)}. Limite permitido: ${formatBytes(maxPerFile)}.`);
+                    }
+                });
+
+                if (postMaxBytes > 0 && totalUploadSize > postMaxBytes) {
+                    fileErrors.push(`Soma dos anexos (${formatBytes(totalUploadSize)}) excede o limite do servidor (${formatBytes(postMaxBytes)}).`);
+                }
+
+                if (fileErrors.length > 0) {
+                    showAlert('alerts', 'danger', fileErrors);
+                    return;
+                }
+
                 loading.style.display = 'flex';
                 showAlert('alerts', 'info', 'Enviando dados...');
 
                 const formData = new FormData(form);
 
-                fetch(form.action, {
+                // Usa URL relativa para evitar problemas de esquema (http/https) em ambientes com proxy.
+                const submitUrl = form.getAttribute('action') || '/novo-estagiario-ajax';
+
+                fetch(submitUrl, {
                     method: 'POST',
                     body: formData,
                     headers: {
@@ -904,8 +974,11 @@
                     .then(async response => {
                         loading.style.display = 'none';
 
+                        const contentType = response.headers.get('content-type') || '';
+                        const isJson = contentType.includes('application/json');
+
                         if (!response.ok) {
-                            const data = await response.json().catch(() => ({}));
+                            const data = isJson ? await response.json().catch(() => ({})) : {};
                             const errors = data.errors ? Object.values(data.errors).flat() : ['Erro ao enviar o formulário.'];
                             showAlert('alerts', 'danger', errors);
                             if (data.errors && data.errors.numero_cpf && data.errors.numero_cpf.length) {
@@ -921,6 +994,11 @@
                             return;
                         }
 
+                        if (!isJson) {
+                            showAlert('alerts', 'danger', 'Resposta inesperada do servidor. Atualize a página e tente novamente.');
+                            return;
+                        }
+
                         const data = await response.json();
                         // Redireciona para a página de verificação de e-mail
                         if (data.redirect) {
@@ -933,7 +1011,8 @@
                     .catch(error => {
                         loading.style.display = 'none';
                         console.error('Erro:', error);
-                        showAlert('alerts', 'danger', 'Falha de rede. Tente novamente.');
+                        const details = error && error.message ? ` (${error.message})` : '';
+                        showAlert('alerts', 'danger', `Falha de rede ao enviar cadastro${details}. Se o erro persistir, tente anexos menores.`);
                     });
             });
 
