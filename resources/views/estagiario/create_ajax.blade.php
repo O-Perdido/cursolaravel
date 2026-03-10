@@ -125,6 +125,19 @@
             transform: none !important;
         }
 
+        .upload-progress-wrap {
+            width: min(460px, 92vw);
+        }
+
+        .upload-progress-wrap .progress {
+            height: 10px;
+            border-radius: 999px;
+        }
+
+        .upload-progress-wrap .progress-bar {
+            transition: width .2s ease;
+        }
+
         .terms-checkbox-wrapper {
             display: flex;
             align-items: center;
@@ -567,6 +580,12 @@
             <strong>Processando...</strong><br>
             <span class="text-muted">Não feche ou recarregue a página</span>
         </div>
+        <div id="upload-progress-wrap" class="upload-progress-wrap mt-3" style="display:none;">
+            <div class="progress">
+                <div id="upload-progress-bar" class="progress-bar bg-primary" role="progressbar" style="width: 0%"></div>
+            </div>
+            <small id="upload-progress-text" class="text-muted d-block mt-2 text-center">Preparando envio...</small>
+        </div>
     </div>
 
     <!-- Modal de Termos -->
@@ -631,15 +650,15 @@
                     type === 'warning' ? 'alert-warning' : 'alert-info';
 
             container.innerHTML = `
-                                                                                            <div class="alert ${alertClass} alert-dismissible fade show" role="alert">
-                                                                                                <ul class="mb-0">
-                                                                                                    ${list.map(m => `<li>${m}</li>`).join('')}
-                                                                                                </ul>
-                                                                                                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                                                                                                    <span aria-hidden="true">&times;</span>
-                                                                                                </button>
-                                                                                            </div>
-                                                                                        `;
+                                                                                                <div class="alert ${alertClass} alert-dismissible fade show" role="alert">
+                                                                                                    <ul class="mb-0">
+                                                                                                        ${list.map(m => `<li>${m}</li>`).join('')}
+                                                                                                    </ul>
+                                                                                                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                                                                                        <span aria-hidden="true">&times;</span>
+                                                                                                    </button>
+                                                                                                </div>
+                                                                                            `;
 
             // Scroll para o alerta
             container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -653,6 +672,13 @@
             const fotoDocumentoInput = document.getElementById('foto_documento');
             const comprovanteResidenciaInput = document.getElementById('comprovante_residencia');
             const comprovanteEscolarInput = document.getElementById('comprovante_escolar');
+            const uploadProgressWrap = document.getElementById('upload-progress-wrap');
+            const uploadProgressBar = document.getElementById('upload-progress-bar');
+            const uploadProgressText = document.getElementById('upload-progress-text');
+
+            const DRAFT_KEY = 'novo-estagiario-ajax-draft-v2';
+            const REQUEST_TIMEOUT_MS = 120000;
+            const RETRY_DELAYS_MS = [2000, 5000, 10000];
 
             // Limites do backend (php.ini + validação do Laravel).
             const maxFileByValidation = 20 * 1024 * 1024;
@@ -689,6 +715,152 @@
             const uploadMaxBytes = parseShorthandBytes(uploadMaxIni);
             const postMaxBytes = parseShorthandBytes(postMaxIni);
             const maxPerFile = uploadMaxBytes > 0 ? Math.min(maxFileByValidation, uploadMaxBytes) : maxFileByValidation;
+
+            function delay(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+
+            function setUploadProgress(percent, message) {
+                uploadProgressWrap.style.display = 'block';
+                uploadProgressBar.style.width = `${Math.max(0, Math.min(100, percent))}%`;
+                uploadProgressText.textContent = message;
+            }
+
+            function resetUploadProgress() {
+                uploadProgressWrap.style.display = 'none';
+                uploadProgressBar.style.width = '0%';
+                uploadProgressText.textContent = 'Preparando envio...';
+            }
+
+            function updateFileLabel(input, labelId) {
+                const label = document.getElementById(labelId);
+                const file = input.files && input.files[0] ? input.files[0] : null;
+                if (!file) {
+                    label.textContent = 'Escolher arquivo';
+                    return;
+                }
+                label.textContent = `${file.name} (${formatBytes(file.size)})`;
+            }
+
+            function saveDraft() {
+                try {
+                    const data = {};
+                    form.querySelectorAll('input, select, textarea').forEach(field => {
+                        if (!field.name) return;
+                        if (field.type === 'password' || field.type === 'file') return;
+                        if (field.type === 'checkbox') {
+                            data[field.name] = field.checked;
+                            return;
+                        }
+                        data[field.name] = field.value;
+                    });
+                    localStorage.setItem(DRAFT_KEY, JSON.stringify({ savedAt: Date.now(), data }));
+                } catch (e) {
+                    console.warn('Nao foi possivel salvar rascunho local:', e);
+                }
+            }
+
+            function restoreDraft() {
+                try {
+                    const raw = localStorage.getItem(DRAFT_KEY);
+                    if (!raw) return;
+
+                    const parsed = JSON.parse(raw);
+                    if (!parsed || typeof parsed !== 'object' || !parsed.data) return;
+
+                    Object.entries(parsed.data).forEach(([name, value]) => {
+                        const field = form.querySelector(`[name="${name}"]`);
+                        if (!field) return;
+                        if (field.type === 'checkbox') {
+                            field.checked = !!value;
+                            return;
+                        }
+                        if (!field.value) {
+                            field.value = value ?? '';
+                        }
+                    });
+
+                    const dateLabel = parsed.savedAt ? new Date(parsed.savedAt).toLocaleString('pt-BR') : '';
+                    if (dateLabel) {
+                        showAlert('alerts', 'info', `Rascunho recuperado automaticamente (${dateLabel}).`);
+                    }
+                } catch (e) {
+                    console.warn('Nao foi possivel restaurar rascunho local:', e);
+                }
+            }
+
+            function clearDraft() {
+                localStorage.removeItem(DRAFT_KEY);
+            }
+
+            function parseJsonSafe(jsonText) {
+                try {
+                    return JSON.parse(jsonText || '{}');
+                } catch (e) {
+                    return {};
+                }
+            }
+
+            function sendViaXhr(submitUrl, formData, timeoutMs, progressCallback) {
+                return new Promise((resolve, reject) => {
+                    const xhr = new XMLHttpRequest();
+                    xhr.open('POST', submitUrl, true);
+                    xhr.timeout = timeoutMs;
+                    xhr.withCredentials = true;
+                    xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+
+                    xhr.upload.onprogress = (event) => {
+                        if (!event.lengthComputable) return;
+                        progressCallback(event.loaded, event.total);
+                    };
+
+                    xhr.onload = () => {
+                        resolve({
+                            status: xhr.status,
+                            responseText: xhr.responseText || '',
+                            contentType: xhr.getResponseHeader('Content-Type') || ''
+                        });
+                    };
+
+                    xhr.onerror = () => reject(new Error('Falha de conexao durante o envio.'));
+                    xhr.ontimeout = () => reject(new Error('Tempo de envio excedido.'));
+                    xhr.onabort = () => reject(new Error('Envio cancelado.'));
+
+                    xhr.send(formData);
+                });
+            }
+
+            async function submitWithRetry(submitUrl, formData) {
+                const maxAttempts = RETRY_DELAYS_MS.length + 1;
+
+                for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+                    try {
+                        if (attempt > 1) {
+                            setUploadProgress(0, `Tentativa ${attempt}/${maxAttempts}: reenviando...`);
+                        }
+
+                        const result = await sendViaXhr(
+                            submitUrl,
+                            formData,
+                            REQUEST_TIMEOUT_MS,
+                            (loaded, total) => {
+                                const pct = total > 0 ? Math.round((loaded / total) * 100) : 0;
+                                setUploadProgress(pct, `Enviando arquivos... ${pct}%`);
+                            }
+                        );
+
+                        return result;
+                    } catch (error) {
+                        if (attempt >= maxAttempts) {
+                            throw error;
+                        }
+
+                        const delayMs = RETRY_DELAYS_MS[attempt - 1] || 3000;
+                        setUploadProgress(0, `Conexao instavel. Nova tentativa em ${Math.round(delayMs / 1000)}s...`);
+                        await delay(delayMs);
+                    }
+                }
+            }
 
             // Elementos de senha
             const pwd = document.getElementById('password_usuario');
@@ -862,6 +1034,13 @@
             dataNascimentoInput.addEventListener('change', atualizarValidacaoPIS);
             numeropisInput.addEventListener('input', checkFormValid);
 
+            // Salva rascunho local para reduzir retrabalho em quedas de conexao.
+            form.querySelectorAll('input, select, textarea').forEach(field => {
+                if (field.type === 'password' || field.type === 'file') return;
+                field.addEventListener('input', saveDraft);
+                field.addEventListener('change', saveDraft);
+            });
+
             // Verifica se o formulário está válido
             function checkFormValid() {
                 const cpfValido = validarCPF(cpfInput.value);
@@ -909,22 +1088,19 @@
 
             // Atualizar labels dos arquivos
             fotoDocumentoInput.addEventListener('change', function (e) {
-                const fileName = e.target.files[0] ? e.target.files[0].name : 'Escolher arquivo';
-                document.getElementById('label_foto_documento').textContent = fileName;
+                updateFileLabel(e.target, 'label_foto_documento');
             });
 
             comprovanteResidenciaInput.addEventListener('change', function (e) {
-                const fileName = e.target.files[0] ? e.target.files[0].name : 'Escolher arquivo';
-                document.getElementById('label_comprovante_residencia').textContent = fileName;
+                updateFileLabel(e.target, 'label_comprovante_residencia');
             });
 
             comprovanteEscolarInput.addEventListener('change', function (e) {
-                const fileName = e.target.files[0] ? e.target.files[0].name : 'Escolher arquivo';
-                document.getElementById('label_comprovante_escolar').textContent = fileName;
+                updateFileLabel(e.target, 'label_comprovante_escolar');
             });
 
             // Submissão do formulário
-            form.addEventListener('submit', function (e) {
+            form.addEventListener('submit', async function (e) {
                 e.preventDefault();
 
                 const uploadFields = [
@@ -955,68 +1131,75 @@
                     return;
                 }
 
+                if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+                    showAlert('alerts', 'danger', 'Você parece estar offline. Verifique sua conexão e tente novamente.');
+                    return;
+                }
+
                 loading.style.display = 'flex';
                 showAlert('alerts', 'info', 'Enviando dados...');
+                setUploadProgress(0, 'Iniciando envio...');
+                cadastrarBtn.disabled = true;
 
                 const formData = new FormData(form);
 
                 // Usa URL relativa para evitar problemas de esquema (http/https) em ambientes com proxy.
                 const submitUrl = form.getAttribute('action') || '/novo-estagiario-ajax';
 
-                fetch(submitUrl, {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
-                    },
-                    credentials: 'same-origin'
-                })
-                    .then(async response => {
-                        loading.style.display = 'none';
+                try {
+                    const response = await submitWithRetry(submitUrl, formData);
 
-                        const contentType = response.headers.get('content-type') || '';
-                        const isJson = contentType.includes('application/json');
+                    loading.style.display = 'none';
+                    resetUploadProgress();
+                    cadastrarBtn.disabled = false;
 
-                        if (!response.ok) {
-                            const data = isJson ? await response.json().catch(() => ({})) : {};
-                            const errors = data.errors ? Object.values(data.errors).flat() : ['Erro ao enviar o formulário.'];
-                            showAlert('alerts', 'danger', errors);
-                            if (data.errors && data.errors.numero_cpf && data.errors.numero_cpf.length) {
-                                const msg = data.errors.numero_cpf[0].toLowerCase();
-                                const cpfEl = document.getElementById('numero_cpf');
-                                cpfEl.classList.add('is-invalid');
-                                if (msg.includes('já existe')) {
-                                    document.getElementById('cpfUniqueError').style.display = 'block';
-                                } else {
-                                    document.getElementById('cpfUniqueError').style.display = 'none';
-                                }
+                    const isJson = response.contentType.includes('application/json');
+
+                    if (response.status < 200 || response.status >= 300) {
+                        const data = isJson ? parseJsonSafe(response.responseText) : {};
+                        const errors = data.errors ? Object.values(data.errors).flat() : ['Erro ao enviar o formulário.'];
+                        showAlert('alerts', 'danger', errors);
+                        if (data.errors && data.errors.numero_cpf && data.errors.numero_cpf.length) {
+                            const msg = data.errors.numero_cpf[0].toLowerCase();
+                            const cpfEl = document.getElementById('numero_cpf');
+                            cpfEl.classList.add('is-invalid');
+                            if (msg.includes('já existe') || msg.includes('ja existe')) {
+                                document.getElementById('cpfUniqueError').style.display = 'block';
+                            } else {
+                                document.getElementById('cpfUniqueError').style.display = 'none';
                             }
-                            return;
                         }
+                        return;
+                    }
 
-                        if (!isJson) {
-                            showAlert('alerts', 'danger', 'Resposta inesperada do servidor. Atualize a página e tente novamente.');
-                            return;
-                        }
+                    if (!isJson) {
+                        showAlert('alerts', 'danger', 'Resposta inesperada do servidor. Atualize a página e tente novamente.');
+                        return;
+                    }
 
-                        const data = await response.json();
-                        // Redireciona para a página de verificação de e-mail
-                        if (data.redirect) {
-                            window.location.href = data.redirect;
-                            return;
-                        }
-                        // Fallback: mensagem
-                        showAlert('alerts', 'success', 'Cadastro realizado com sucesso. Verifique seu e-mail.');
-                    })
-                    .catch(error => {
-                        loading.style.display = 'none';
-                        console.error('Erro:', error);
-                        const details = error && error.message ? ` (${error.message})` : '';
-                        showAlert('alerts', 'danger', `Falha de rede ao enviar cadastro${details}. Se o erro persistir, tente anexos menores.`);
-                    });
+                    const data = parseJsonSafe(response.responseText);
+                    clearDraft();
+
+                    // Redireciona para a pagina de verificacao de e-mail
+                    if (data.redirect) {
+                        window.location.href = data.redirect;
+                        return;
+                    }
+
+                    // Fallback: mensagem
+                    showAlert('alerts', 'success', 'Cadastro realizado com sucesso. Verifique seu e-mail.');
+                } catch (error) {
+                    loading.style.display = 'none';
+                    resetUploadProgress();
+                    cadastrarBtn.disabled = false;
+                    console.error('Erro:', error);
+                    const details = error && error.message ? ` (${error.message})` : '';
+                    showAlert('alerts', 'danger', `Falha de rede ao enviar cadastro${details}. O sistema tentou reenviar automaticamente.`);
+                }
             });
 
             // Inicializar validações
+            restoreDraft();
             validatePasswords();
             atualizarValidacaoPIS();
             checkFormValid();

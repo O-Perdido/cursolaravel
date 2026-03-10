@@ -6,6 +6,10 @@ REGISTRO DE ALTERAÇÕES
 * Adicionei validação client-side de tamanho dos 3 anexos usando os limites de `upload_max_filesize` e `post_max_size` do servidor, com mensagens claras antes do envio.
 * Reforcei o tratamento da resposta do `fetch` para diferenciar JSON inválido de erro de rede real.
 * Mensagem de erro no `catch` agora inclui detalhe técnico (`error.message`) para facilitar diagnóstico.
+* Adicionei barra de progresso de upload no overlay de carregamento para feedback em tempo real durante o envio.
+* Troquei o envio para `XMLHttpRequest` com timeout, retry automático com backoff e mensagens de reconexão para redes instáveis.
+* Implementei rascunho local automático (LocalStorage) para recuperar dados do formulário em falhas de conexão/recarga.
+* Melhorei a exibição dos anexos com nome + tamanho e tratamento resiliente de parsing JSON em respostas inesperadas.
 
 26/02/2026 - GitHub Copilot:
 * Corrigi concorrência na inscrição pública de processos seletivos para evitar duplicidade em `numero_inscricao`.
