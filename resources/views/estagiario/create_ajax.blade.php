@@ -650,15 +650,15 @@
                     type === 'warning' ? 'alert-warning' : 'alert-info';
 
             container.innerHTML = `
-                                                                                                <div class="alert ${alertClass} alert-dismissible fade show" role="alert">
-                                                                                                    <ul class="mb-0">
-                                                                                                        ${list.map(m => `<li>${m}</li>`).join('')}
-                                                                                                    </ul>
-                                                                                                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                                                                                                        <span aria-hidden="true">&times;</span>
-                                                                                                    </button>
-                                                                                                </div>
-                                                                                            `;
+                                                                                                    <div class="alert ${alertClass} alert-dismissible fade show" role="alert">
+                                                                                                        <ul class="mb-0">
+                                                                                                            ${list.map(m => `<li>${m}</li>`).join('')}
+                                                                                                        </ul>
+                                                                                                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                                                                                            <span aria-hidden="true">&times;</span>
+                                                                                                        </button>
+                                                                                                    </div>
+                                                                                                `;
 
             // Scroll para o alerta
             container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -676,7 +676,6 @@
             const uploadProgressBar = document.getElementById('upload-progress-bar');
             const uploadProgressText = document.getElementById('upload-progress-text');
 
-            const DRAFT_KEY = 'novo-estagiario-ajax-draft-v2';
             const REQUEST_TIMEOUT_MS = 120000;
             const RETRY_DELAYS_MS = [2000, 5000, 10000];
 
@@ -740,57 +739,6 @@
                     return;
                 }
                 label.textContent = `${file.name} (${formatBytes(file.size)})`;
-            }
-
-            function saveDraft() {
-                try {
-                    const data = {};
-                    form.querySelectorAll('input, select, textarea').forEach(field => {
-                        if (!field.name) return;
-                        if (field.type === 'password' || field.type === 'file') return;
-                        if (field.type === 'checkbox') {
-                            data[field.name] = field.checked;
-                            return;
-                        }
-                        data[field.name] = field.value;
-                    });
-                    localStorage.setItem(DRAFT_KEY, JSON.stringify({ savedAt: Date.now(), data }));
-                } catch (e) {
-                    console.warn('Nao foi possivel salvar rascunho local:', e);
-                }
-            }
-
-            function restoreDraft() {
-                try {
-                    const raw = localStorage.getItem(DRAFT_KEY);
-                    if (!raw) return;
-
-                    const parsed = JSON.parse(raw);
-                    if (!parsed || typeof parsed !== 'object' || !parsed.data) return;
-
-                    Object.entries(parsed.data).forEach(([name, value]) => {
-                        const field = form.querySelector(`[name="${name}"]`);
-                        if (!field) return;
-                        if (field.type === 'checkbox') {
-                            field.checked = !!value;
-                            return;
-                        }
-                        if (!field.value) {
-                            field.value = value ?? '';
-                        }
-                    });
-
-                    const dateLabel = parsed.savedAt ? new Date(parsed.savedAt).toLocaleString('pt-BR') : '';
-                    if (dateLabel) {
-                        showAlert('alerts', 'info', `Rascunho recuperado automaticamente (${dateLabel}).`);
-                    }
-                } catch (e) {
-                    console.warn('Nao foi possivel restaurar rascunho local:', e);
-                }
-            }
-
-            function clearDraft() {
-                localStorage.removeItem(DRAFT_KEY);
             }
 
             function parseJsonSafe(jsonText) {
@@ -1034,13 +982,6 @@
             dataNascimentoInput.addEventListener('change', atualizarValidacaoPIS);
             numeropisInput.addEventListener('input', checkFormValid);
 
-            // Salva rascunho local para reduzir retrabalho em quedas de conexao.
-            form.querySelectorAll('input, select, textarea').forEach(field => {
-                if (field.type === 'password' || field.type === 'file') return;
-                field.addEventListener('input', saveDraft);
-                field.addEventListener('change', saveDraft);
-            });
-
             // Verifica se o formulário está válido
             function checkFormValid() {
                 const cpfValido = validarCPF(cpfInput.value);
@@ -1178,7 +1119,6 @@
                     }
 
                     const data = parseJsonSafe(response.responseText);
-                    clearDraft();
 
                     // Redireciona para a pagina de verificacao de e-mail
                     if (data.redirect) {
@@ -1199,7 +1139,6 @@
             });
 
             // Inicializar validações
-            restoreDraft();
             validatePasswords();
             atualizarValidacaoPIS();
             checkFormValid();
