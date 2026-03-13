@@ -103,13 +103,14 @@
                 <div class="form-group">
                     <label for="descricao">Descrição das Alterações</label>
                     <textarea class="form-control" id="descricao" name="descricao" rows="10" required>
-                Cláusula Única:
-                    Fica estabelecido as seguintes alterações:
+                    Cláusula Única:
+                        Fica estabelecido as seguintes alterações:
 
-                    a) [Descreva as alterações aqui]
+                        a) [Descreva as alterações aqui]
 
-                    E, por estarem as partes certas e compromissadas, assinam o presente instrumento de maneira eletrônica na forma da lei 14063/2020 que dispõe sobre assinaturas eletrônicas.
-                                                    </textarea>
+                        Permanecem inalteradas e em pleno vigor todas as demais cláusulas e condições do Termo de Compromisso de Estágio e que não tenham sido expressamente modificadas pelo presente Termo de Alteração.
+                        E, por estarem as partes certas e compromissadas, assinam o presente instrumento de maneira eletrônica na forma da lei 14063/2020 que dispõe sobre assinaturas eletrônicas.
+                                                        </textarea>
                 </div>
             </div>
 
