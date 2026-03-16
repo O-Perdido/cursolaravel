@@ -1,5 +1,10 @@
 REGISTRO DE ALTERAÇÕES
 
+16/03/2026 - GitHub Copilot:
+* Corrigi o fluxo de criação de alteração de termo para não distorcer `valor_bolsa` e `auxilio_transporte` quando os campos da alteração são enviados em branco.
+* A normalização monetária agora só é aplicada quando o usuário realmente preenche `valor_bolsa_alteracao` e/ou `auxilio_transporte_alteracao`.
+* Com isso, ao salvar alteração sem mexer nesses campos, o sistema preserva os valores originais do termo (sem converter `846.66` para `84666.00`).
+
 09/03/2026 - GitHub Copilot:
 * Corrigi o fluxo AJAX do cadastro de estagiário para reduzir erros de "Falha de rede" em produção:
 * A action do formulário `create_ajax` agora usa rota relativa (`route(..., [], false)`), evitando conflito de esquema `http/https` em ambientes com proxy.

@@ -114,6 +114,10 @@ class AlteracaoTermoController extends Controller
     {
         $termo = Termo::findOrFail($id);
 
+        $normalizarMoeda = static function ($valor) {
+            return str_replace(',', '.', str_replace('.', '', (string) $valor));
+        };
+
         $validatedData = $request->validate([
             'id_alteracao' => 'nullable|integer',
             'fk_id_termo' => 'nullable|integer',
@@ -159,29 +163,26 @@ class AlteracaoTermoController extends Controller
         $validatedData['old_lotacao'] = $termo->lotacao;
 
 
+        $valorBolsaFoiPreenchido = $request->filled('valor_bolsa_alteracao');
+        $auxilioTransporteFoiPreenchido = $request->filled('auxilio_transporte_alteracao');
+
         // Atualiza os campos alterados, mantendo os valores antigos caso não venham no request
         $updateData = [
             'fk_id_supervisor' => $validatedData['fk_id_supervisor'] ?? $termo->fk_id_supervisor,
             'nome_orientador' => $validatedData['nome_orientador_alteracao'] ?? $termo->nome_orientador,
             'cargo_orientador' => $validatedData['cargo_orientador_alteracao'] ?? $termo->cargo_orientador,
             'data_fim_estagio' => $validatedData['data_fim_estagio_alteracao'] ?? $termo->data_fim_estagio,
-            'valor_bolsa' => $validatedData['valor_bolsa_alteracao'] ?? $termo->valor_bolsa,
-            'auxilio_transporte' => $validatedData['auxilio_transporte_alteracao'] ?? $termo->auxilio_transporte,
+            'valor_bolsa' => $valorBolsaFoiPreenchido
+                ? $normalizarMoeda($validatedData['valor_bolsa_alteracao'])
+                : $termo->valor_bolsa,
+            'auxilio_transporte' => $auxilioTransporteFoiPreenchido
+                ? $normalizarMoeda($validatedData['auxilio_transporte_alteracao'])
+                : $termo->auxilio_transporte,
             'horario' => $validatedData['horario_alteracao'] ?? $termo->horario,
             'desc_atividades' => $validatedData['desc_atividades_alteracao'] ?? $termo->desc_atividades,
             'fk_id_local' => $validatedData['fk_id_local'] ?? $termo->fk_id_local,
             'lotacao' => $validatedData['lotacao_alteracao'] ?? $termo->lotacao,
         ];
-
-        // Formatar os valores monetários campos valor_bolsa e auxilio_transporte
-        //Teste se o valor_bolsa não é nulo
-        if (isset($updateData['valor_bolsa']) && $updateData['valor_bolsa'] != null) {
-            $updateData['valor_bolsa'] = str_replace(',', '.', str_replace('.', '', $updateData['valor_bolsa']));
-        }
-        //Teste se o auxilio_transporte não é nulo
-        if (isset($updateData['auxilio_transporte']) && $updateData['auxilio_transporte'] != null) {
-            $updateData['auxilio_transporte'] = str_replace(',', '.', str_replace('.', '', $updateData['auxilio_transporte']));
-        }
 
 
         // Se houver atualizações, aplica o update na tabela tb_termos
@@ -190,12 +191,12 @@ class AlteracaoTermoController extends Controller
         }
         // Formatar os valores monetários campos valor_bolsa_alteracao e auxilio_transporte_alteracao
         //Teste se o valor_bolsa_alteracao não é nulo
-        if (isset($validatedData['valor_bolsa_alteracao']) && $validatedData['valor_bolsa_alteracao'] != null) {
-            $validatedData['valor_bolsa_alteracao'] = str_replace(',', '.', str_replace('.', '', $validatedData['valor_bolsa_alteracao']));
+        if ($valorBolsaFoiPreenchido) {
+            $validatedData['valor_bolsa_alteracao'] = $normalizarMoeda($validatedData['valor_bolsa_alteracao']);
         }
         //Teste se o auxilio_transporte_alteracao não é nulo
-        if (isset($validatedData['auxilio_transporte_alteracao']) && $validatedData['auxilio_transporte_alteracao'] != null) {
-            $validatedData['auxilio_transporte_alteracao'] = str_replace(',', '.', str_replace('.', '', $validatedData['auxilio_transporte_alteracao']));
+        if ($auxilioTransporteFoiPreenchido) {
+            $validatedData['auxilio_transporte_alteracao'] = $normalizarMoeda($validatedData['auxilio_transporte_alteracao']);
         }
 
 
