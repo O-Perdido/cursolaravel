@@ -10,6 +10,7 @@ Foi implementado um sistema completo de cadastro e gerenciamento de vagas de est
 - **Número Sequencial**: Formato `YYYY-SEQ` gerado automaticamente por empresa/ano
 - **Campos**: 
   - Dados da vaga (atividades, orientador, cargo, datas, horário, local, lotação)
+  - Campo opcional de OBS para anotações internas do operador
   - Valores (bolsa, auxílio transporte)
   - Status (disponível, preenchida, expirada)
   - Vinculação (fk_id_termo, vinculo_tipo)
@@ -32,6 +33,7 @@ Foi implementado um sistema completo de cadastro e gerenciamento de vagas de est
   - Datas de início e término
   - Horário, local, lotação
   - Valores de bolsa e auxílio transporte
+- **Observações da vaga**: OBS internas são exibidas em destaque na tela de geração do termo sempre que houver uma vaga selecionada
 - **Campos readonly**: Após vincular, campos ficam somente leitura (exceto estagiário, escola, supervisor)
 - **Replicação *_fixo**: Dados da vaga são copiados para campos normais E campos *_fixo (padrão de auditoria do sistema)
 
@@ -63,11 +65,12 @@ Foi implementado um sistema completo de cadastro e gerenciamento de vagas de est
 1. `database/migrations/2025_11_12_000000_create_tb_vagas_table.php`
 2. `database/migrations/2025_11_12_000001_add_vaga_vinculo_to_tb_termos.php`
 3. `database/migrations/ADD_VAGAS_MANUAL.sql` (script manual para banco existente)
-4. `app/Models/Vaga.php`
-5. `app/Http/Controllers/VagaController.php`
-6. `resources/views/vagas/index.blade.php`
-7. `resources/views/vagas/create.blade.php`
-8. `resources/views/vagas/edit.blade.php`
+4. `database/migrations/2026_03_18_000000_add_observacoes_to_tb_vagas.php`
+5. `app/Models/Vaga.php`
+6. `app/Http/Controllers/VagaController.php`
+7. `resources/views/vagas/index.blade.php`
+8. `resources/views/vagas/create.blade.php`
+9. `resources/views/vagas/edit.blade.php`
 
 ### Arquivos Modificados
 1. `app/Models/Termo.php` - Adicionar relacionamento `vaga()` e campos ao fillable
@@ -79,6 +82,7 @@ Foi implementado um sistema completo de cadastro e gerenciamento de vagas de est
 4. `resources/views/termos/create.blade.php`:
    - Campo select de vaga
    - JavaScript para preenchimento automático
+  - Card com OBS da vaga selecionada
    - Lógica de campos readonly
 
 ## Instalação/Execução
@@ -103,8 +107,9 @@ php artisan migrate:status
 1. Acessar dashboard
 2. Navegar para "Vagas"
 3. Cadastrar nova vaga com todos os dados
-4. Número da vaga gerado automaticamente (ex: 2025-001)
-5. Editar ou excluir vagas não vinculadas
+4. Se necessário, preencher o campo OBS com anotações internas da vaga
+5. Número da vaga gerado automaticamente (ex: 2025-001)
+6. Editar ou excluir vagas não vinculadas
 
 ### Para Admin/Operador
 1. Visualizar todas as vagas (todas as empresas)
@@ -113,6 +118,7 @@ php artisan migrate:status
    - Campo "Vincular à Vaga" aparece se houver vagas disponíveis
    - Selecionar vaga ou deixar em branco para preencher manualmente
    - Se vaga selecionada: campos preenchidos automaticamente
+  - Se a vaga tiver OBS cadastrada: observações exibidas em destaque para orientar o operador
    - Preencher apenas estagiário, escola e supervisor
 3. Salvar termo: vaga automaticamente marcada como "preenchida"
 4. Ao excluir termo vinculado: vaga volta para "disponível"

@@ -81,6 +81,7 @@ class VagaController extends Controller
         $validated = $request->validate([
             'titulo_vaga' => 'required|string|max:150',
             'atividades' => 'required|string',
+            'observacoes' => 'nullable|string',
             'fk_id_supervisor' => 'required|integer|exists:tb_supervisores,id_supervisor',
             'data_inicio' => 'required|date',
             'data_termino' => 'required|date|after:data_inicio',
@@ -144,6 +145,7 @@ class VagaController extends Controller
         $rules = [
             'titulo_vaga' => 'required|string|max:150',
             'atividades' => 'required|string',
+            'observacoes' => 'nullable|string',
             'fk_id_supervisor' => 'required|integer|exists:tb_supervisores,id_supervisor',
             'data_inicio' => 'required|date',
             'data_termino' => 'required|date|after:data_inicio',
@@ -228,6 +230,7 @@ class VagaController extends Controller
             'nome_estagiario' => $vaga->nome_estagiario,
             'contato_whatsapp' => $vaga->contato_whatsapp,
             'contato_email' => $vaga->contato_email,
+            'observacoes' => $vaga->observacoes,
             'tem_estagiario_definido' => $vaga->tem_estagiario_definido,
             'fk_id_supervisor' => $vaga->fk_id_supervisor,
             'data_inicio' => $vaga->data_inicio,

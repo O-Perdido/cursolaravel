@@ -71,6 +71,11 @@
                         deixe em branco para preencher manualmente.</small>
                 </div>
 
+                <div class="alert alert-warning d-none" id="vaga-observacoes-container">
+                    <strong>OBS da vaga selecionada:</strong>
+                    <div class="mt-2 mb-0" id="vaga-observacoes-texto"></div>
+                </div>
+
                 <div class="mb-3" style="position: relative;">
                     <label for="fk_id_escola" class="form-label">Selecione a Instituição de Ensino</label>
                     <input type="text" class="form-control" id="escola_search" placeholder="Digite para buscar..."
@@ -329,6 +334,8 @@
             const vagaSearch = document.getElementById('vaga_search');
             const vagaSelect = document.getElementById('fk_id_vaga');
             const btnInfoVaga = document.getElementById('btnInfoVaga');
+            const vagaObservacoesContainer = document.getElementById('vaga-observacoes-container');
+            const vagaObservacoesTexto = document.getElementById('vaga-observacoes-texto');
             let vagasCache = [];
             let camposOriginais = {}; // Para armazenar valores originais antes de preencher pela vaga
 
@@ -360,8 +367,21 @@
                 vagaSearch.value = '';
                 vagaSearch.disabled = true;
                 vagaSelect.innerHTML = '<option value="">Não vincular (preencher manualmente)</option>';
+                atualizarObservacoesVaga('');
                 hideVagaSelect();
                 vagaContainer.style.display = 'none';
+            }
+
+            function atualizarObservacoesVaga(observacoes) {
+                const texto = String(observacoes || '').trim();
+                if (!texto) {
+                    vagaObservacoesTexto.textContent = '';
+                    vagaObservacoesContainer.classList.add('d-none');
+                    return;
+                }
+
+                vagaObservacoesTexto.textContent = texto;
+                vagaObservacoesContainer.classList.remove('d-none');
             }
             async function loadVagasByEmpresa(idEmpresa, preselectVagaId = null) {
                 resetVagaField();
@@ -395,6 +415,8 @@
                 if (vaga.expirada) {
                     alert('ATENÇÃO: Esta vaga está expirada (data de término passou). Não é recomendado vinculá-la.');
                 }
+
+                atualizarObservacoesVaga(vaga.observacoes);
 
                 // Armazenar valores originais
                 camposOriginais = {
@@ -469,6 +491,8 @@
                     const elem = document.getElementById(key);
                     if (elem) elem.value = camposOriginais[key] || '';
                 });
+
+                atualizarObservacoesVaga('');
 
                 // Habilitar campos novamente
                 desabilitarCamposVaga(false);

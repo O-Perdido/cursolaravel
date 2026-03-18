@@ -11,6 +11,7 @@ class Vaga extends Model
         'numero_vaga',
         'titulo_vaga',
         'atividades',
+        'observacoes',
         'fk_id_supervisor',
         'data_inicio',
         'data_termino',

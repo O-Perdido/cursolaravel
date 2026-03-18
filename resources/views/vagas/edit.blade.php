@@ -54,6 +54,14 @@
                                 required {{ $vaga->fk_id_termo ? 'readonly' : '' }}>{{ old('atividades', $vaga->atividades) }}</textarea>
                         </div>
 
+                        <div class="mb-3">
+                            <label for="observacoes" class="form-label">OBS <small class="text-muted">(opcional)</small></label>
+                            <textarea name="observacoes" id="observacoes" class="form-control form-control-sm" rows="3"
+                                placeholder="Anotações internas para orientar o preenchimento da vaga"
+                                {{ $vaga->fk_id_termo ? 'readonly' : '' }}>{{ old('observacoes', $vaga->observacoes) }}</textarea>
+                            <small class="form-text text-muted">Essas observações aparecem na geração do termo quando a vaga for selecionada.</small>
+                        </div>
+
                         <!-- Supervisor -->
                         <div class="mb-3" style="position: relative;">
                             <label for="fk_id_supervisor" class="form-label">Supervisor <span class="text-danger">*</span></label>
