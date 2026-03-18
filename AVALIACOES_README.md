@@ -2,7 +2,7 @@
 
 ## Visão Geral
 
-O módulo de Avaliação de Estágio permite que operadores do sistema gerenciem avaliações de desempenho dos estagiários. As avaliações são geradas automaticamente quando os termos completam 6 meses de estágio ou ao serem finalizados (rescisão).
+O módulo de Avaliação de Estágio permite que operadores do sistema gerenciem avaliações de desempenho dos estagiários e que o próprio estagiário acompanhe as avaliações do seu contrato. As avaliações são geradas automaticamente quando os termos completam 6 meses de estágio ou ao serem finalizados (rescisão).
 
 ## Funcionalidades Principais
 
@@ -20,6 +20,8 @@ O módulo de Avaliação de Estágio permite que operadores do sistema gerenciem
 ### 3. **Link de Compartilhamento**
 - Cada avaliação recebe um token único de compartilhamento
 - Operador clica em "Compartilhar Link" para gerar a URL
+- Estagiário pode copiar o link da avaliação direto em "Ver meus contratos" > detalhes do contrato
+- Para avaliações pendentes, o estagiário também pode gerar um novo link, invalidando o anterior
 - Link é copiado para a área de transferência
 - Operador envia o link para o supervisor responder via email ou WhatsApp
 
@@ -36,8 +38,16 @@ O módulo de Avaliação de Estágio permite que operadores do sistema gerenciem
 - Limpeza/reset de avaliações respondidas para nova resposta
 - Exclusão de avaliações
 - Listagem por termo específico
+- Estagiário visualiza no detalhe do próprio contrato as avaliações já criadas, o status e as ações de compartilhamento
 
-### 6. **Notificações**
+### 6. **Fluxo do Estagiário**
+- O card de avaliações aparece na tela "Ver todos os detalhes" de cada contrato
+- O estagiário pode gerar avaliação manual para o próprio termo
+- Existe limite de uma avaliação pendente por contrato quando a criação é feita pelo estagiário
+- Uma nova avaliação só pode ser criada depois que a anterior for respondida
+- O estagiário pode copiar o link atual ou regenerar um novo link para envio ao supervisor
+
+### 7. **Notificações**
 - Badge na navbar mostra número de avaliações pendentes
 - Atualiza em tempo real
 
@@ -63,6 +73,7 @@ O módulo de Avaliação de Estágio permite que operadores do sistema gerenciem
 - `show()` - Visualização de uma avaliação
 - `porTermo()` - Avaliações de um termo específico
 - `gerarLinkCompartilhamento()` - Gera token e retorna URL
+- `regenerarLinkCompartilhamento()` - Gera novo token e invalida o link anterior
 - `responder()` - Página de resposta (público)
 - `salvarRespostas()` - Persiste respostas
 - `gerarManual()` - Criação manual por operador
@@ -91,11 +102,19 @@ O módulo de Avaliação de Estágio permite que operadores do sistema gerenciem
 GET    /avaliacoes                          → avaliacoes.index (listagem)
 GET    /avaliacoes/{avaliacao}              → avaliacoes.show (visualização)
 POST   /avaliacoes/{avaliacao}/link-compartilhamento → avaliacoes.gerar-link
+POST   /avaliacoes/{avaliacao}/regenerar-link       → avaliacoes.regenerar-link
 GET    /avaliacoes/termo/{termo}            → avaliacoes.por-termo
 POST   /avaliacoes/gerar-manual             → avaliacoes.gerar-manual
 POST   /avaliacoes/{avaliacao}/limpar       → avaliacoes.limpar
 DELETE /avaliacoes/{avaliacao}              → avaliacoes.destroy
 GET    /avaliacoes/contador/pendentes       → avaliacoes.contador
+```
+
+**Rotas Autenticadas (Estagiário):**
+```
+POST   /meus-contratos/avaliacoes/gerar-manual                    → estagiario.avaliacoes.gerar-manual
+POST   /meus-contratos/avaliacoes/{avaliacao}/link-compartilhamento → estagiario.avaliacoes.gerar-link
+POST   /meus-contratos/avaliacoes/{avaliacao}/regenerar-link        → estagiario.avaliacoes.regenerar-link
 ```
 
 **Rotas Públicas (Sem Autenticação):**
@@ -176,6 +195,16 @@ As questões são armazenadas em JSON e incluem:
 3. Clica em "Link" para compartilhar
 4. Copia URL e envia para supervisor
 
+### Fluxo do Estagiário
+
+1. Acessa "Ver meus contratos"
+2. Entra em "Ver todos os detalhes" do contrato desejado
+3. Visualiza o card "Avaliações do Estágio"
+4. Gera uma avaliação manual para o próprio contrato
+5. Copia o link para enviar ao supervisor
+6. Se necessário, usa "Gerar novo link" para invalidar o anterior
+7. Aguarda a resposta para poder abrir uma nova avaliação
+
 ### Fluxo do Supervisor (Público)
 
 1. Recebe email/WhatsApp com link
@@ -196,9 +225,10 @@ As questões são armazenadas em JSON e incluem:
 
 ## Autorização
 
-- Apenas `admin` e `operador` podem acessar seções protegidas
+- `admin` e `operador` mantêm acesso completo ao painel de avaliações
+- `estagiario` acessa apenas avaliações vinculadas aos próprios termos
 - Resposta de avaliação é pública (via token)
-- Middleware `nivel:admin,operador` protege rotas
+- As rotas do estagiário usam `nivel:estagiario` + `estagiario_verified`
 
 ## Segurança
 

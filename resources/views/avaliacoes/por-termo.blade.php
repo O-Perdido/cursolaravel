@@ -241,6 +241,10 @@
                                     data-avaliacao-id="{{ $avaliacao->id_avaliacao }}">
                                     <i class="fas fa-share-alt"></i> Link
                                 </button>
+                                <button class="btn-small btn btn-outline-warning btn-regenerar-link"
+                                    data-avaliacao-id="{{ $avaliacao->id_avaliacao }}">
+                                    <i class="fas fa-sync-alt"></i> Novo Link
+                                </button>
                             @elseif ($avaliacao->status === 'respondida')
                                 <a href="{{ route('avaliacoes.pdf', $avaliacao) }}" class="btn-small btn btn-outline-primary">
                                     <i class="fas fa-file-pdf"></i> PDF
@@ -336,27 +340,44 @@
     </div>
 
     <script>
-        document.querySelectorAll('.btn-compartilhar').forEach(btn => {
-            btn.addEventListener('click', function () {
-                const avaliacaoId = this.getAttribute('data-avaliacao-id');
-                const url = `/avaliacoes/${avaliacaoId}/link-compartilhamento`;
-
-                fetch(url, {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                        'Content-Type': 'application/json',
+        function processarLinkCompartilhamento(avaliacaoId, endpoint, tituloErro) {
+            fetch(`/avaliacoes/${avaliacaoId}/${endpoint}`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                }
+            })
+                .then(async response => {
+                    const data = await response.json();
+                    if (!response.ok) {
+                        throw new Error(data.message || 'Não foi possível processar a solicitação.');
+                    }
+                    return data;
+                })
+                .then(data => {
+                    document.getElementById('linkCompartilhamento').value = data.link;
+                    const modal = new bootstrap.Modal(document.getElementById('modalCompartilhar'));
+                    modal.show();
+                    if (data.message) {
+                        mostrarSucesso('Link pronto', data.message);
                     }
                 })
-                    .then(response => response.json())
-                    .then(data => {
-                        document.getElementById('linkCompartilhamento').value = data.link;
-                        const modal = new bootstrap.Modal(document.getElementById('modalCompartilhar'));
-                        modal.show();
-                    })
-                    .catch(error => {
-                        mostrarErro('Erro ao Gerar Link', 'Não conseguimos gerar o link: ' + error.message);
-                    });
+                .catch(error => {
+                    mostrarErro(tituloErro, 'Não conseguimos processar o link: ' + error.message);
+                });
+        }
+
+        document.querySelectorAll('.btn-compartilhar').forEach(btn => {
+            btn.addEventListener('click', function () {
+                processarLinkCompartilhamento(this.getAttribute('data-avaliacao-id'), 'link-compartilhamento', 'Erro ao Gerar Link');
+            });
+        });
+
+        document.querySelectorAll('.btn-regenerar-link').forEach(btn => {
+            btn.addEventListener('click', function () {
+                processarLinkCompartilhamento(this.getAttribute('data-avaliacao-id'), 'regenerar-link', 'Erro ao Gerar Novo Link');
             });
         });
 
@@ -384,7 +405,7 @@
                     form.method = 'POST';
                     form.action = url;
                     form.innerHTML = `@csrf
-                                @method('DELETE')`;
+                                    @method('DELETE')`;
                     document.body.appendChild(form);
                     form.submit();
                 }

@@ -606,6 +606,10 @@
                             onclick="gerarECompartilhar({{ $avaliacao->id_avaliacao }})">
                             <i class="fas fa-share-alt"></i> Compartilhar Link
                         </button>
+                        <button class="btn btn-outline-warning" id="btnRegenerarLink"
+                            onclick="regenerarLink({{ $avaliacao->id_avaliacao }})">
+                            <i class="fas fa-sync-alt"></i> Gerar Novo Link
+                        </button>
                     @elseif ($avaliacao->status === 'respondida')
                         <a href="{{ route('avaliacoes.pdf', $avaliacao) }}" class="btn btn-primary">
                             <i class="fas fa-file-pdf"></i> Baixar PDF
@@ -671,36 +675,48 @@
     <script>
         function gerarECompartilhar(avaliacaoId) {
             const btn = document.getElementById('btnCompartilhar');
+            processarLinkCompartilhamento(avaliacaoId, 'link-compartilhamento', btn, 'Gerando link...', 'Erro ao Gerar Link');
+        }
+
+        function regenerarLink(avaliacaoId) {
+            const btn = document.getElementById('btnRegenerarLink');
+            processarLinkCompartilhamento(avaliacaoId, 'regenerar-link', btn, 'Gerando novo link...', 'Erro ao Gerar Novo Link');
+        }
+
+        function processarLinkCompartilhamento(avaliacaoId, endpoint, btn, textoCarregando, tituloErro) {
             const originalText = btn.innerHTML;
 
-            // Mostrar loading
             btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Gerando link...';
+            btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${textoCarregando}`;
 
-            const url = `/avaliacoes/${avaliacaoId}/link-compartilhamento`;
-
-            fetch(url, {
+            fetch(`/avaliacoes/${avaliacaoId}/${endpoint}`, {
                 method: 'POST',
                 headers: {
                     'X-CSRF-TOKEN': '{{ csrf_token() }}',
                     'Content-Type': 'application/json',
+                    'Accept': 'application/json',
                 }
             })
-                .then(response => response.json())
+                .then(async response => {
+                    const data = await response.json();
+                    if (!response.ok) {
+                        throw new Error(data.message || 'Não foi possível processar a solicitação.');
+                    }
+                    return data;
+                })
                 .then(data => {
                     document.getElementById('linkCompartilhamento').value = data.link;
                     const modal = new bootstrap.Modal(document.getElementById('modalCompartilhar'));
                     modal.show();
-
-                    // Restaurar botão
-                    btn.disabled = false;
-                    btn.innerHTML = originalText;
+                    if (data.message) {
+                        mostrarSucesso('Link pronto', data.message);
+                    }
                 })
                 .catch(error => {
                     console.error('Erro:', error);
-                    mostrarErro('Erro ao Gerar Link', 'Não conseguimos gerar o link de compartilhamento: ' + error.message);
-
-                    // Restaurar botão
+                    mostrarErro(tituloErro, 'Não conseguimos gerar o link de compartilhamento: ' + error.message);
+                })
+                .finally(() => {
                     btn.disabled = false;
                     btn.innerHTML = originalText;
                 });

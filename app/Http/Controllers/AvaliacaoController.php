@@ -9,6 +9,7 @@ use App\Services\AvaliacaoPdfService;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Symfony\Component\HttpFoundation\Response;
 
 class AvaliacaoController extends Controller
 {
@@ -19,6 +20,55 @@ class AvaliacaoController extends Controller
     {
         $this->avaliacaoService = $avaliacaoService;
         $this->avaliacaoPdfService = $avaliacaoPdfService;
+    }
+
+    private function usuarioEhEstagiario(): bool
+    {
+        return Auth::user()?->nivel === 'estagiario';
+    }
+
+    private function usuarioPodeAcessarTermo(Termo $termo): bool
+    {
+        $user = Auth::user();
+
+        if (!$user) {
+            return false;
+        }
+
+        if (in_array($user->nivel, ['admin', 'operador'], true)) {
+            return true;
+        }
+
+        if ($user->nivel === 'estagiario') {
+            return (int) $user->fk_id_estagiario === (int) $termo->fk_id_estagiario;
+        }
+
+        return false;
+    }
+
+    private function usuarioPodeAcessarAvaliacao(Avaliacao $avaliacao): bool
+    {
+        $avaliacao->loadMissing('termo');
+
+        return $this->usuarioPodeAcessarTermo($avaliacao->termo);
+    }
+
+    private function respostaAcessoNegado(Request $request, string $mensagem)
+    {
+        if ($request->expectsJson()) {
+            return response()->json(['message' => $mensagem], Response::HTTP_FORBIDDEN);
+        }
+
+        return redirect()->back()->with('error', $mensagem);
+    }
+
+    private function respostaAcaoInvalida(Request $request, string $mensagem)
+    {
+        if ($request->expectsJson()) {
+            return response()->json(['message' => $mensagem], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
+        return redirect()->back()->with('error', $mensagem);
     }
 
     /**
@@ -60,8 +110,12 @@ class AvaliacaoController extends Controller
     /**
      * Exibe a página com todas as avaliações de um termo específico
      */
-    public function porTermo(Termo $termo)
+    public function porTermo(Request $request, Termo $termo)
     {
+        if (!$this->usuarioPodeAcessarTermo($termo)) {
+            return $this->respostaAcessoNegado($request, 'Você não tem permissão para visualizar as avaliações deste termo.');
+        }
+
         $avaliacoes = $termo->avaliacoes()
             ->orderBy('created_at', 'desc')
             ->paginate(10);
@@ -72,19 +126,27 @@ class AvaliacaoController extends Controller
     /**
      * Exibe detalhes de uma avaliação (visualização)
      */
-    public function show(Avaliacao $avaliacao)
+    public function show(Request $request, Avaliacao $avaliacao)
     {
+        if (!$this->usuarioPodeAcessarAvaliacao($avaliacao)) {
+            return $this->respostaAcessoNegado($request, 'Você não tem permissão para visualizar esta avaliação.');
+        }
+
         return view('avaliacoes.show', compact('avaliacao'));
     }
 
     /**
      * Gera um token de compartilhamento e retorna o link
      */
-    public function gerarLinkCompartilhamento(Avaliacao $avaliacao)
+    public function gerarLinkCompartilhamento(Request $request, Avaliacao $avaliacao)
     {
+        if (!$this->usuarioPodeAcessarAvaliacao($avaliacao)) {
+            return $this->respostaAcessoNegado($request, 'Você não tem permissão para compartilhar esta avaliação.');
+        }
+
         // Apenas avaliações pendentes podem gerar links
         if ($avaliacao->status !== 'pendente') {
-            return redirect()->back()->with('error', 'Apenas avaliações pendentes podem gerar links de compartilhamento.');
+            return $this->respostaAcaoInvalida($request, 'Apenas avaliações pendentes podem gerar links de compartilhamento.');
         }
 
         // Se já tem token, retorna o existente; se não, gera novo
@@ -98,6 +160,28 @@ class AvaliacaoController extends Controller
         return response()->json([
             'link' => $link,
             'message' => 'Link copiado para a área de transferência'
+        ]);
+    }
+
+    /**
+     * Regenera o token de compartilhamento e invalida o link anterior.
+     */
+    public function regenerarLinkCompartilhamento(Request $request, Avaliacao $avaliacao)
+    {
+        if (!$this->usuarioPodeAcessarAvaliacao($avaliacao)) {
+            return $this->respostaAcessoNegado($request, 'Você não tem permissão para regenerar o link desta avaliação.');
+        }
+
+        if ($avaliacao->status !== 'pendente') {
+            return $this->respostaAcaoInvalida($request, 'Somente avaliações pendentes podem receber um novo link.');
+        }
+
+        $avaliacao->token_compartilhamento = Avaliacao::gerarTokenCompartilhamento();
+        $avaliacao->save();
+
+        return response()->json([
+            'link' => route('avaliacoes.responder', ['token' => $avaliacao->token_compartilhamento]),
+            'message' => 'Novo link gerado com sucesso.'
         ]);
     }
 
@@ -172,6 +256,11 @@ class AvaliacaoController extends Controller
         ]);
 
         $termo = Termo::findOrFail($request->fk_id_termo);
+
+        if (!$this->usuarioPodeAcessarTermo($termo)) {
+            return redirect()->back()->with('error', 'Você não tem permissão para gerar avaliações para este termo.');
+        }
+
         $tipoAvaliacao = $request->tipo_avaliacao;
         $tipoTexto = $tipoAvaliacao === 'seis_meses' ? '6 meses' : 'finalização';
 
@@ -190,14 +279,23 @@ class AvaliacaoController extends Controller
             return redirect()->back()->with('error', 'Apenas termos ativos podem ter avaliações de ' . $tipoTexto . '.');
         }
 
-        // Verifica se já existe avaliação do tipo pendente
-        $avaliacaoExistente = $termo->avaliacoes()
-            ->where('tipo_avaliacao', $tipoAvaliacao)
-            ->where('status', 'pendente')
-            ->first();
+        if ($this->usuarioEhEstagiario()) {
+            $avaliacaoPendente = $termo->avaliacoes()
+                ->where('status', 'pendente')
+                ->first();
 
-        if ($avaliacaoExistente) {
-            return redirect()->back()->with('error', 'Já existe uma avaliação de ' . $tipoTexto . ' pendente para este termo. Por favor, finalize ou exclua a avaliação existente antes de criar uma nova.');
+            if ($avaliacaoPendente) {
+                return redirect()->back()->with('error', 'Você só pode gerar uma avaliação por vez para este contrato. Aguarde a resposta da avaliação pendente antes de criar outra.');
+            }
+        } else {
+            $avaliacaoExistente = $termo->avaliacoes()
+                ->where('tipo_avaliacao', $tipoAvaliacao)
+                ->where('status', 'pendente')
+                ->first();
+
+            if ($avaliacaoExistente) {
+                return redirect()->back()->with('error', 'Já existe uma avaliação de ' . $tipoTexto . ' pendente para este termo. Por favor, finalize ou exclua a avaliação existente antes de criar uma nova.');
+            }
         }
 
         // Verifica se já existe avaliação do tipo respondida (caso queira evitar duplicatas)
@@ -206,7 +304,7 @@ class AvaliacaoController extends Controller
             ->where('status', 'respondida')
             ->count();
 
-        if ($avaliacaoRespondida > 0 && $tipoAvaliacao === 'seis_meses') {
+        if (!$this->usuarioEhEstagiario() && $avaliacaoRespondida > 0 && $tipoAvaliacao === 'seis_meses') {
             return redirect()->back()->with('warning', 'Atenção: Já existe(m) ' . $avaliacaoRespondida . ' avaliação(ões) de ' . $tipoTexto . ' respondida(s) para este termo.');
         }
 
@@ -216,6 +314,11 @@ class AvaliacaoController extends Controller
             $termo->fk_id_supervisor
         );
 
+        if ($this->usuarioEhEstagiario()) {
+            return redirect()->route('estagiario.termo.detalhes', $termo->id_termo)
+                ->with('success', 'Avaliação de ' . $tipoTexto . ' criada com sucesso!');
+        }
+
         return redirect()->route('avaliacoes.show', $avaliacao)
             ->with('success', 'Avaliação de ' . $tipoTexto . ' criada com sucesso!');
     }
@@ -223,8 +326,12 @@ class AvaliacaoController extends Controller
     /**
      * Limpa/reseta uma avaliação respondida para edição novamente
      */
-    public function limpar(Avaliacao $avaliacao)
+    public function limpar(Request $request, Avaliacao $avaliacao)
     {
+        if (!$this->usuarioPodeAcessarAvaliacao($avaliacao)) {
+            return $this->respostaAcessoNegado($request, 'Você não tem permissão para limpar esta avaliação.');
+        }
+
         if ($avaliacao->status !== 'respondida') {
             return redirect()->back()->with('error', 'Apenas avaliações respondidas podem ser limpas.');
         }
@@ -243,8 +350,12 @@ class AvaliacaoController extends Controller
     /**
      * Exclui uma avaliação
      */
-    public function destroy(Avaliacao $avaliacao)
+    public function destroy(Request $request, Avaliacao $avaliacao)
     {
+        if (!$this->usuarioPodeAcessarAvaliacao($avaliacao)) {
+            return $this->respostaAcessoNegado($request, 'Você não tem permissão para excluir esta avaliação.');
+        }
+
         $avaliacao->delete();
 
         return redirect()->back()->with('success', 'Avaliação removida com sucesso!');
@@ -263,8 +374,12 @@ class AvaliacaoController extends Controller
     /**
      * Download do PDF da avaliação (apenas admin/operador via painel)
      */
-    public function pdf(Avaliacao $avaliacao)
+    public function pdf(Request $request, Avaliacao $avaliacao)
     {
+        if (!$this->usuarioPodeAcessarAvaliacao($avaliacao)) {
+            return $this->respostaAcessoNegado($request, 'Você não tem permissão para gerar o PDF desta avaliação.');
+        }
+
         if ($avaliacao->status !== 'respondida') {
             return redirect()->back()->with('error', 'Somente avaliações respondidas podem gerar PDF.');
         }

@@ -4,6 +4,8 @@
 
 @section('content')
 
+    @include('components.modal-sistema')
+
     @if(session('success'))
         <div class="alert alert-success alert-dismissible fade show" role="alert">
             {{ session('success') }}
@@ -14,6 +16,13 @@
     @if(session('error'))
         <div class="alert alert-danger alert-dismissible fade show" role="alert">
             {{ session('error') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+
+    @if(session('warning'))
+        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+            {{ session('warning') }}
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     @endif
@@ -339,6 +348,130 @@
                 </div>
             @endif
 
+            <!-- Avaliações do Estágio -->
+            <div class="card border-0 mb-3"
+                style="background: linear-gradient(135deg, #fffaf0 0%, #fff 100%); border-radius: 10px; border: 1px solid #f6e3b4;">
+                <div class="card-body p-3">
+                    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
+                        <div>
+                            <h6 class="mb-1" style="color: #8a5b00; font-weight: 700; font-size: 0.95rem;">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor"
+                                    class="bi bi-star-fill me-1" viewBox="0 0 16 16">
+                                    <path
+                                        d="M3.612 15.443c-.386.198-.824-.149-.746-.592l.83-4.73L.173 6.765c-.329-.314-.158-.888.283-.95l4.898-.696L7.538.792a.513.513 0 0 1 .924 0l2.184 4.327 4.898.696c.441.062.612.636.283.95l-3.523 3.356.83 4.73c.078.443-.36.79-.746.592L8 13.187z" />
+                                </svg>
+                                Avaliações do Estágio
+                            </h6>
+                            <p class="text-muted mb-0" style="font-size: 0.85rem;">
+                                Gere a avaliação do seu contrato, copie o link para o supervisor e acompanhe o status da resposta.
+                            </p>
+                        </div>
+
+                        <button type="button" class="btn btn-sm text-white" data-bs-toggle="modal"
+                            data-bs-target="#modalGerarAvaliacaoEstagiario"
+                            style="background: linear-gradient(135deg, #f39c12 0%, #d68910 100%); font-weight: 600;"
+                            {{ $possuiAvaliacaoPendente ? 'disabled' : '' }}>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor"
+                                class="bi bi-plus-circle me-1" viewBox="0 0 16 16">
+                                <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16" />
+                                <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4" />
+                            </svg>
+                            Gerar Avaliação
+                        </button>
+                    </div>
+
+                    @if($possuiAvaliacaoPendente)
+                        <div class="alert alert-warning py-2 px-3 mb-3" role="alert"
+                            style="border-left: 4px solid #f39c12; border-radius: 8px; font-size: 0.85rem;">
+                            Existe uma avaliação pendente para este contrato. Uma nova avaliação só poderá ser criada depois que a anterior for respondida.
+                        </div>
+                    @endif
+
+                    @if($avaliacoes->isEmpty())
+                        <div class="alert alert-light border mb-0" role="alert" style="font-size: 0.85rem;">
+                            Nenhuma avaliação foi criada para este contrato até o momento.
+                        </div>
+                    @else
+                        <div class="row g-3">
+                            @foreach($avaliacoes as $avaliacao)
+                                <div class="col-lg-6">
+                                    <div class="h-100 p-3"
+                                        style="background: white; border: 1px solid #f1e2bf; border-radius: 10px; box-shadow: 0 2px 10px rgba(16, 46, 108, 0.05);">
+                                        <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                                            <div>
+                                                <span class="badge"
+                                                    style="background: {{ $avaliacao->tipo_avaliacao === 'seis_meses' ? '#e8f1ff' : '#fff1df' }}; color: {{ $avaliacao->tipo_avaliacao === 'seis_meses' ? '#102E6C' : '#b26a00' }}; font-size: 0.78rem;">
+                                                    {{ $avaliacao->tipo_avaliacao === 'seis_meses' ? 'Avaliação de 6 meses' : 'Avaliação de finalização' }}
+                                                </span>
+                                            </div>
+                                            <span class="badge"
+                                                style="background: {{ $avaliacao->status === 'respondida' ? '#dff3e4' : '#fff3cd' }}; color: {{ $avaliacao->status === 'respondida' ? '#1e7e34' : '#856404' }}; font-size: 0.78rem;">
+                                                {{ $avaliacao->status === 'respondida' ? 'Respondida' : 'Pendente' }}
+                                            </span>
+                                        </div>
+
+                                        <div class="small text-muted mb-2">
+                                            <div><strong>Criada em:</strong> {{ $avaliacao->created_at?->format('d/m/Y H:i') ?? '-' }}</div>
+                                            <div><strong>Supervisor:</strong> {{ optional($avaliacao->supervisor)->nome_supervisor ?? optional($termo->supervisor)->nome_supervisor ?? 'Não informado' }}</div>
+                                            @if($avaliacao->respondida_em)
+                                                <div><strong>Respondida em:</strong> {{ $avaliacao->respondida_em->format('d/m/Y H:i') }}</div>
+                                                <div><strong>Respondida por:</strong> {{ $avaliacao->respondida_por ?? 'Não informado' }}</div>
+                                            @endif
+                                        </div>
+
+                                        @if($avaliacao->status === 'pendente')
+                                            <p class="mb-3" style="font-size: 0.84rem; color: #6c757d;">
+                                                Compartilhe o link com o supervisor. Se o link anterior falhar, gere um novo para invalidar o anterior.
+                                            </p>
+                                            <div class="d-flex flex-wrap gap-2">
+                                                <button type="button" class="btn btn-sm btn-success btn-link-avaliacao"
+                                                    data-url="{{ route('estagiario.avaliacoes.gerar-link', $avaliacao) }}"
+                                                    data-acao="copiar">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor"
+                                                        class="bi bi-share me-1" viewBox="0 0 16 16">
+                                                        <path d="M13.5 1a1.5 1.5 0 1 0 .848 2.736L8.41 7.174a1.5 1.5 0 0 0 0 1.652l5.937 3.438a1.5 1.5 0 1 0 .503-.864L8.913 7.962a1.5 1.5 0 0 0 0-.924l5.937-3.438A1.5 1.5 0 0 0 13.5 1" />
+                                                        <path d="M3.5 5a1.5 1.5 0 1 0 .85 2.736l5.936 3.438a1.5 1.5 0 1 0 .503-.864L4.852 6.872A1.5 1.5 0 0 0 3.5 5m0 6a1.5 1.5 0 1 0 .85 2.736l5.936-3.438a1.5 1.5 0 1 0-.503-.864L3.847 12.87A1.5 1.5 0 0 0 3.5 11" />
+                                                    </svg>
+                                                    Copiar link
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-warning btn-link-avaliacao"
+                                                    data-url="{{ route('estagiario.avaliacoes.regenerar-link', $avaliacao) }}"
+                                                    data-acao="regenerar">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor"
+                                                        class="bi bi-arrow-repeat me-1" viewBox="0 0 16 16">
+                                                        <path d="M2 2.5A.5.5 0 0 1 2.5 2H6a.5.5 0 0 1 0 1H3.707l1.147 1.146a.5.5 0 0 1-.708.708l-2-2A.5.5 0 0 1 2 2.5" />
+                                                        <path d="M2.5 8a.5.5 0 0 1 .5.5A5.5 5.5 0 0 0 8.5 14a5.5 5.5 0 0 0 4.473-2.293.5.5 0 1 1 .81.586A6.5 6.5 0 0 1 2 8.5.5.5 0 0 1 2.5 8" />
+                                                        <path d="M14 13.5a.5.5 0 0 1-.5.5H10a.5.5 0 0 1 0-1h2.293l-1.147-1.146a.5.5 0 0 1 .708-.708l2 2a.5.5 0 0 1 .146.354" />
+                                                        <path d="M13.5 8a.5.5 0 0 1-.5-.5A5.5 5.5 0 0 0 7.5 2a5.5 5.5 0 0 0-4.473 2.293.5.5 0 1 1-.81-.586A6.5 6.5 0 0 1 14 7.5a.5.5 0 0 1-.5.5" />
+                                                    </svg>
+                                                    Gerar novo link
+                                                </button>
+                                            </div>
+                                        @else
+                                            <div class="d-flex flex-wrap gap-2 align-items-center">
+                                                <div class="alert alert-success py-2 px-3 mb-0 flex-grow-1" role="alert"
+                                                    style="font-size: 0.84rem; border-radius: 8px; min-width: 220px;">
+                                                    Esta avaliação já foi respondida pelo supervisor.
+                                                </div>
+                                                <a href="{{ route('estagiario.avaliacoes.pdf', $avaliacao) }}"
+                                                    class="btn btn-sm btn-outline-primary">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor"
+                                                        class="bi bi-file-earmark-pdf me-1" viewBox="0 0 16 16">
+                                                        <path d="M14 4.5V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h5.5L14 4.5zM9.5 3A1.5 1.5 0 0 0 11 4.5h2" />
+                                                        <path d="M4.603 12.087a.81.81 0 0 1-.438-.42c-.195-.388-.13-.776.08-1.102.198-.307.526-.568.897-.787.376-.221.83-.42 1.482-.645a20 20 0 0 0 1.062-2.227 7.3 7.3 0 0 1-.43-1.295c-.086-.4-.119-.796-.046-1.136.075-.354.274-.672.65-.823.192-.077.4-.12.602-.077a.7.7 0 0 1 .477.365c.088.164.12.356.127.538.007.187-.012.395-.047.614-.084.51-.27 1.134-.52 1.794a11 11 0 0 0 .98 1.686 5.8 5.8 0 0 1 1.334.05c.364.065.734.195.96.465.12.144.193.32.2.518.007.192-.047.382-.138.563a1.04 1.04 0 0 1-.354.416.86.86 0 0 1-.51.138c-.331-.014-.654-.196-.933-.417a5.7 5.7 0 0 1-.911-.95 11.6 11.6 0 0 0-1.997.406 11.3 11.3 0 0 1-1.021 1.51c-.29.35-.608.655-.926.787a.8.8 0 0 1-.58.029" />
+                                                    </svg>
+                                                    Baixar PDF
+                                                </a>
+                                            </div>
+                                        @endif
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
+            </div>
+
             <!-- Geração de Recibo -->
             <div class="card border-0 mb-3"
                 style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 10px;">
@@ -441,5 +574,120 @@
             </a>
         </div>
     </div>
+
+    <div class="modal fade" id="modalLinkAvaliacao" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius: 14px; overflow: hidden;">
+                <div class="modal-header" style="background: #102E6C; color: white;">
+                    <h5 class="modal-title">Link da Avaliação</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted" style="font-size: 0.9rem;">
+                        Encaminhe este link ao supervisor responsável pelo contrato.
+                    </p>
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="linkAvaliacaoInput" readonly>
+                        <button class="btn btn-primary" type="button" id="copiarLinkAvaliacaoBtn">Copiar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalGerarAvaliacaoEstagiario" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius: 14px; overflow: hidden;">
+                <div class="modal-header" style="background: #f39c12; color: white;">
+                    <h5 class="modal-title">Gerar Avaliação</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form action="{{ route('estagiario.avaliacoes.gerar-manual') }}" method="POST">
+                    @csrf
+                    <div class="modal-body">
+                        <input type="hidden" name="fk_id_termo" value="{{ $termo->id_termo }}">
+
+                        <div class="mb-3">
+                            <label for="tipo_avaliacao_estagiario" class="form-label">Tipo de avaliação</label>
+                            <select name="tipo_avaliacao" id="tipo_avaliacao_estagiario" class="form-select" required>
+                                <option value="">Selecione</option>
+                                <option value="seis_meses">6 meses</option>
+                                <option value="finalizacao">Finalização</option>
+                            </select>
+                        </div>
+
+                        <div class="alert alert-light border mb-0" role="alert" style="font-size: 0.85rem;">
+                            Depois de criada, a avaliação ficará disponível nesta tela com o link para compartilhamento.
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-warning text-white">Gerar avaliação</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const botoesLink = document.querySelectorAll('.btn-link-avaliacao');
+            const inputLink = document.getElementById('linkAvaliacaoInput');
+            const botaoCopiar = document.getElementById('copiarLinkAvaliacaoBtn');
+            const modalLink = document.getElementById('modalLinkAvaliacao');
+
+            async function enviarAcaoLink(url, acao) {
+                try {
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json',
+                        },
+                    });
+
+                    const data = await response.json();
+
+                    if (!response.ok) {
+                        throw new Error(data.message || 'Não foi possível processar a solicitação.');
+                    }
+
+                    inputLink.value = data.link;
+                    bootstrap.Modal.getOrCreateInstance(modalLink).show();
+                    mostrarSucesso(
+                        acao === 'regenerar' ? 'Novo link gerado' : 'Link pronto para compartilhar',
+                        data.message || 'O link está disponível para cópia.'
+                    );
+                } catch (error) {
+                    mostrarErro('Falha ao processar avaliação', error.message || 'Não foi possível gerar o link.');
+                }
+            }
+
+            botoesLink.forEach(function (botao) {
+                botao.addEventListener('click', function () {
+                    enviarAcaoLink(this.dataset.url, this.dataset.acao);
+                });
+            });
+
+            botaoCopiar.addEventListener('click', async function () {
+                if (!inputLink.value) {
+                    return;
+                }
+
+                try {
+                    if (navigator.clipboard && window.isSecureContext) {
+                        await navigator.clipboard.writeText(inputLink.value);
+                    } else {
+                        inputLink.select();
+                        document.execCommand('copy');
+                    }
+
+                    mostrarSucesso('Link copiado', 'O link foi copiado para a área de transferência.');
+                } catch (error) {
+                    mostrarErro('Falha ao copiar link', 'Copie o link manualmente e tente novamente.');
+                }
+            });
+        });
+    </script>
 
 @endsection

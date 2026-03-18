@@ -56,6 +56,10 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/meu-perfil/documento', [EstagiarioController::class, 'atualizarDocumento'])->name('estagiario.documento.atualizar');
         Route::get('/meu-perfil/documento/{campo}/download', [EstagiarioController::class, 'downloadMeuDocumento'])->name('estagiario.documento.download');
         Route::get('/meus-contratos', [EstagiarioController::class, 'contratos'])->name('estagiario.contratos');
+        Route::post('/meus-contratos/avaliacoes/gerar-manual', [\App\Http\Controllers\AvaliacaoController::class, 'gerarManual'])->name('estagiario.avaliacoes.gerar-manual');
+        Route::post('/meus-contratos/avaliacoes/{avaliacao}/link-compartilhamento', [\App\Http\Controllers\AvaliacaoController::class, 'gerarLinkCompartilhamento'])->name('estagiario.avaliacoes.gerar-link');
+        Route::post('/meus-contratos/avaliacoes/{avaliacao}/regenerar-link', [\App\Http\Controllers\AvaliacaoController::class, 'regenerarLinkCompartilhamento'])->name('estagiario.avaliacoes.regenerar-link');
+        Route::get('/meus-contratos/avaliacoes/{avaliacao}/pdf', [\App\Http\Controllers\AvaliacaoController::class, 'pdf'])->name('estagiario.avaliacoes.pdf');
         Route::get('/meus-contratos/{id}', [EstagiarioController::class, 'verTermo'])->name('estagiario.termo.detalhes');
         Route::get('/meus-contratos/{id}/recibo', [EstagiarioController::class, 'gerarMeuRecibo'])->name('estagiario.gerar.recibo');
     });
@@ -458,6 +462,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/avaliacoes', [\App\Http\Controllers\AvaliacaoController::class, 'index'])->name('avaliacoes.index');
         Route::get('/avaliacoes/{avaliacao}', [\App\Http\Controllers\AvaliacaoController::class, 'show'])->name('avaliacoes.show');
         Route::post('/avaliacoes/{avaliacao}/link-compartilhamento', [\App\Http\Controllers\AvaliacaoController::class, 'gerarLinkCompartilhamento'])->name('avaliacoes.gerar-link');
+        Route::post('/avaliacoes/{avaliacao}/regenerar-link', [\App\Http\Controllers\AvaliacaoController::class, 'regenerarLinkCompartilhamento'])->name('avaliacoes.regenerar-link');
         Route::get('/avaliacoes/termo/{termo}', [\App\Http\Controllers\AvaliacaoController::class, 'porTermo'])->name('avaliacoes.por-termo');
         Route::post('/avaliacoes/gerar-manual', [\App\Http\Controllers\AvaliacaoController::class, 'gerarManual'])->name('avaliacoes.gerar-manual');
         Route::post('/avaliacoes/{avaliacao}/limpar', [\App\Http\Controllers\AvaliacaoController::class, 'limpar'])->name('avaliacoes.limpar');

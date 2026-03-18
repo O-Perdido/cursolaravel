@@ -1012,14 +1012,28 @@ class EstagiarioController extends Controller
         // Buscar termo e validar que pertence ao estagiário
         $termo = Termo::where('id_termo', $id)
                      ->where('fk_id_estagiario', $estagiario->id_estagiario)
-                     ->with(['empresa', 'escola', 'supervisor', 'rescisao', 'concessoesRecesso'])
+                     ->with([
+                         'empresa',
+                         'escola',
+                         'supervisor',
+                         'rescisao',
+                         'concessoesRecesso',
+                         'avaliacoes' => function ($query) {
+                             $query->with('supervisor')->orderBy('created_at', 'desc');
+                         },
+                     ])
                      ->first();
         
         if (!$termo) {
             return redirect()->route('estagiario.contratos')->with('error', 'Contrato não encontrado ou você não tem permissão para visualizá-lo.');
         }
         
-        return view('estagiario.termo_detalhes', compact('termo', 'estagiario'));
+        $avaliacoes = $termo->avaliacoes;
+        $possuiAvaliacaoPendente = $avaliacoes->contains(function ($avaliacao) {
+            return $avaliacao->status === 'pendente';
+        });
+
+        return view('estagiario.termo_detalhes', compact('termo', 'estagiario', 'avaliacoes', 'possuiAvaliacaoPendente'));
     }
 
     /**
