@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Mail\ChamadoMensagemRecebidaMail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
@@ -416,16 +417,31 @@ class ChamadoController extends Controller
 
         $chamado = Chamado::findOrFail($id);
         $statusAnterior = $chamado->status;
+        $novoStatus = $request->status;
 
-        $chamado->update([
-            'status' => $request->status,
-            'data_conclusao' => in_array($request->status, ['concluido', 'cancelado']) ? now() : null,
-        ]);
+        if ($statusAnterior === $novoStatus) {
+            return back()->with('success', 'O chamado já está com este status.');
+        }
+
+        DB::transaction(function () use ($chamado, $novoStatus) {
+            $chamado->update([
+                'status' => $novoStatus,
+                'data_conclusao' => in_array($novoStatus, ['concluido', 'cancelado']) ? now() : null,
+            ]);
+
+            if (in_array($novoStatus, ['concluido', 'cancelado'])) {
+                $this->registrarMensagemAutomaticaOperador(
+                    $chamado,
+                    $this->montarMensagemAutomaticaStatus($novoStatus),
+                    Auth::user()
+                );
+            }
+        });
 
         // Log da alteração
-        Log::info("Chamado #{$chamado->protocolo} - Status alterado de '{$statusAnterior}' para '{$request->status}' por " . Auth::user()->name);
+        Log::info("Chamado #{$chamado->protocolo} - Status alterado de '{$statusAnterior}' para '{$novoStatus}' por " . Auth::user()->name);
 
-        return back()->with('success', "Status do chamado atualizado para '{$request->status}'");
+        return back()->with('success', "Status do chamado atualizado para '{$novoStatus}'");
     }
 
     /**
@@ -438,17 +454,51 @@ class ChamadoController extends Controller
         ]);
 
         $chamado = Chamado::findOrFail($id);
+        $novoResponsavelId = $request->filled('fk_id_user_responsavel') ? (int) $request->fk_id_user_responsavel : null;
         $responsavelAnterior = $chamado->responsavel?->name ?? 'Não atribuído';
+        $responsavelAnteriorId = $chamado->fk_id_user_responsavel ? (int) $chamado->fk_id_user_responsavel : null;
 
-        $chamado->update([
-            'fk_id_user_responsavel' => $request->fk_id_user_responsavel,
-        ]);
+        if ($responsavelAnteriorId === $novoResponsavelId) {
+            return back()->with('success', 'O chamado já está com este responsável.');
+        }
+
+        $statusAnterior = $chamado->status;
+
+        DB::transaction(function () use ($chamado, $novoResponsavelId) {
+            $dadosAtualizacao = [
+                'fk_id_user_responsavel' => $novoResponsavelId,
+            ];
+
+            if ($novoResponsavelId !== null) {
+                $dadosAtualizacao['status'] = 'em_andamento';
+                $dadosAtualizacao['data_conclusao'] = null;
+            }
+
+            $chamado->update($dadosAtualizacao);
+            $chamado->load('responsavel');
+
+            if ($novoResponsavelId !== null && $chamado->responsavel) {
+                $this->registrarMensagemAutomaticaOperador(
+                    $chamado,
+                    $this->montarMensagemAutomaticaResponsavel($chamado->responsavel->name),
+                    Auth::user()
+                );
+            }
+        });
 
         $responsavelNovo = $chamado->responsavel?->name ?? 'Não atribuído';
 
         Log::info("Chamado #{$chamado->protocolo} - Responsável alterado de '{$responsavelAnterior}' para '{$responsavelNovo}' por " . Auth::user()->name);
 
-        return back()->with('success', 'Responsável atualizado com sucesso');
+        if ($statusAnterior !== $chamado->status) {
+            Log::info("Chamado #{$chamado->protocolo} - Status ajustado automaticamente de '{$statusAnterior}' para '{$chamado->status}' após atribuição de responsável por " . Auth::user()->name);
+        }
+
+        $mensagemSucesso = $novoResponsavelId !== null
+            ? 'Responsável atualizado com sucesso e chamado movido para Em andamento.'
+            : 'Responsável removido com sucesso.';
+
+        return back()->with('success', $mensagemSucesso);
     }
 
     /**
@@ -559,6 +609,46 @@ class ChamadoController extends Controller
     }
 
     /**
+     * Registra uma mensagem automática da equipe no histórico do chamado e dispara as notificações.
+     */
+    protected function registrarMensagemAutomaticaOperador(Chamado $chamado, string $mensagemTexto, User $operador): ChamadoMensagem
+    {
+        $mensagem = ChamadoMensagem::create([
+            'fk_id_chamado' => $chamado->id_chamado,
+            'fk_id_user_remetente' => $operador->id,
+            'remetente_nivel' => 'operador',
+            'mensagem' => $mensagemTexto,
+            'anexos' => null,
+            'lido_empresa_em' => null,
+            'lido_operador_em' => now(),
+        ]);
+
+        $this->notificarNovaMensagem($chamado, $mensagem, $operador);
+
+        return $mensagem;
+    }
+
+    /**
+     * Monta a mensagem automática enviada quando o status é finalizado.
+     */
+    protected function montarMensagemAutomaticaStatus(string $status): string
+    {
+        return match ($status) {
+            'concluido' => 'Informamos que este chamado foi concluído. Se precisar de um novo atendimento, abra um novo chamado.',
+            'cancelado' => 'Informamos que este chamado foi cancelado. Se precisar de suporte adicional, abra um novo chamado.',
+            default => 'O status deste chamado foi atualizado pela equipe SIGE.',
+        };
+    }
+
+    /**
+     * Monta a mensagem automática enviada quando um responsável é definido.
+     */
+    protected function montarMensagemAutomaticaResponsavel(string $nomeResponsavel): string
+    {
+        return "Agora esse chamado está sendo atendido por {$nomeResponsavel}.";
+    }
+
+    /**
      * Dispara e-mail para os destinatários do outro lado da conversa
      */
     protected function notificarNovaMensagem(Chamado $chamado, ChamadoMensagem $mensagem, User $remetente): void
@@ -598,7 +688,7 @@ class ChamadoController extends Controller
                     $incluirEmailGeral = (bool) $incluirEmailGeralConfig;
                     $emailGeral = trim((string) \App\Models\Configuracao::obter('chamados_email_geral', ''));
                     
-                    \Log::info('Debug - Incluir Email Geral ao Responsável', [
+                    Log::info('Debug - Incluir Email Geral ao Responsável', [
                         'chamado' => $chamado->protocolo,
                         'incluirEmailGeralConfig' => $incluirEmailGeralConfig,
                         'incluirEmailGeral (bool)' => $incluirEmailGeral,
@@ -612,12 +702,12 @@ class ChamadoController extends Controller
                         $emails[] = $emailGeral;
                         $logEmails[] = $emailGeral;
                         
-                        \Log::info("Email geral INCLUÍDO nas notificações", [
+                        Log::info("Email geral INCLUÍDO nas notificações", [
                             'chamado' => $chamado->protocolo,
                             'emailGeral' => $emailGeral,
                         ]);
                     } else {
-                        \Log::info("Email geral NÃO incluído nas notificações", [
+                        Log::info("Email geral NÃO incluído nas notificações", [
                             'chamado' => $chamado->protocolo,
                             'motivo' => !$incluirEmailGeral ? 'checkbox desmarcado' : (!empty($emailGeral) ? 'email vazio/inválido' : 'outro motivo'),
                         ]);

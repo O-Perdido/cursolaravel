@@ -30,6 +30,7 @@ Sistema modular de chamados para unidades concedentes (empresas) com suporte a t
 - ✅ **Excluir chamados completos** (com cascata) ⭐
 - ✅ **Atribuir responsável ao chamado** ⭐ Novo
 - ✅ **Notificações inteligentes por e-mail** (apenas responsável ou todos) ⭐ Novo
+- ✅ **Mensagens automáticas ao concluir, cancelar ou atribuir responsável** ⭐ Novo
 - ✅ **Badges animados com sino** para novas mensagens ⭐
 - ✅ Notificação visual de novas mensagens da unidade concedente no painel
 - ✅ Notificação por e-mail para o outro lado da conversa
@@ -168,6 +169,12 @@ DELETE /admin/tipos-chamados/{id}      # Remover tipo
    - Acesse menu "Chamados"
    - Visualize chamados de todas as empresas
    - Acompanhe status e responsáveis
+
+3. **Automação no Atendimento**
+   - Ao marcar um chamado como concluído ou cancelado, o sistema pede confirmação antes de salvar
+   - Após confirmar, uma mensagem automática é enviada para a unidade concedente no histórico do chamado
+   - Ao atribuir um responsável, o sistema envia uma mensagem automática informando quem assumiu o atendimento
+   - Sempre que um responsável é definido, o chamado é movido automaticamente para o status `em_andamento`
 
 ## Campos da Tabela `tb_chamados`
 

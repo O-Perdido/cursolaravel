@@ -426,7 +426,8 @@
         <div class="row g-3">
             <!-- Atribuir Responsável -->
             <div class="col-md-6">
-                <form action="{{ route('chamados.atribuir-responsavel', $chamado->id_chamado) }}" method="POST">
+                <form action="{{ route('chamados.atribuir-responsavel', $chamado->id_chamado) }}" method="POST"
+                    class="js-responsavel-form">
                     @csrf
                     @method('PUT')
                     <div class="mb-2">
@@ -434,7 +435,8 @@
                             <i class="fas fa-user-tie me-2"></i>Responsável pelo Atendimento
                         </label>
                         <div class="input-group">
-                            <select name="fk_id_user_responsavel" id="responsavel" class="form-select">
+                            <select name="fk_id_user_responsavel" id="responsavel"
+                                class="form-select js-responsavel-select">
                                 <option value="">Não atribuído</option>
                                 @foreach($operadores as $operador)
                                     <option value="{{ $operador->id }}" {{ $chamado->fk_id_user_responsavel == $operador->id ? 'selected' : '' }}>
@@ -457,7 +459,8 @@
 
             <!-- Atualizar Status -->
             <div class="col-md-6">
-                <form action="{{ route('chamados.atualizar-status', $chamado->id_chamado) }}" method="POST">
+                <form action="{{ route('chamados.atualizar-status', $chamado->id_chamado) }}" method="POST"
+                    class="js-status-form">
                     @csrf
                     @method('PUT')
                     <div class="mb-2">
@@ -465,7 +468,7 @@
                             <i class="fas fa-flag me-2"></i>Status do Chamado
                         </label>
                         <div class="input-group">
-                            <select name="status" id="status" class="form-select">
+                            <select name="status" id="status" class="form-select js-status-select">
                                 <option value="pendente" {{ $chamado->status == 'pendente' ? 'selected' : '' }}>Pendente
                                 </option>
                                 <option value="em_analise" {{ $chamado->status == 'em_analise' ? 'selected' : '' }}>Em Análise
@@ -832,11 +835,118 @@
         </div>
     </div>
 
+    <div class="modal fade" id="modalConfirmacaoStatusChamado" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg confirmacao-status-modal">
+                <div class="modal-header border-0 pb-0">
+                    <div class="confirmacao-status-header">
+                        <div class="confirmacao-status-icon">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div>
+                            <h5 class="modal-title mb-1" id="confirmacaoStatusTitulo">Confirmar alteração</h5>
+                            <p class="text-muted mb-0 small">Essa atualização será enviada automaticamente para a unidade
+                                concedente.</p>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                </div>
+                <div class="modal-body pt-3">
+                    <div class="confirmacao-status-box">
+                        <div class="confirmacao-status-badge" id="confirmacaoStatusBadge">Status</div>
+                        <p class="mb-0" id="confirmacaoStatusMensagem"></p>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Voltar</button>
+                    <button type="button" class="btn btn-primary" id="confirmacaoStatusBotao">
+                        <i class="fas fa-paper-plane me-2"></i>Confirmar e enviar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 @endsection
 
 @section('scripts')
     <script>
+        function obterConteudoConfirmacaoStatus(status) {
+            const mensagens = {
+                concluido: {
+                    titulo: 'Concluir chamado',
+                    badge: 'Concluído',
+                    mensagem: 'Ao marcar esse chamado como concluído, será enviada uma mensagem para a unidade concedente informando que o atendimento foi finalizado.'
+                },
+                cancelado: {
+                    titulo: 'Cancelar chamado',
+                    badge: 'Cancelado',
+                    mensagem: 'Ao marcar esse chamado como cancelado, será enviada uma mensagem para a unidade concedente informando que o chamado foi cancelado.'
+                }
+            };
+
+            return mensagens[status] ?? null;
+        }
+
         document.addEventListener('DOMContentLoaded', function () {
+            const modalElement = document.getElementById('modalConfirmacaoStatusChamado');
+            const modalStatus = modalElement ? new bootstrap.Modal(modalElement) : null;
+            const tituloStatus = document.getElementById('confirmacaoStatusTitulo');
+            const badgeStatus = document.getElementById('confirmacaoStatusBadge');
+            const mensagemStatus = document.getElementById('confirmacaoStatusMensagem');
+            const botaoConfirmacao = document.getElementById('confirmacaoStatusBotao');
+            let formPendente = null;
+
+            const statusForms = document.querySelectorAll('.js-status-form');
+            statusForms.forEach(form => {
+                form.addEventListener('submit', function (event) {
+                    if (this.dataset.confirmado === 'true') {
+                        delete this.dataset.confirmado;
+                        return;
+                    }
+
+                    const select = this.querySelector('.js-status-select');
+
+                    if (!select || !select.value) {
+                        event.preventDefault();
+                        return;
+                    }
+
+                    const conteudo = obterConteudoConfirmacaoStatus(select.value);
+                    if (!conteudo || !modalStatus) {
+                        return;
+                    }
+
+                    event.preventDefault();
+                    formPendente = this;
+
+                    tituloStatus.textContent = conteudo.titulo;
+                    badgeStatus.textContent = conteudo.badge;
+                    badgeStatus.className = 'confirmacao-status-badge ' + select.value;
+                    mensagemStatus.textContent = conteudo.mensagem;
+
+                    modalStatus.show();
+                });
+            });
+
+            if (modalElement) {
+                modalElement.addEventListener('hidden.bs.modal', function () {
+                    formPendente = null;
+                });
+            }
+
+            if (botaoConfirmacao) {
+                botaoConfirmacao.addEventListener('click', function () {
+                    if (!formPendente) {
+                        return;
+                    }
+
+                    formPendente.dataset.confirmado = 'true';
+                    modalStatus.hide();
+                    formPendente.submit();
+                });
+            }
+
             const form = document.getElementById('formEnviarRespostaAdmin');
             if (form) {
                 form.addEventListener('submit', function () {
@@ -857,6 +967,60 @@
 
 @section('styles')
     <style>
+        .confirmacao-status-modal {
+            border-radius: 18px;
+            overflow: hidden;
+        }
+
+        .confirmacao-status-header {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .confirmacao-status-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+            color: #1d4ed8;
+            font-size: 1.35rem;
+            flex-shrink: 0;
+        }
+
+        .confirmacao-status-box {
+            background: linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%);
+            border: 1px solid #dbeafe;
+            border-radius: 16px;
+            padding: 18px;
+        }
+
+        .confirmacao-status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            border-radius: 999px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            margin-bottom: 12px;
+        }
+
+        .confirmacao-status-badge.concluido {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .confirmacao-status-badge.cancelado {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
         .warning-icon-circle {
             width: 80px;
             height: 80px;
