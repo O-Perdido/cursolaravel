@@ -1,6 +1,8 @@
 Anotações novo módulo sige: SIGE Concursos
 Depois da pmplementação inicial toda alteração/adição terá o prefixo alt = alteração e nov = adição
 Depois de implementar as alterações/adições, apagar os prefixos
+Todas as rotas terão o prefixo sigeconcursos (por exemplo: sigebr.com/sigeconcursos/dashboard ou sigebr.com/sigeconcursos/processos), além de separar as views desse novo módulo todos em uma pasta "sigeconcursos" pra manter organização (por exemplo: views->sigeconcursos->processos->create.blade ou views->sigeconcursos->candidato->index.blade)
+As novas tabelas relacionadas ao SIGE Concursos terão tbm um prefixo (exemplo: sigeconcursos_tb_empresas, sigeconcursos_tb_candidatos)
 
 --- PRIMEIRAS ANOTAÇÕES/TELA DASHBOARD
 *Implementação Inicial já feita.
@@ -8,7 +10,6 @@ Depois de implementar as alterações/adições, apagar os prefixos
 Totalmente separado do sige atual que é voltado para estágios
 Adicionar um botão na parte da navbar "opções" para abrir o novo módulo
 Criar uma nova tela dashboard de admin/operador para o novo módulo, usando o mesmo layout do dashboard atual, mudando apenas para não mostrar as opções do navbar do módulo de estagios, mas sim as opções do novo módulo.
-Todas as rotas terão o prefixo sigeconcursos (por exemplo: sigebr.com/sigeconcursos/dashboard ou sigebr.com/sigeconcursos/processos), além de separar as views desse novo módulo todos em uma pasta "sigeconcursos" pra manter organização (por exemplo: views->sigeconcursos->processos->create.blade ou views->sigeconcursos->candidato->index.blade)
 Na página dashboard, adicionar:
 Um card pra acessar o gerenciamento dos processos (listagem, cadastro, edição, exclusão, etc.)
 Um card pra acessar o gerenciamento dos orgãos públicos/empresas (listagem, cadastro, edição, exclusão, etc.)
