@@ -19,6 +19,7 @@ use App\Http\Controllers\EmailVerificationController;
 use App\Http\Controllers\ZapSignWebhookController;
 use App\Http\Controllers\ChamadoController;
 use App\Http\Controllers\TipoChamadoController;
+use App\Http\Controllers\SigeConcursoEmpresaController;
 
 $manutencao = false; // Defina como true para ativar a manutenção
 
@@ -43,7 +44,13 @@ Route::middleware(['auth'])->group(function () {
     Route::prefix('sigeconcursos')->name('sigeconcursos.')->middleware(['nivel:admin,operador'])->group(function () {
         Route::view('/dashboard', 'sigeconcursos.dashboard')->name('dashboard');
         Route::view('/processos', 'sigeconcursos.processos.index')->name('processos.index');
-        Route::view('/orgaos', 'sigeconcursos.orgaos.index')->name('orgaos.index');
+        Route::get('/orgaos', [SigeConcursoEmpresaController::class, 'index'])->name('orgaos.index');
+        Route::get('/orgaos/create', [SigeConcursoEmpresaController::class, 'create'])->name('orgaos.create');
+        Route::post('/orgaos', [SigeConcursoEmpresaController::class, 'store'])->name('orgaos.store');
+        Route::get('/orgaos/{id}', [SigeConcursoEmpresaController::class, 'show'])->name('orgaos.show');
+        Route::get('/orgaos/{id}/edit', [SigeConcursoEmpresaController::class, 'edit'])->name('orgaos.edit');
+        Route::put('/orgaos/{id}', [SigeConcursoEmpresaController::class, 'update'])->name('orgaos.update');
+        Route::delete('/orgaos/{id}', [SigeConcursoEmpresaController::class, 'destroy'])->name('orgaos.destroy');
         Route::view('/candidatos', 'sigeconcursos.candidatos.index')->name('candidatos.index');
     });
 
