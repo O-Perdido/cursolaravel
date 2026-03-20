@@ -18,14 +18,24 @@ nov- Um card pra acessar o gerenciamento dos locais de prova (listagem, visualiz
 
 --- CADASTROS/TABELAS BANCO ---
 
--> Cadastro Cargos e vagas
-Criar uma tabela geral separada para os cargos/vagas;
-Os cargos precisam ter valores diferentes entre si (pra isso vai precisar ter uma tabela relacionamento entre a tabela cargos e a tabela processos)
+-> Cadastro Órgãos Públicos
+Campo nome/razão social obrigatório
+Campo cnpj obrigatório
+Campo telefone opcional
+Campo celular opcional
+Campo email obrigatório
+Campo cep obrigatório
+Campo endereço obrigatório
+Campo número do endereço obrigatório
+Campo complemento opcional
+Campo bairro obrigatório
+Campo relacionamento com tabela cidade que já tem no sistema obrigatório
+Campo nome de representante obrigatório
+Campo cargo de representante obrigatório
+Campo cpf de representante obrigatório
+Campo para dados bancários (Campo aberto, descritivo e opcional)(Nome e Número do Banco, Agência, Número da Conta, Tipo de Conta)
 
 -> Cadastro de Candidados
-
--> Cadastro Órgãos Públicos
-Campo para dados bancários (Campo aberto, descritivo e não obrigatório)(Nome e Número do Banco, Agência, Número da Conta, Tipo de Conta)
 
 -> Cadastro de Locais de prova
 Campo nome
@@ -34,13 +44,17 @@ Campo endereço
 Campo número do endereço
 Campo complemento
 Campo bairro
-Campo cidade
+Campo relacionamento com tabela cidade que já tem no sistema
 Campo relacionamento com Cadastro de Salas
 
 -> Cadastro de Salas
 Campo nome
 Campo bloco
 Campo numero max de cadidatos
+
+-> Cadastro Cargos e vagas
+Criar uma tabela geral separada para os cargos/vagas;
+Os cargos precisam ter valores diferentes entre si (pra isso vai precisar ter uma tabela relacionamento entre a tabela cargos e a tabela processos)
 
 -> Cadastro Processos Seletivos e Concursos Públicos
 Campo para selecionar (seleção múltipla) os cargos do processo.
