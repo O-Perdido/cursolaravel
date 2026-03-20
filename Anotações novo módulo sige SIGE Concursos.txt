@@ -39,6 +39,12 @@ Campo cpf de representante obrigatório
 Campo para dados bancários (Campo aberto, descritivo e opcional)(Nome e Número do Banco, Agência, Número da Conta, Tipo de Conta)
 
 -> Cadastro de Candidados
+Campo nome
+Campo cpf
+Campo data de nascimento
+Campo sexo (Masculino, Feminino, Não declarar)
+Campo e-mail
+
 
 -> Cadastro de Locais de prova
 Campo nome
