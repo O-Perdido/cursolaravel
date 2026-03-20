@@ -363,7 +363,7 @@
                                 Avaliações do Estágio
                             </h6>
                             <p class="text-muted mb-0" style="font-size: 0.85rem;">
-                                Gere a avaliação do seu contrato, copie o link para o supervisor e acompanhe o status da resposta.
+                                Gere a avaliação do seu estágio, copie o link e envie para o seu supervisor, acompanhe o status da resposta.
                             </p>
                         </div>
 

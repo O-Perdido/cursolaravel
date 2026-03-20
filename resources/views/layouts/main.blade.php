@@ -95,6 +95,10 @@
     </style>
 </head>
 
+@php
+    $isSigeConcursos = request()->routeIs('sigeconcursos.*');
+@endphp
+
 <body style="font-family: Gothic, sans-serif;">
     <!-- Sidebar for authenticated users
     <div>
@@ -109,7 +113,8 @@
     <nav class="navbar navbar-expand-lg navbar-dark shadow-sm text-center">
         <div class="container-fluid align-items-center px-2 px-md-3">
             <div class="d-flex align-items-center flex-grow-1">
-                <a href="/" class="navbar-brand d-flex align-items-center" style="margin: 0;">
+                <a href="{{ $isSigeConcursos ? route('sigeconcursos.dashboard') : route('landing') }}"
+                    class="navbar-brand d-flex align-items-center" style="margin: 0;">
                     <img src="{{ asset('images/logo_branca_sem_fundo.png') }}" alt="Logo" height="45"
                         class="d-inline-block align-center">
                     <span class="d-none d-sm-inline" style="margin-left: 15px;">
@@ -174,305 +179,309 @@
                 <div class="collapse navbar-collapse" id="navbarNav">
                     <ul class="navbar-nav ms-auto align-items-center" style="vertical-align: middle;">
                         @if (Auth::user()->nivel == 'admin' || Auth::user()->nivel == 'operador')
+                            @if ($isSigeConcursos)
+                                @include('layouts.partials.navbar-sigeconcursos')
+                            @else
 
-                            <li class="nav-item dropdown" style="vertical-align: middle;">
-                                <a class="nav-link" href="{{ route('empresas.index') }}" id="navbarDropdown" role="button">
-                                    <i class="fa-solid fa-briefcase fa-2x"></i><br>
-                                    <small>Concedentes</small>
-                                </a>
-                                <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                                    <li>
-                                        <a class="dropdown-item" href="{{ route('empresas.create') }}">Nova Concedente</a>
-                                    </li>
-                                </ul>
-                            </li>
-                            <script>
-                                document.addEventListener('DOMContentLoaded', function () {
-                                    const dropdown = document.getElementById('navbarDropdown');
-                                    const dropdownMenu = dropdown.nextElementSibling;
+                                <li class="nav-item dropdown" style="vertical-align: middle;">
+                                    <a class="nav-link" href="{{ route('empresas.index') }}" id="navbarDropdown" role="button">
+                                        <i class="fa-solid fa-briefcase fa-2x"></i><br>
+                                        <small>Concedentes</small>
+                                    </a>
+                                    <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                                        <li>
+                                            <a class="dropdown-item" href="{{ route('empresas.create') }}">Nova Concedente</a>
+                                        </li>
+                                    </ul>
+                                </li>
+                                <script>
+                                    document.addEventListener('DOMContentLoaded', function () {
+                                        const dropdown = document.getElementById('navbarDropdown');
+                                        const dropdownMenu = dropdown.nextElementSibling;
 
-                                    dropdown.addEventListener('mouseenter', function () {
-                                        if (dropdownMenu) {
+                                        dropdown.addEventListener('mouseenter', function () {
+                                            if (dropdownMenu) {
+                                                dropdownMenu.classList.add('show');
+                                            }
+                                        });
+
+                                        dropdown.addEventListener('mouseleave', function () {
+                                            if (dropdownMenu) {
+                                                dropdownMenu.classList.remove('show');
+                                            }
+                                        });
+
+                                        dropdownMenu.addEventListener('mouseenter', function () {
                                             dropdownMenu.classList.add('show');
-                                        }
-                                    });
+                                        });
 
-                                    dropdown.addEventListener('mouseleave', function () {
-                                        if (dropdownMenu) {
+                                        dropdownMenu.addEventListener('mouseleave', function () {
                                             dropdownMenu.classList.remove('show');
-                                        }
+                                        });
                                     });
+                                </script>
 
-                                    dropdownMenu.addEventListener('mouseenter', function () {
-                                        dropdownMenu.classList.add('show');
-                                    });
+                                <li class="nav-item dropdown" style="vertical-align: middle;">
+                                    <a class="nav-link" href="{{ route('escolas.index') }}" id="navbarDropdownEscolas"
+                                        role="button">
+                                        <i class="fa-solid fa-book fa-2x"></i><br>
+                                        <small>Instituições</small>
+                                    </a>
+                                    <ul class="dropdown-menu" aria-labelledby="navbarDropdownEscolas">
+                                        <li>
+                                            <a class="dropdown-item" href="{{ route('escolas.create') }}">Nova Instituição</a>
+                                        </li>
+                                    </ul>
+                                </li>
+                                <script>
+                                    document.addEventListener('DOMContentLoaded', function () {
+                                        const dropdownEscolas = document.getElementById('navbarDropdownEscolas');
+                                        const dropdownMenuEscolas = dropdownEscolas.nextElementSibling;
 
-                                    dropdownMenu.addEventListener('mouseleave', function () {
-                                        dropdownMenu.classList.remove('show');
-                                    });
-                                });
-                            </script>
+                                        dropdownEscolas.addEventListener('mouseenter', function () {
+                                            if (dropdownMenuEscolas) {
+                                                dropdownMenuEscolas.classList.add('show');
+                                            }
+                                        });
 
-                            <li class="nav-item dropdown" style="vertical-align: middle;">
-                                <a class="nav-link" href="{{ route('escolas.index') }}" id="navbarDropdownEscolas"
-                                    role="button">
-                                    <i class="fa-solid fa-book fa-2x"></i><br>
-                                    <small>Instituições</small>
-                                </a>
-                                <ul class="dropdown-menu" aria-labelledby="navbarDropdownEscolas">
-                                    <li>
-                                        <a class="dropdown-item" href="{{ route('escolas.create') }}">Nova Instituição</a>
-                                    </li>
-                                </ul>
-                            </li>
-                            <script>
-                                document.addEventListener('DOMContentLoaded', function () {
-                                    const dropdownEscolas = document.getElementById('navbarDropdownEscolas');
-                                    const dropdownMenuEscolas = dropdownEscolas.nextElementSibling;
+                                        dropdownEscolas.addEventListener('mouseleave', function () {
+                                            if (dropdownMenuEscolas) {
+                                                dropdownMenuEscolas.classList.remove('show');
+                                            }
+                                        });
 
-                                    dropdownEscolas.addEventListener('mouseenter', function () {
-                                        if (dropdownMenuEscolas) {
+                                        dropdownMenuEscolas.addEventListener('mouseenter', function () {
                                             dropdownMenuEscolas.classList.add('show');
-                                        }
-                                    });
+                                        });
 
-                                    dropdownEscolas.addEventListener('mouseleave', function () {
-                                        if (dropdownMenuEscolas) {
+                                        dropdownMenuEscolas.addEventListener('mouseleave', function () {
                                             dropdownMenuEscolas.classList.remove('show');
-                                        }
+                                        });
                                     });
+                                </script>
+                                <li class="nav-item dropdown" style="vertical-align: middle;">
+                                    <a class="nav-link" href="{{ route('estagiarios.index') }}" id="navbarDropdownEstagiarios"
+                                        role="button">
+                                        <i class="fa-solid fa-user-graduate fa-2x"></i><br>
+                                        <small>Estagiários</small>
+                                    </a>
+                                    <ul class="dropdown-menu" aria-labelledby="navbarDropdownEstagiarios">
+                                        <li>
+                                            <a class="dropdown-item" href="{{ route('estagiarios.create') }}">Novo
+                                                Estagiário</a>
+                                        </li>
+                                    </ul>
+                                </li>
+                                <script>
+                                    document.addEventListener('DOMContentLoaded', function () {
+                                        const dropdownEstagiarios = document.getElementById('navbarDropdownEstagiarios');
+                                        const dropdownMenuEstagiarios = dropdownEstagiarios.nextElementSibling;
 
-                                    dropdownMenuEscolas.addEventListener('mouseenter', function () {
-                                        dropdownMenuEscolas.classList.add('show');
-                                    });
+                                        dropdownEstagiarios.addEventListener('mouseenter', function () {
+                                            if (dropdownMenuEstagiarios) {
+                                                dropdownMenuEstagiarios.classList.add('show');
+                                            }
+                                        });
 
-                                    dropdownMenuEscolas.addEventListener('mouseleave', function () {
-                                        dropdownMenuEscolas.classList.remove('show');
-                                    });
-                                });
-                            </script>
-                            <li class="nav-item dropdown" style="vertical-align: middle;">
-                                <a class="nav-link" href="{{ route('estagiarios.index') }}" id="navbarDropdownEstagiarios"
-                                    role="button">
-                                    <i class="fa-solid fa-user-graduate fa-2x"></i><br>
-                                    <small>Estagiários</small>
-                                </a>
-                                <ul class="dropdown-menu" aria-labelledby="navbarDropdownEstagiarios">
-                                    <li>
-                                        <a class="dropdown-item" href="{{ route('estagiarios.create') }}">Novo
-                                            Estagiário</a>
-                                    </li>
-                                </ul>
-                            </li>
-                            <script>
-                                document.addEventListener('DOMContentLoaded', function () {
-                                    const dropdownEstagiarios = document.getElementById('navbarDropdownEstagiarios');
-                                    const dropdownMenuEstagiarios = dropdownEstagiarios.nextElementSibling;
+                                        dropdownEstagiarios.addEventListener('mouseleave', function () {
+                                            if (dropdownMenuEstagiarios) {
+                                                dropdownMenuEstagiarios.classList.remove('show');
+                                            }
+                                        });
 
-                                    dropdownEstagiarios.addEventListener('mouseenter', function () {
-                                        if (dropdownMenuEstagiarios) {
+                                        dropdownMenuEstagiarios.addEventListener('mouseenter', function () {
                                             dropdownMenuEstagiarios.classList.add('show');
-                                        }
-                                    });
+                                        });
 
-                                    dropdownEstagiarios.addEventListener('mouseleave', function () {
-                                        if (dropdownMenuEstagiarios) {
+                                        dropdownMenuEstagiarios.addEventListener('mouseleave', function () {
                                             dropdownMenuEstagiarios.classList.remove('show');
-                                        }
+                                        });
                                     });
+                                </script>
+                                <li class="nav-item dropdown" style="vertical-align: middle;">
+                                    <a class="nav-link" href="{{ route('supervisores.index') }}" id="navbarDropdownSupervisores"
+                                        role="button">
+                                        <i class="fa-solid fa-user-tie fa-2x"></i><br>
+                                        <small>Supervisores</small>
+                                    </a>
+                                    <ul class="dropdown-menu" aria-labelledby="navbarDropdownSupervisores">
+                                        <li>
+                                            <a class="dropdown-item" href="{{ route('supervisor.create') }}">Novo Supervisor</a>
+                                        </li>
+                                    </ul>
+                                </li>
+                                <script>
+                                    document.addEventListener('DOMContentLoaded', function () {
+                                        const dropdownSupervisores = document.getElementById('navbarDropdownSupervisores');
+                                        const dropdownMenuSupervisores = dropdownSupervisores.nextElementSibling;
 
-                                    dropdownMenuEstagiarios.addEventListener('mouseenter', function () {
-                                        dropdownMenuEstagiarios.classList.add('show');
-                                    });
+                                        dropdownSupervisores.addEventListener('mouseenter', function () {
+                                            if (dropdownMenuSupervisores) {
+                                                dropdownMenuSupervisores.classList.add('show');
+                                            }
+                                        });
 
-                                    dropdownMenuEstagiarios.addEventListener('mouseleave', function () {
-                                        dropdownMenuEstagiarios.classList.remove('show');
-                                    });
-                                });
-                            </script>
-                            <li class="nav-item dropdown" style="vertical-align: middle;">
-                                <a class="nav-link" href="{{ route('supervisores.index') }}" id="navbarDropdownSupervisores"
-                                    role="button">
-                                    <i class="fa-solid fa-user-tie fa-2x"></i><br>
-                                    <small>Supervisores</small>
-                                </a>
-                                <ul class="dropdown-menu" aria-labelledby="navbarDropdownSupervisores">
-                                    <li>
-                                        <a class="dropdown-item" href="{{ route('supervisor.create') }}">Novo Supervisor</a>
-                                    </li>
-                                </ul>
-                            </li>
-                            <script>
-                                document.addEventListener('DOMContentLoaded', function () {
-                                    const dropdownSupervisores = document.getElementById('navbarDropdownSupervisores');
-                                    const dropdownMenuSupervisores = dropdownSupervisores.nextElementSibling;
+                                        dropdownSupervisores.addEventListener('mouseleave', function () {
+                                            if (dropdownMenuSupervisores) {
+                                                dropdownMenuSupervisores.classList.remove('show');
+                                            }
+                                        });
 
-                                    dropdownSupervisores.addEventListener('mouseenter', function () {
-                                        if (dropdownMenuSupervisores) {
+                                        dropdownMenuSupervisores.addEventListener('mouseenter', function () {
                                             dropdownMenuSupervisores.classList.add('show');
-                                        }
-                                    });
+                                        });
 
-                                    dropdownSupervisores.addEventListener('mouseleave', function () {
-                                        if (dropdownMenuSupervisores) {
+                                        dropdownMenuSupervisores.addEventListener('mouseleave', function () {
                                             dropdownMenuSupervisores.classList.remove('show');
-                                        }
+                                        });
                                     });
+                                </script>
+                                <li class="nav-item dropdown" style="vertical-align: middle;">
+                                    <a class="nav-link" href="{{ route('vagas.index') }}" id="navbarDropdownVagas" role="button">
+                                        <span class="position-relative d-inline-block">
+                                            <i class="fa-solid fa-clipboard-list fa-2x"></i>
+                                            @if(isset($vagasAbertasCount) && $vagasAbertasCount > 0)
+                                                <span
+                                                    class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                                                    style="font-size:0.7em;">
+                                                    {{ $vagasAbertasCount }}
+                                                </span>
+                                            @endif
+                                        </span><br>
+                                        <small>Vagas</small>
+                                    </a>
+                                    <ul class="dropdown-menu" aria-labelledby="navbarDropdownVagas">
+                                        <li>
+                                            <a class="dropdown-item" href="{{ route('vagas.create') }}">Nova Vaga</a>
+                                        </li>
+                                    </ul>
+                                </li>
+                                <script>
+                                    document.addEventListener('DOMContentLoaded', function () {
+                                        const dropdownVagas = document.getElementById('navbarDropdownVagas');
+                                        const dropdownMenuVagas = dropdownVagas.nextElementSibling;
 
-                                    dropdownMenuSupervisores.addEventListener('mouseenter', function () {
-                                        dropdownMenuSupervisores.classList.add('show');
-                                    });
+                                        dropdownVagas.addEventListener('mouseenter', function () {
+                                            if (dropdownMenuVagas) {
+                                                dropdownMenuVagas.classList.add('show');
+                                            }
+                                        });
 
-                                    dropdownMenuSupervisores.addEventListener('mouseleave', function () {
-                                        dropdownMenuSupervisores.classList.remove('show');
-                                    });
-                                });
-                            </script>
-                            <li class="nav-item dropdown" style="vertical-align: middle;">
-                                <a class="nav-link" href="{{ route('vagas.index') }}" id="navbarDropdownVagas" role="button">
-                                    <span class="position-relative d-inline-block">
-                                        <i class="fa-solid fa-clipboard-list fa-2x"></i>
-                                        @if(isset($vagasAbertasCount) && $vagasAbertasCount > 0)
-                                            <span
-                                                class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
-                                                style="font-size:0.7em;">
-                                                {{ $vagasAbertasCount }}
-                                            </span>
-                                        @endif
-                                    </span><br>
-                                    <small>Vagas</small>
-                                </a>
-                                <ul class="dropdown-menu" aria-labelledby="navbarDropdownVagas">
-                                    <li>
-                                        <a class="dropdown-item" href="{{ route('vagas.create') }}">Nova Vaga</a>
-                                    </li>
-                                </ul>
-                            </li>
-                            <script>
-                                document.addEventListener('DOMContentLoaded', function () {
-                                    const dropdownVagas = document.getElementById('navbarDropdownVagas');
-                                    const dropdownMenuVagas = dropdownVagas.nextElementSibling;
+                                        dropdownVagas.addEventListener('mouseleave', function () {
+                                            if (dropdownMenuVagas) {
+                                                dropdownMenuVagas.classList.remove('show');
+                                            }
+                                        });
 
-                                    dropdownVagas.addEventListener('mouseenter', function () {
-                                        if (dropdownMenuVagas) {
+                                        dropdownMenuVagas.addEventListener('mouseenter', function () {
                                             dropdownMenuVagas.classList.add('show');
-                                        }
-                                    });
+                                        });
 
-                                    dropdownVagas.addEventListener('mouseleave', function () {
-                                        if (dropdownMenuVagas) {
+                                        dropdownMenuVagas.addEventListener('mouseleave', function () {
                                             dropdownMenuVagas.classList.remove('show');
-                                        }
+                                        });
                                     });
+                                </script>
+                                <li class="nav-item dropdown" style="vertical-align: middle;">
+                                    <a class="nav-link" href="{{ route('processos-seletivos.index') }}" id="navbarDropdownProcessos"
+                                        role="button">
+                                        <i class="fa-solid fa-graduation-cap fa-2x"></i><br>
+                                        <small>Processos</small>
+                                    </a>
+                                    <ul class="dropdown-menu" aria-labelledby="navbarDropdownProcessos">
+                                        <li>
+                                            <a class="dropdown-item" href="{{ route('processos-seletivos.create') }}">Novo
+                                                Processo</a>
+                                        </li>
+                                    </ul>
+                                </li>
+                                <script>
+                                    document.addEventListener('DOMContentLoaded', function () {
+                                        const dropdownProcessos = document.getElementById('navbarDropdownProcessos');
+                                        const dropdownMenuProcessos = dropdownProcessos.nextElementSibling;
 
-                                    dropdownMenuVagas.addEventListener('mouseenter', function () {
-                                        dropdownMenuVagas.classList.add('show');
-                                    });
+                                        dropdownProcessos.addEventListener('mouseenter', function () {
+                                            if (dropdownMenuProcessos) {
+                                                dropdownMenuProcessos.classList.add('show');
+                                            }
+                                        });
 
-                                    dropdownMenuVagas.addEventListener('mouseleave', function () {
-                                        dropdownMenuVagas.classList.remove('show');
-                                    });
-                                });
-                            </script>
-                            <li class="nav-item dropdown" style="vertical-align: middle;">
-                                <a class="nav-link" href="{{ route('processos-seletivos.index') }}" id="navbarDropdownProcessos"
-                                    role="button">
-                                    <i class="fa-solid fa-graduation-cap fa-2x"></i><br>
-                                    <small>Processos</small>
-                                </a>
-                                <ul class="dropdown-menu" aria-labelledby="navbarDropdownProcessos">
-                                    <li>
-                                        <a class="dropdown-item" href="{{ route('processos-seletivos.create') }}">Novo
-                                            Processo</a>
-                                    </li>
-                                </ul>
-                            </li>
-                            <script>
-                                document.addEventListener('DOMContentLoaded', function () {
-                                    const dropdownProcessos = document.getElementById('navbarDropdownProcessos');
-                                    const dropdownMenuProcessos = dropdownProcessos.nextElementSibling;
+                                        dropdownProcessos.addEventListener('mouseleave', function () {
+                                            if (dropdownMenuProcessos) {
+                                                dropdownMenuProcessos.classList.remove('show');
+                                            }
+                                        });
 
-                                    dropdownProcessos.addEventListener('mouseenter', function () {
-                                        if (dropdownMenuProcessos) {
+                                        dropdownMenuProcessos.addEventListener('mouseenter', function () {
                                             dropdownMenuProcessos.classList.add('show');
-                                        }
-                                    });
+                                        });
 
-                                    dropdownProcessos.addEventListener('mouseleave', function () {
-                                        if (dropdownMenuProcessos) {
+                                        dropdownMenuProcessos.addEventListener('mouseleave', function () {
                                             dropdownMenuProcessos.classList.remove('show');
-                                        }
+                                        });
                                     });
+                                </script>
+                                <li class="nav-item dropdown" style="vertical-align: middle;">
+                                    <a class="nav-link" href="{{ route('termos.index') }}" id="navbarDropdownTermos" role="button">
+                                        <i class="fa-solid fa-file-contract fa-2x"></i><br>
+                                        <small>Termos</small>
+                                    </a>
+                                    <ul class="dropdown-menu" aria-labelledby="navbarDropdownTermos">
+                                        <li>
+                                            <a class="dropdown-item" href="{{ route('termos.create') }}">Novo TCE</a>
+                                        </li>
+                                    </ul>
+                                </li>
+                                <script>
+                                    document.addEventListener('DOMContentLoaded', function () {
+                                        const dropdownTermos = document.getElementById('navbarDropdownTermos');
+                                        const dropdownMenuTermos = dropdownTermos.nextElementSibling;
 
-                                    dropdownMenuProcessos.addEventListener('mouseenter', function () {
-                                        dropdownMenuProcessos.classList.add('show');
-                                    });
+                                        dropdownTermos.addEventListener('mouseenter', function () {
+                                            if (dropdownMenuTermos) {
+                                                dropdownMenuTermos.classList.add('show');
+                                            }
+                                        });
 
-                                    dropdownMenuProcessos.addEventListener('mouseleave', function () {
-                                        dropdownMenuProcessos.classList.remove('show');
-                                    });
-                                });
-                            </script>
-                            <li class="nav-item dropdown" style="vertical-align: middle;">
-                                <a class="nav-link" href="{{ route('termos.index') }}" id="navbarDropdownTermos" role="button">
-                                    <i class="fa-solid fa-file-contract fa-2x"></i><br>
-                                    <small>Termos</small>
-                                </a>
-                                <ul class="dropdown-menu" aria-labelledby="navbarDropdownTermos">
-                                    <li>
-                                        <a class="dropdown-item" href="{{ route('termos.create') }}">Novo TCE</a>
-                                    </li>
-                                </ul>
-                            </li>
-                            <script>
-                                document.addEventListener('DOMContentLoaded', function () {
-                                    const dropdownTermos = document.getElementById('navbarDropdownTermos');
-                                    const dropdownMenuTermos = dropdownTermos.nextElementSibling;
+                                        dropdownTermos.addEventListener('mouseleave', function () {
+                                            if (dropdownMenuTermos) {
+                                                dropdownMenuTermos.classList.remove('show');
+                                            }
+                                        });
 
-                                    dropdownTermos.addEventListener('mouseenter', function () {
-                                        if (dropdownMenuTermos) {
+                                        dropdownMenuTermos.addEventListener('mouseenter', function () {
                                             dropdownMenuTermos.classList.add('show');
-                                        }
-                                    });
+                                        });
 
-                                    dropdownTermos.addEventListener('mouseleave', function () {
-                                        if (dropdownMenuTermos) {
+                                        dropdownMenuTermos.addEventListener('mouseleave', function () {
                                             dropdownMenuTermos.classList.remove('show');
-                                        }
+                                        });
                                     });
-
-                                    dropdownMenuTermos.addEventListener('mouseenter', function () {
-                                        dropdownMenuTermos.classList.add('show');
-                                    });
-
-                                    dropdownMenuTermos.addEventListener('mouseleave', function () {
-                                        dropdownMenuTermos.classList.remove('show');
-                                    });
-                                });
-                            </script>
-                            <li class="nav-item dropdown" style="vertical-align: middle;">
-                                <a class="nav-link" href="{{ route('chamados.painel') }}" id="navbarDropdownChamados"
-                                    role="button">
-                                    <span class="position-relative d-inline-block">
-                                        <i class="fas fa-headset fa-2x"></i>
-                                        @php
-                                            $chamadosAbertos = \App\Models\Chamado::whereIn('status', ['pendente', 'em_analise', 'em_andamento'])->count();
-                                        @endphp
-                                        @if($chamadosAbertos > 0)
-                                            <span
-                                                class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
-                                                style="font-size:0.7em;">
-                                                {{ $chamadosAbertos }}
-                                            </span>
-                                        @endif
-                                    </span><br>
-                                    <small>Chamados</small>
-                                </a>
-                            </li>
+                                </script>
+                                <li class="nav-item dropdown" style="vertical-align: middle;">
+                                    <a class="nav-link" href="{{ route('chamados.painel') }}" id="navbarDropdownChamados"
+                                        role="button">
+                                        <span class="position-relative d-inline-block">
+                                            <i class="fas fa-headset fa-2x"></i>
+                                            @php
+                                                $chamadosAbertos = \App\Models\Chamado::whereIn('status', ['pendente', 'em_analise', 'em_andamento'])->count();
+                                            @endphp
+                                            @if($chamadosAbertos > 0)
+                                                <span
+                                                    class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                                                    style="font-size:0.7em;">
+                                                    {{ $chamadosAbertos }}
+                                                </span>
+                                            @endif
+                                        </span><br>
+                                        <small>Chamados</small>
+                                    </a>
+                                </li>
+                            @endif
                         @endif
 
                         <!-- Botão de Avaliações (para admin e operador) -->
-                        @if(Auth::check() && in_array(Auth::user()->nivel, ['admin', 'operador']))
+                        @if(!$isSigeConcursos && Auth::check() && in_array(Auth::user()->nivel, ['admin', 'operador']))
                             <li class="nav-item dropdown" style="vertical-align: middle;">
                                 <a class="nav-link" href="{{ route('avaliacoes.index') }}" id="navbarDropdownAvaliacoes"
                                     role="button">
@@ -526,18 +535,44 @@
                                 <li style="text-wrap: inherit;"><span style="text-wrap: inherit;"
                                         class="dropdown-header">{{ auth()->user()->name }}</span></li>
                                 @if (Auth::user()->nivel == 'admin' || Auth::user()->nivel == 'operador')
-                                    <li><a class="dropdown-item" href="{{ route('folhas.index') }}">
-                                            <i class="fa-solid fa-file-invoice-dollar" style="color: #102e6c"></i> Folhas de
-                                            Pagamento</a>
-                                    </li>
-                                    @if($termosVencidosCount > 0)
-                                        <li>
-                                            <a class="dropdown-item text-danger fw-bold"
-                                                href="{{ route('termos.index', ['status' => 'vencidos']) }}">
-                                                <i class="fas fa-exclamation-triangle me-1"></i> Termos Vencidos
-                                                <span class="badge bg-danger ms-1">{{ $termosVencidosCount }}</span>
-                                            </a>
+                                    @if ($isSigeConcursos)
+                                        <li><a class="dropdown-item" href="{{ route('sigeconcursos.dashboard') }}">
+                                                <i class="fa-solid fa-gauge-high" style="color: #102e6c"></i> Dashboard
+                                                Concursos</a>
                                         </li>
+                                        <li><a class="dropdown-item" href="{{ route('sigeconcursos.processos.index') }}">
+                                                <i class="fa-solid fa-folder-tree" style="color: #102e6c"></i> Processos</a>
+                                        </li>
+                                        <li><a class="dropdown-item" href="{{ route('sigeconcursos.orgaos.index') }}">
+                                                <i class="fa-solid fa-building-columns" style="color: #102e6c"></i>
+                                                Órgãos/Empresas</a>
+                                        </li>
+                                        <li><a class="dropdown-item" href="{{ route('sigeconcursos.candidatos.index') }}">
+                                                <i class="fa-solid fa-users-viewfinder" style="color: #102e6c"></i>
+                                                Candidatos</a>
+                                        </li>
+                                        <li><a class="dropdown-item" href="{{ route('welcome.admin') }}">
+                                                <i class="fa-solid fa-rotate-left" style="color: #102e6c"></i> Voltar para
+                                                SIGE Estágios</a>
+                                        </li>
+                                    @else
+                                        <li><a class="dropdown-item" href="{{ route('sigeconcursos.dashboard') }}">
+                                                <i class="fa-solid fa-trophy" style="color: #102e6c"></i> Abrir SIGE
+                                                Concursos</a>
+                                        </li>
+                                        <li><a class="dropdown-item" href="{{ route('folhas.index') }}">
+                                                <i class="fa-solid fa-file-invoice-dollar" style="color: #102e6c"></i>
+                                                Folhas de Pagamento</a>
+                                        </li>
+                                        @if($termosVencidosCount > 0)
+                                            <li>
+                                                <a class="dropdown-item text-danger fw-bold"
+                                                    href="{{ route('termos.index', ['status' => 'vencidos']) }}">
+                                                    <i class="fas fa-exclamation-triangle me-1"></i> Termos Vencidos
+                                                    <span class="badge bg-danger ms-1">{{ $termosVencidosCount }}</span>
+                                                </a>
+                                            </li>
+                                        @endif
                                     @endif
                                 @endif
                                 <li>

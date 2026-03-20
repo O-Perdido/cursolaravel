@@ -40,6 +40,13 @@ Route::middleware(['auth'])->group(function () {
         return view('welcome_admin_operador', compact('termos'));
     })->middleware(['nivel:admin,operador'])->name('welcome.admin');
 
+    Route::prefix('sigeconcursos')->name('sigeconcursos.')->middleware(['nivel:admin,operador'])->group(function () {
+        Route::view('/dashboard', 'sigeconcursos.dashboard')->name('dashboard');
+        Route::view('/processos', 'sigeconcursos.processos.index')->name('processos.index');
+        Route::view('/orgaos', 'sigeconcursos.orgaos.index')->name('orgaos.index');
+        Route::view('/candidatos', 'sigeconcursos.candidatos.index')->name('candidatos.index');
+    });
+
     Route::get('/dashboard/empresa', function () {
         return view('welcome_empresa');
     })->middleware(['nivel:empresa'])->name('welcome.empresa');
