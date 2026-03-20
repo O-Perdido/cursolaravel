@@ -63,6 +63,21 @@ Casos de isenção
 
 --- TELAS ---
 
+Tela de listagem dos órgãos públicos/empresas
+Uma tela com card de filtros, um botão para cadastrar nova empresa/órgão público e a listagem páginada dos cadastros.
+Seguir o mesmo layout e estilo visual que já temos nas telas do sige estágios.
+A tabela que lista os cadastros terãos as colunas:
+Nome/Razão Social, CNPJ, Email e Ações (Onde terãos os botões de excluir, editar e detalhes.)
+
+Tela de cadastro de órgão público/empresas
+Uma tela de cadastro básica, usa como inspiração a tela de cadastro de unidades concedentes que já tem, pois precisa ter a lógica da seleção de estado primeiro e depois cidade... Enfim... 
+
+Tela de edição de órgão público/empresas
+Uma tela de edição básica, seguindo o exemplo da tela de cadastro.
+
+Tela de detalhes de órgão público/empresas
+Uma tela onde vamos poder gerenciar e visualizar as informações de uma empresa/órgão público específico
+
 
 
 A PARTIR DAQUI SÃO ANOTAÇÕES SOLTAS
