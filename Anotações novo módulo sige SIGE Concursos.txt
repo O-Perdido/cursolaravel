@@ -1,0 +1,65 @@
+Anotações novo módulo sige: SIGE Concursos
+Depois da pmplementação inicial toda alteração/adição terá o prefixo alt = alteração e nov = adição
+Depois de implementar as alterações/adições, apagar os prefixos
+
+--- PRIMEIRAS ANOTAÇÕES/TELA DASHBOARD
+*Implementação Inicial já feita.
+
+Totalmente separado do sige atual que é voltado para estágios
+Adicionar um botão na parte da navbar "opções" para abrir o novo módulo
+Criar uma nova tela dashboard de admin/operador para o novo módulo, usando o mesmo layout do dashboard atual, mudando apenas para não mostrar as opções do navbar do módulo de estagios, mas sim as opções do novo módulo.
+Todas as rotas terão o prefixo sigeconcursos (por exemplo: sigebr.com/sigeconcursos/dashboard ou sigebr.com/sigeconcursos/processos), além de separar as views desse novo módulo todos em uma pasta "sigeconcursos" pra manter organização (por exemplo: views->sigeconcursos->processos->create.blade ou views->sigeconcursos->candidato->index.blade)
+Na página dashboard, adicionar:
+Um card pra acessar o gerenciamento dos processos (listagem, cadastro, edição, exclusão, etc.)
+Um card pra acessar o gerenciamento dos orgãos públicos/empresas (listagem, cadastro, edição, exclusão, etc.)
+Um card pra acessar o gerenciamento dos candidatos cadastrados (listagem, visualização, edição, exclusão, etc.)
+nov- Um card pra acessar o gerenciamento dos locais de prova (listagem, visualização, edição, exclusão, etc.)
+
+
+--- CADASTROS/TABELAS BANCO ---
+
+-> Cadastro Cargos e vagas
+Criar uma tabela geral separada para os cargos/vagas;
+Os cargos precisam ter valores diferentes entre si (pra isso vai precisar ter uma tabela relacionamento entre a tabela cargos e a tabela processos)
+
+-> Cadastro de Candidados
+
+-> Cadastro Órgãos Públicos
+Campo para dados bancários (Campo aberto, descritivo e não obrigatório)(Nome e Número do Banco, Agência, Número da Conta, Tipo de Conta)
+
+-> Cadastro de Locais de prova
+Campo nome
+Campo cep
+Campo endereço
+Campo número do endereço
+Campo complemento
+Campo bairro
+Campo cidade
+Campo relacionamento com Cadastro de Salas
+
+-> Cadastro de Salas
+Campo nome
+Campo bloco
+Campo numero max de cadidatos
+
+-> Cadastro Processos Seletivos e Concursos Públicos
+Campo para selecionar (seleção múltipla) os cargos do processo.
+Locais de prova
+Casos de isenção
+
+--- TELAS ---
+
+
+
+A PARTIR DAQUI SÃO ANOTAÇÕES SOLTAS
+# INSCRIÇÕES
+Na hora de se inscrever, precisa ter as seguintes opções:
+Uma opção de modalidade de concorrencia (Ampla concorrencia e PCD)
+Uma opção para selecionar o local de prova (opcional por processo)
+Adicionar um "Aceite"  Confirmo a leitura do edital de abertura, e estou ciente de todas as informações contidas.
+
+
+# TAXA INSCRIÇÕES E BOLETOS
+A cobrança vai ser gerada depois de se inscrever, na area do candidato.
+
+# INTEGRAÇÃO
