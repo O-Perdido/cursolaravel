@@ -20,6 +20,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'admin_ou_operador' => App\Http\Middleware\AdminOuOperador::class,
             'nivel' => App\Http\Middleware\EnsureNivel::class,
             'estagiario_verified' => App\Http\Middleware\EnsureEstagiarioVerified::class,
+            'candidato_verified' => App\Http\Middleware\EnsureCandidatoVerified::class,
         ]);
 
         $middleware->prependToGroup('admin_operador', [

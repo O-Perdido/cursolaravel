@@ -97,6 +97,20 @@
 
 @php
     $isSigeConcursos = request()->routeIs('sigeconcursos.*');
+    $authUser = Auth::user();
+    $isCandidatoAutenticado = $authUser && ($authUser->nivel ?? null) === 'candidato';
+    $sigeConcursosHomeRoute = route('sigeconcursos.candidato.login');
+
+    if ($authUser && in_array(($authUser->nivel ?? null), ['admin', 'operador'], true)) {
+        $sigeConcursosHomeRoute = route('sigeconcursos.dashboard');
+    } elseif ($isCandidatoAutenticado) {
+        $sigeConcursosHomeRoute = route('sigeconcursos.candidato.dashboard');
+    }
+
+    $brandHomeRoute = $isSigeConcursos ? $sigeConcursosHomeRoute : route('landing');
+    $systemTitle = $isSigeConcursos ? 'Sistema de Gestão de Concursos' : 'Sistema de Gestão de Estágios';
+    $guestAccessRoute = $isSigeConcursos ? route('sigeconcursos.candidato.login') : route('login');
+    $guestAccessLabel = $isSigeConcursos ? 'Acesso Candidato' : 'Acesso Geral';
 @endphp
 
 <body style="font-family: Gothic, sans-serif;">
@@ -113,8 +127,7 @@
     <nav class="navbar navbar-expand-lg navbar-dark shadow-sm text-center">
         <div class="container-fluid align-items-center px-2 px-md-3">
             <div class="d-flex align-items-center flex-grow-1">
-                <a href="{{ $isSigeConcursos ? route('sigeconcursos.dashboard') : route('landing') }}"
-                    class="navbar-brand d-flex align-items-center" style="margin: 0;">
+                <a href="{{ $brandHomeRoute }}" class="navbar-brand d-flex align-items-center" style="margin: 0;">
                     <img src="{{ asset('images/logo_branca_sem_fundo.png') }}" alt="Logo" height="45"
                         class="d-inline-block align-center">
                     <span class="d-none d-sm-inline" style="margin-left: 15px;">
@@ -132,28 +145,27 @@
             @guest
                 <!-- TITULO COM O NOME COMPLETO DO SISTEMA (só em telas grandes) -->
                 <div class="d-none d-lg-flex align-items-center justify-content-between flex-grow-1">
-                    <h1 class="text-white text-center" style="font-family: Asthoria, sans-serif;">Sistema de Gestão de
-                        Estágios</h1>
+                    <h1 class="text-white text-center" style="font-family: Asthoria, sans-serif;">{{ $systemTitle }}</h1>
                     <div class="d-flex gap-2">
-                        <a href="{{ route('login') }}" class="btn btn-outline-light btn-sm" style="font-weight: 500;">
-                            <i class="fas fa-sign-in-alt me-1"></i>Acesso Geral
+                        <a href="{{ $guestAccessRoute }}" class="btn btn-outline-light btn-sm" style="font-weight: 500;">
+                            <i class="fas fa-sign-in-alt me-1"></i>{{ $guestAccessLabel }}
                         </a>
                     </div>
                 </div>
                 <!-- Botão de acesso para mobile -->
-                <a href="{{ route('login') }}" class="btn btn-outline-light btn-sm d-lg-none" style="font-weight: 500;">
+                <a href="{{ $guestAccessRoute }}" class="btn btn-outline-light btn-sm d-lg-none" style="font-weight: 500;">
                     <i class="fas fa-sign-in-alt me-1"></i>Acesso
                 </a>
             @endguest
             @auth
                 <!-- SE O USUARIO LOGADO FOR EMPRESA MOSTRA TAMBÉM O NOME COMPLETO DO SISTEMA (só em telas grandes) -->
-                @if (Auth::user()->nivel == 'empresa' || Auth::user()->nivel == 'estagiario')
+                @if (Auth::user()->nivel == 'empresa' || Auth::user()->nivel == 'estagiario' || Auth::user()->nivel == 'candidato')
                     <div class="d-none d-lg-flex align-items-center justify-content-between gap-4">
                         <h1 class="text-white text-center mb-0" style="font-family: Asthoria, sans-serif; font-size:2rem;">
-                            Sistema de Gestão de Estágios
+                            {{ $systemTitle }}
                         </h1>
                         <div class="d-flex align-items-center gap-3">
-                            <a href="{{ route('landing') }}"
+                            <a href="{{ $isCandidatoAutenticado ? route('sigeconcursos.candidato.dashboard') : route('landing') }}"
                                 class="btn btn-outline-light btn-sm d-flex align-items-center gap-2 shadow-sm"
                                 style="font-weight: 500;">
                                 <i class="fas fa-home"></i>
@@ -165,7 +177,7 @@
                         </div>
                     </div>
                     <!-- Botão INÍCIO para mobile ao lado do hambúrguer -->
-                    <a href="{{ route('landing') }}"
+                    <a href="{{ $isCandidatoAutenticado ? route('sigeconcursos.candidato.dashboard') : route('landing') }}"
                         class="btn btn-outline-light btn-sm d-lg-none me-2 d-flex align-items-center gap-2"
                         style="font-weight: 500;">
                         <i class="fas fa-home"></i>
@@ -574,6 +586,17 @@
                                             </li>
                                         @endif
                                     @endif
+                                @elseif (Auth::user()->nivel == 'candidato')
+                                    <li><a class="dropdown-item" href="{{ route('sigeconcursos.candidato.dashboard') }}">
+                                            <i class="fa-solid fa-gauge-high" style="color: #102e6c"></i> Área do Candidato</a>
+                                    </li>
+                                    <li><a class="dropdown-item" href="{{ route('sigeconcursos.candidato.perfil') }}">
+                                            <i class="fa-solid fa-id-card" style="color: #102e6c"></i> Meus Dados</a>
+                                    </li>
+                                    <li><a class="dropdown-item" href="{{ route('sigeconcursos.candidato.perfil.editar') }}">
+                                            <i class="fa-solid fa-pen-to-square" style="color: #102e6c"></i> Atualizar
+                                            Cadastro</a>
+                                    </li>
                                 @endif
                                 <li>
                                     <hr class="dropdown-divider">

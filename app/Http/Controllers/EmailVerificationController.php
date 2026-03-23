@@ -35,7 +35,8 @@ class EmailVerificationController extends Controller
         $user->email_verification_expires_at = null;
         $user->save();
 
-        return redirect()->route('login')->with('success', 'E-mail verificado com sucesso! Você já pode acessar.');
+        return redirect()->route($this->routeForNivel((string) ($user->nivel ?? '')))
+            ->with('success', 'E-mail verificado com sucesso! Você já pode acessar.');
     }
 
     public function resend(Request $request)
@@ -58,5 +59,13 @@ class EmailVerificationController extends Controller
         $domainParts = explode('.', $domain);
         $domainParts[0] = substr($domainParts[0], 0, 1) . str_repeat('*', max(strlen($domainParts[0]) - 1, 0));
         return $maskedName . '@' . implode('.', $domainParts);
+    }
+
+    private function routeForNivel(string $nivel): string
+    {
+        return match ($nivel) {
+            'candidato' => 'sigeconcursos.candidato.login',
+            default => 'login',
+        };
     }
 }

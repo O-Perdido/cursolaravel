@@ -17,6 +17,7 @@ use App\Notifications\CustomResetPasswordNotification;
  * @property string|null $nivel
  * @property int|null $fk_id_empresa
  * @property int|null $fk_id_estagiario
+ * @property int|null $fk_id_candidato
  * @property string|null $email_verification_token
  * @property \Illuminate\Support\Carbon|null $email_verification_expires_at
  * @property \Illuminate\Support\Carbon|null $email_verified_at
@@ -41,6 +42,7 @@ class User extends Authenticatable
         'nivel',
         'fk_id_empresa',
         'fk_id_estagiario',
+        'fk_id_candidato',
         'senha',
         'email_verification_token',
         'email_verification_expires_at',
@@ -73,6 +75,11 @@ class User extends Authenticatable
     public function empresa()
     {
         return $this->belongsTo(Empresa::class, 'fk_id_empresa');
+    }
+
+    public function candidato()
+    {
+        return $this->belongsTo(SigeConcursoCandidato::class, 'fk_id_candidato', 'id_candidato');
     }
 
     public function validatePassword(string $password): string

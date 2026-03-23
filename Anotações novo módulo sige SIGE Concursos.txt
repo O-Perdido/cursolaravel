@@ -38,12 +38,30 @@ Campo cargo de representante obrigatório
 Campo cpf de representante obrigatório
 Campo para dados bancários (Campo aberto, descritivo e opcional)(Nome e Número do Banco, Agência, Número da Conta, Tipo de Conta)
 
--> Cadastro de Candidados
-Campo nome
-Campo cpf
-Campo data de nascimento
-Campo sexo (Masculino, Feminino, Não declarar)
-Campo e-mail
+-> Cadastro de Candidatos
+Campo nome obrigatório
+Campo cpf obrigatório
+Campo data de nascimento obrigatório
+Campo sexo (Masculino, Feminino, Não declarar) obrigatório
+Campo e-mail obrigatório
+Campo Número RG (Identidade) obrigatório
+Campo Órgão Expedidor do RG obrigatório
+Campo UF do RG obrigatório
+Campo Nome da Mãe obrigatório
+Campo Nacionalidade obrigatório
+Campo Naturalidade - cidade obrigatório
+Campo Naturalidade - estado obrigatório
+Campo Canhoto (sim, não) obrigatório
+Campo cep obrigatório
+Campo endereço obrigatório
+Campo número obrigatório
+Campo complemento opcional
+Campo bairro obrigatório
+Campo estado obrigatório
+Campo cidade obrigatório
+Campo Telefone Contato opcional
+Campo Celular WhatsApp obrigatório
+
 
 
 -> Cadastro de Locais de prova
@@ -91,6 +109,49 @@ Tela de detalhes de órgão público/empresas
 *Implementação Inicial já feita.
 Uma tela onde vamos poder gerenciar e visualizar as informações de uma empresa/órgão público específico
 
+Tela Cadastro de Candidato
+*Implementação inicial já feita.
+O cadastro de candidato será feita pelo próprio candidato, e vai funcionar como funciona o cadastro de estagiarios atualmente, ao se cadastrar ele também cria uma senha para ser o usuário de acesso dele. usa como inspiração a tela de cadastro de estagiários que já tem, pois precisa ter as mesmas lógicas e tals... Enfim...
+
+Tela de login para candidatos
+*Implementação inicial já feita.
+Uma nova tela de login, que diferentemente da tela atual, que é voltada principalmente para estagiários, essa nova será voltada para candidatos.
+Uma outra diferença, é que ao invés de aparecer o formulário padrão de login (email e senha), primeiro vai aparecer um campo para preencher com o CPF e o sistema vai buscar se já existe cadastro de candidato com esse CPF.
+Se o candidato já tiver cadastro, aparece abaixo os campos pra fazer login (email e senha). Se não tiver cadastro, aparece o botão para se cadastrar.
+O login permanece por email + senha. Deixar anotado no código que futuramente pode ser adaptado para CPF + senha.
+O candidato também terá verificação de email e opção de redefinir senha.
+
+Tela "Área do Candidato
+*Implementação inicial já feita.
+Uma tela inicial/dashboard voltada para o candidato, parecido com o que já tem para estagiários, vai ser onde ele vai poder gerenciar/atualizar os próprios dados, visualizar os processos/concursos em que está inscrito e etc, mas por enquanto focaremos na tela inicial e na tela dos dados pessoais para permitir edição.
+
+Tela Meus Dados
+*Implementação inicial já feita.
+Mesmo principio da tela meus dados de estagiario, é permitir a consulta dos dados pessoais dos candidatos.
+
+Tela de edição dos dados pessoais do candidato.
+*Implementação inicial já feita.
+Uma tela que permita que o próprio candidato edite os dados dele (exceto senha), inclusive, uma diferença em relação aos estagiarios, é que se o candidato alterar o email dele de cadastro, o sistema automaticamente atualizar o email de login, mas sempre avisando com um popup quando for alterar isso, explicando e confirmando a alteração do email.
+
+Tela de listagem de candidatos
+*Implementação inicial já feita.
+Uma tela voltada a operadores e admins, para gerenciar os candidatos.
+Pode seguir o exemplo das outras telas de listagem que já temos no sige.
+Uma tela com card de filtros, botão para copiar o link de cadastro de candidato, para compartilhamento e a listagem páginada dos cadastros.
+Seguir o mesmo layout e estilo visual que já temos nas telas do sige estágios.
+A tabela que lista os cadastros terãos as colunas:
+Nome Completo, CPF, Email e Ações (Onde terãos os botões de excluir e detalhes.)
+Lembrando que sempre ao excluir algo, mostrar um popup de confirmação e pedindo senha pra confirmar.
+Operadores/admins não precisam editar os dados dos candidatos nesta primeira fase, apenas visualizar detalhes e excluir.
+Na exclusão, a senha confirmada é a do operador/admin logado.
+
+Página de detalhes de um candidato
+*Implementação inicial já feita.
+Uma tela voltada a operadores e admins.
+Uma tela onde vamos poder gerenciar e visualizar as informações de um candidato específico.
+
+OBS GERAL DESSA ETAPA
+Aplicar as máscaras adequadas nos campos de CPF, CEP, telefone e celular/WhatsApp.
 
 
 A PARTIR DAQUI SÃO ANOTAÇÕES SOLTAS

@@ -36,6 +36,7 @@ class EnsureNivel
             'admin', 'operador' => 'welcome.admin',
             'empresa' => 'welcome.empresa',
             'estagiario' => 'welcome.estagiario',
+            'candidato' => 'sigeconcursos.candidato.dashboard',
             default => 'login',
         };
     }

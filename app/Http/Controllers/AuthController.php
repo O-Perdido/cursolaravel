@@ -31,7 +31,7 @@ class AuthController extends Controller
             $user = Auth::user();
 
             // Se for estagiário e não tiver e-mail verificado, redireciona para verificação
-            if (($user->nivel ?? null) === 'estagiario' && empty($user->email_verified_at)) {
+            if (in_array(($user->nivel ?? null), ['estagiario', 'candidato'], true) && empty($user->email_verified_at)) {
                 // Garante que exista um código válido (gera e envia se estiver faltando ou expirado)
                 $expiresAt = $user->email_verification_expires_at ?? null;
                 $missingOrExpired = empty($user->email_verification_token) || ($expiresAt && now()->greaterThan($expiresAt));
@@ -69,6 +69,7 @@ class AuthController extends Controller
             'admin', 'operador' => 'welcome.admin',
             'empresa' => 'welcome.empresa',
             'estagiario' => 'welcome.estagiario',
+            'candidato' => 'sigeconcursos.candidato.dashboard',
             default => 'welcome',
         };
     }

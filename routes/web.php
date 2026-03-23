@@ -20,6 +20,8 @@ use App\Http\Controllers\ZapSignWebhookController;
 use App\Http\Controllers\ChamadoController;
 use App\Http\Controllers\TipoChamadoController;
 use App\Http\Controllers\SigeConcursoEmpresaController;
+use App\Http\Controllers\SigeConcursoCandidatoController;
+use App\Http\Controllers\SigeConcursoCandidatoPortalController;
 
 $manutencao = false; // Defina como true para ativar a manutenção
 
@@ -51,7 +53,9 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/orgaos/{id}/edit', [SigeConcursoEmpresaController::class, 'edit'])->name('orgaos.edit');
         Route::put('/orgaos/{id}', [SigeConcursoEmpresaController::class, 'update'])->name('orgaos.update');
         Route::delete('/orgaos/{id}', [SigeConcursoEmpresaController::class, 'destroy'])->name('orgaos.destroy');
-        Route::view('/candidatos', 'sigeconcursos.candidatos.index')->name('candidatos.index');
+        Route::get('/candidatos', [SigeConcursoCandidatoController::class, 'index'])->name('candidatos.index');
+        Route::get('/candidatos/{id}', [SigeConcursoCandidatoController::class, 'show'])->name('candidatos.show');
+        Route::delete('/candidatos/{id}', [SigeConcursoCandidatoController::class, 'destroy'])->name('candidatos.destroy');
     });
 
     Route::get('/dashboard/empresa', function () {
@@ -61,6 +65,13 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard/estagiario', function () {
         return view('welcome_estagiario');
     })->middleware(['nivel:estagiario','estagiario_verified'])->name('welcome.estagiario');
+
+    Route::prefix('sigeconcursos/candidato')->name('sigeconcursos.candidato.')->middleware(['nivel:candidato', 'candidato_verified'])->group(function () {
+        Route::get('/dashboard', [SigeConcursoCandidatoPortalController::class, 'dashboard'])->name('dashboard');
+        Route::get('/meus-dados', [SigeConcursoCandidatoPortalController::class, 'perfil'])->name('perfil');
+        Route::get('/meus-dados/editar', [SigeConcursoCandidatoPortalController::class, 'editarPerfil'])->name('perfil.editar');
+        Route::put('/meus-dados', [SigeConcursoCandidatoPortalController::class, 'atualizarPerfil'])->name('perfil.atualizar');
+    });
 
     // Rotas para o estagiário gerenciar seu próprio perfil
     Route::middleware(['nivel:estagiario', 'estagiario_verified'])->group(function () {
@@ -501,6 +512,7 @@ Route::middleware(['auth'])->group(function () {
             'admin', 'operador' => 'welcome.admin',
             'empresa' => 'welcome.empresa',
             'estagiario' => 'welcome.estagiario',
+            'candidato' => 'sigeconcursos.candidato.dashboard',
             default => 'login',
         });
     })->name('welcome');
@@ -518,6 +530,7 @@ Route::get('/', function () {
             'admin', 'operador' => 'welcome.admin',
             'empresa' => 'welcome.empresa',
             'estagiario' => 'welcome.estagiario',
+            'candidato' => 'sigeconcursos.candidato.dashboard',
             default => 'login',
         });
     }
@@ -545,6 +558,14 @@ Route::middleware('guest')->group(function () {
     Route::post('/forgot-password', [\App\Http\Controllers\PasswordResetController::class, 'sendEmail'])->name('password.email');
     Route::get('/reset-password/{token}', [\App\Http\Controllers\PasswordResetController::class, 'resetForm'])->name('password.reset');
     Route::post('/reset-password', [\App\Http\Controllers\PasswordResetController::class, 'resetUpdate'])->name('password.update');
+
+    Route::prefix('sigeconcursos/candidato')->name('sigeconcursos.candidato.')->group(function () {
+        Route::get('/cadastro', [SigeConcursoCandidatoPortalController::class, 'showCadastro'])->name('cadastro');
+        Route::post('/cadastro', [SigeConcursoCandidatoPortalController::class, 'storeCadastro'])->name('store');
+        Route::get('/login', [SigeConcursoCandidatoPortalController::class, 'showLogin'])->name('login');
+        Route::post('/login', [SigeConcursoCandidatoPortalController::class, 'login'])->name('auth');
+        Route::post('/buscar-cpf', [SigeConcursoCandidatoPortalController::class, 'buscarPorCpf'])->name('buscar-cpf');
+    });
 });
 
 Route::get('estados/{id}/cidades', [EmpresaController::class, 'getCidadesByEstado']);
