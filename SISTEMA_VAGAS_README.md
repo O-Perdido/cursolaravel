@@ -23,7 +23,7 @@ Foi implementado um sistema completo de cadastro e gerenciamento de vagas de est
 
 ### 2. Controle de Acesso
 - **Empresa**: Vê e gerencia apenas suas próprias vagas
-- **Admin/Operador**: Acesso total a todas as vagas de todas as empresas
+- **Admin/Operador**: Acesso total a todas as vagas de todas as empresas, incluindo edição dos dados de estagiário informado pela unidade concedente
 - **Bloqueios**: Não pode editar/excluir vagas já vinculadas a termos
 
 ### 3. Vinculação Termo-Vaga
@@ -40,6 +40,7 @@ Foi implementado um sistema completo de cadastro e gerenciamento de vagas de est
 ### 4. Desvinculação Automática
 - **Ao excluir termo**: Vaga vinculada volta automaticamente para status "disponível"
 - **Limpeza de dados**: Remove fk_id_termo e vinculo_tipo da vaga
+- **Preservação dos dados do estagiário**: Ao reabrir a vaga, nome, WhatsApp e e-mail originalmente cadastrados na vaga são mantidos
 
 ### 5. Validações Implementadas
 - **Backend**:
@@ -48,6 +49,7 @@ Foi implementado um sistema completo de cadastro e gerenciamento de vagas de est
   - Vaga deve pertencer à empresa selecionada
   - Validações de existência de FK (empresa, local)
   - Se qualquer campo de estagiário (nome, WhatsApp ou e-mail) estiver preenchido, a vaga é salva automaticamente como "tem estagiário definido"; só é possível salvar como "não tem" se todos esses campos estiverem vazios
+  - Edições feitas por admin/operador sem enviar os campos do estagiário não podem apagar os dados já cadastrados na vaga
   
 - **Frontend**:
   - Alerta se vaga expirada for selecionada (data_termino < hoje)

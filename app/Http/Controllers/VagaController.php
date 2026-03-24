@@ -140,7 +140,7 @@ class VagaController extends Controller
             return back()->withErrors(['msg' => 'Não é possível editar vaga vinculada a termo.']);
         }
         
-        $this->normalizarEstagiarioDefinido($request);
+        $this->normalizarEstagiarioDefinido($request, $vaga);
         
         $rules = [
             'titulo_vaga' => 'required|string|max:150',
@@ -161,7 +161,7 @@ class VagaController extends Controller
         ];
 
         $user = Auth::user();
-        if ($user->nivel === 'empresa') {
+        if (in_array($user->nivel, ['empresa', 'admin', 'operador'], true)) {
             $rules['status'] = 'required|in:disponivel,suspensa';
         }
 
@@ -242,14 +242,40 @@ class VagaController extends Controller
         ]);
     }
 
-    private function normalizarEstagiarioDefinido(Request $request): void
+    private function normalizarEstagiarioDefinido(Request $request, ?Vaga $vaga = null): void
     {
-        $nome = trim((string) $request->input('nome_estagiario', ''));
-        $whatsapp = trim((string) $request->input('contato_whatsapp', ''));
-        $email = trim((string) $request->input('contato_email', ''));
+        $camposEstagiario = [
+            'tem_estagiario_definido',
+            'nome_estagiario',
+            'contato_whatsapp',
+            'contato_email',
+        ];
+
+        $camposEnviados = collect($camposEstagiario)->contains(function ($campo) use ($request) {
+            return $request->exists($campo);
+        });
+
+        if (!$camposEnviados && $vaga) {
+            $request->merge([
+                'tem_estagiario_definido' => (bool) $vaga->tem_estagiario_definido,
+                'nome_estagiario' => $vaga->nome_estagiario,
+                'contato_whatsapp' => $vaga->contato_whatsapp,
+                'contato_email' => $vaga->contato_email,
+            ]);
+
+            return;
+        }
+
+        $nome = trim((string) $request->input('nome_estagiario', $vaga?->nome_estagiario ?? ''));
+        $whatsapp = trim((string) $request->input('contato_whatsapp', $vaga?->contato_whatsapp ?? ''));
+        $email = trim((string) $request->input('contato_email', $vaga?->contato_email ?? ''));
 
         $dadosPreenchidos = $nome !== '' || $whatsapp !== '' || $email !== '';
-        $flagSolicitada = in_array($request->input('tem_estagiario_definido'), ['sim', '1', 1, true, 'true'], true);
+        $flagSolicitada = in_array(
+            $request->input('tem_estagiario_definido', $vaga?->tem_estagiario_definido ? '1' : '0'),
+            ['sim', '1', 1, true, 'true'],
+            true
+        );
         $temEstagiario = $dadosPreenchidos || $flagSolicitada;
 
         $request->merge([

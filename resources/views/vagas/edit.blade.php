@@ -117,8 +117,8 @@
                     <div class="col-md-6">
 
                         @php($nivel = auth()->user()->nivel ?? null)
-                        @if($nivel === 'empresa')
-                        <!-- Estagiário definido (opcional, só empresa) -->
+                        @if(in_array($nivel, ['empresa', 'admin', 'operador']))
+                        <!-- Estagiário definido (opcional) -->
                         <div class="mb-3">
                             <label class="form-label d-block">Esta vaga já tem estagiário definido?</label>
                             <div class="form-check form-check-inline">
@@ -206,7 +206,7 @@
                         <!-- Status -->
                         <div class="mb-3">
                             <label for="status" class="form-label">Status</label>
-                            @if(($nivel ?? null) === 'empresa' && !$vaga->fk_id_termo)
+                            @if(in_array(($nivel ?? null), ['empresa', 'admin', 'operador']) && !$vaga->fk_id_termo)
                                 <select name="status" id="status" class="form-select form-select-sm" required>
                                     <option value="disponivel" {{ old('status', $vaga->status) === 'disponivel' ? 'selected' : '' }}>Disponível</option>
                                     <option value="suspensa" {{ old('status', $vaga->status) === 'suspensa' ? 'selected' : '' }}>Suspensa</option>
