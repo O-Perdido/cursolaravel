@@ -15,6 +15,22 @@
 </li>
 
 <li class="nav-item" style="vertical-align: middle;">
+    <a class="nav-link {{ request()->routeIs('sigeconcursos.cargos.*') ? 'active' : '' }}"
+        href="{{ route('sigeconcursos.cargos.index') }}">
+        <i class="fa-solid fa-briefcase fa-2x"></i><br>
+        <small>Cargos</small>
+    </a>
+</li>
+
+<li class="nav-item" style="vertical-align: middle;">
+    <a class="nav-link {{ request()->routeIs('sigeconcursos.locais-prova.*') ? 'active' : '' }}"
+        href="{{ route('sigeconcursos.locais-prova.index') }}">
+        <i class="fa-solid fa-school fa-2x"></i><br>
+        <small>Locais</small>
+    </a>
+</li>
+
+<li class="nav-item" style="vertical-align: middle;">
     <a class="nav-link {{ request()->routeIs('sigeconcursos.orgaos.*') ? 'active' : '' }}"
         href="{{ route('sigeconcursos.orgaos.index') }}">
         <i class="fa-solid fa-building-columns fa-2x"></i><br>

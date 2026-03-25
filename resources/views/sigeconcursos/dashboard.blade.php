@@ -27,7 +27,7 @@
         </div>
     </div>
 
-    <div class="row row-cols-1 row-cols-md-3 g-4">
+    <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4">
         <div class="col">
             <div class="card text-center h-100 shadow-sm border-0">
                 <div class="card-body d-flex flex-column">
@@ -38,6 +38,34 @@
                     <p class="card-text flex-grow-1">Acesse a área que concentrará listagem, cadastro, edição e exclusão dos
                         processos do módulo.</p>
                     <a href="{{ route('sigeconcursos.processos.index') }}" class="btn btn-primary">Gerenciar Processos</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col">
+            <div class="card text-center h-100 shadow-sm border-0">
+                <div class="card-body d-flex flex-column">
+                    <div class="mb-3">
+                        <i class="fa-solid fa-briefcase fa-3x" style="color: #102e6c;"></i>
+                    </div>
+                    <h5 class="card-title">Cargos</h5>
+                    <p class="card-text flex-grow-1">Cadastre e mantenha a base geral de cargos para vincular depois em cada
+                        processo.</p>
+                    <a href="{{ route('sigeconcursos.cargos.index') }}" class="btn btn-primary">Gerenciar Cargos</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col">
+            <div class="card text-center h-100 shadow-sm border-0">
+                <div class="card-body d-flex flex-column">
+                    <div class="mb-3">
+                        <i class="fa-solid fa-school fa-3x" style="color: #102e6c;"></i>
+                    </div>
+                    <h5 class="card-title">Locais de Prova</h5>
+                    <p class="card-text flex-grow-1">Monte a estrutura de locais e salas para reaproveitar nos processos de
+                        seleção e concurso.</p>
+                    <a href="{{ route('sigeconcursos.locais-prova.index') }}" class="btn btn-primary">Gerenciar Locais</a>
                 </div>
             </div>
         </div>

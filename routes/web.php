@@ -19,9 +19,12 @@ use App\Http\Controllers\EmailVerificationController;
 use App\Http\Controllers\ZapSignWebhookController;
 use App\Http\Controllers\ChamadoController;
 use App\Http\Controllers\TipoChamadoController;
+use App\Http\Controllers\SigeConcursoCargoController;
 use App\Http\Controllers\SigeConcursoEmpresaController;
 use App\Http\Controllers\SigeConcursoCandidatoController;
 use App\Http\Controllers\SigeConcursoCandidatoPortalController;
+use App\Http\Controllers\SigeConcursoLocalProvaController;
+use App\Http\Controllers\SigeConcursoProcessoController;
 
 $manutencao = false; // Defina como true para ativar a manutenção
 
@@ -45,7 +48,27 @@ Route::middleware(['auth'])->group(function () {
 
     Route::prefix('sigeconcursos')->name('sigeconcursos.')->middleware(['nivel:admin,operador'])->group(function () {
         Route::view('/dashboard', 'sigeconcursos.dashboard')->name('dashboard');
-        Route::view('/processos', 'sigeconcursos.processos.index')->name('processos.index');
+        Route::get('/processos', [SigeConcursoProcessoController::class, 'index'])->name('processos.index');
+        Route::get('/processos/create', [SigeConcursoProcessoController::class, 'create'])->name('processos.create');
+        Route::post('/processos', [SigeConcursoProcessoController::class, 'store'])->name('processos.store');
+        Route::get('/processos/{id}', [SigeConcursoProcessoController::class, 'show'])->name('processos.show');
+        Route::get('/processos/{id}/edit', [SigeConcursoProcessoController::class, 'edit'])->name('processos.edit');
+        Route::put('/processos/{id}', [SigeConcursoProcessoController::class, 'update'])->name('processos.update');
+        Route::delete('/processos/{id}', [SigeConcursoProcessoController::class, 'destroy'])->name('processos.destroy');
+        Route::delete('/processos/arquivos/{id}', [SigeConcursoProcessoController::class, 'removerArquivo'])->name('processos.arquivos.destroy');
+        Route::get('/cargos', [SigeConcursoCargoController::class, 'index'])->name('cargos.index');
+        Route::get('/cargos/create', [SigeConcursoCargoController::class, 'create'])->name('cargos.create');
+        Route::post('/cargos', [SigeConcursoCargoController::class, 'store'])->name('cargos.store');
+        Route::get('/cargos/{id}/edit', [SigeConcursoCargoController::class, 'edit'])->name('cargos.edit');
+        Route::put('/cargos/{id}', [SigeConcursoCargoController::class, 'update'])->name('cargos.update');
+        Route::delete('/cargos/{id}', [SigeConcursoCargoController::class, 'destroy'])->name('cargos.destroy');
+        Route::get('/locais-prova', [SigeConcursoLocalProvaController::class, 'index'])->name('locais-prova.index');
+        Route::get('/locais-prova/create', [SigeConcursoLocalProvaController::class, 'create'])->name('locais-prova.create');
+        Route::post('/locais-prova', [SigeConcursoLocalProvaController::class, 'store'])->name('locais-prova.store');
+        Route::get('/locais-prova/{id}', [SigeConcursoLocalProvaController::class, 'show'])->name('locais-prova.show');
+        Route::get('/locais-prova/{id}/edit', [SigeConcursoLocalProvaController::class, 'edit'])->name('locais-prova.edit');
+        Route::put('/locais-prova/{id}', [SigeConcursoLocalProvaController::class, 'update'])->name('locais-prova.update');
+        Route::delete('/locais-prova/{id}', [SigeConcursoLocalProvaController::class, 'destroy'])->name('locais-prova.destroy');
         Route::get('/orgaos', [SigeConcursoEmpresaController::class, 'index'])->name('orgaos.index');
         Route::get('/orgaos/create', [SigeConcursoEmpresaController::class, 'create'])->name('orgaos.create');
         Route::post('/orgaos', [SigeConcursoEmpresaController::class, 'store'])->name('orgaos.store');
