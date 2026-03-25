@@ -166,3 +166,119 @@ Adicionar um "Aceite"  Confirmo a leitura do edital de abertura, e estou ciente 
 A cobrança vai ser gerada depois de se inscrever, na area do candidato.
 
 # INTEGRAÇÃO
+
+
+--- ESTRUTURA DETALHADA DEFINIDA PARA A PRÓXIMA ETAPA: CADASTRO DE PROCESSOS
+
+Base/inspiração principal:
+Usar como referência o módulo já existente de processos seletivos de estágios, aproveitando especialmente:
+- listagem com filtros
+- formulário dividido por blocos
+- cronograma por fases
+- anexos do processo
+- status do processo
+
+Diferença principal no SIGE Concursos:
+O processo precisa nascer preparado para cargos, locais de prova, salas e regras futuras de inscrição.
+
+Escopo decidido para a próxima implementação:
+1. CRUD completo de processos do SIGE Concursos
+2. Cadastro auxiliar de cargos
+3. Cadastro auxiliar de locais de prova
+4. Cadastro auxiliar de salas por local
+5. Vinculação de cargos e locais no processo
+6. Casos de isenção dentro do cadastro do processo
+7. Anexos do edital e documentos complementares
+
+Fora desta etapa:
+1. Inscrições
+2. Pagamentos
+3. Boletos
+4. Distribuição de candidatos por sala
+5. Resultados e convocações
+
+Tabelas planejadas:
+1. sigeconcursos_tb_processos
+2. sigeconcursos_tb_cargos
+3. sigeconcursos_tb_processo_cargos
+4. sigeconcursos_tb_locais_prova
+5. sigeconcursos_tb_salas
+6. sigeconcursos_tb_processo_locais
+7. sigeconcursos_tb_processo_isencoes
+8. sigeconcursos_tb_processo_arquivos
+
+Definição importante sobre cargos:
+Os cargos ficarão em uma tabela geral separada.
+Os valores variáveis de cada cargo ficarão na tabela de relacionamento com o processo.
+Nesse relacionamento poderão existir, por exemplo:
+- quantidade de vagas
+- cadastro reserva
+- remuneração
+- taxa de inscrição específica
+- carga horária
+- requisitos específicos
+
+Estrutura da tela de cadastro/edição do processo:
+1. Informações básicas
+Tipo do processo, órgão responsável, número do edital, título, status, resumo e descrição.
+
+2. Datas e cronograma
+Publicação, início das inscrições, fim das inscrições, data da prova, data do resultado e fases dinâmicas.
+
+3. Cargos e vagas
+Selecionar cargos cadastrados e preencher os dados específicos de cada cargo dentro do processo.
+
+4. Locais de prova
+Selecionar um ou mais locais cadastrados no processo.
+
+5. Casos de isenção
+Lista dinâmica com título, descrição e período.
+
+6. Configurações futuras de inscrição
+Aceite do edital, escolha de local de prova, modalidades habilitadas e taxa de inscrição.
+
+7. Arquivos
+Edital, retificações, anexos e conteúdo programático.
+
+8. Observações finais
+Campo para observações gerais do processo.
+
+Tela de listagem dos processos:
+Filtros planejados:
+- título
+- número do edital
+- órgão
+- tipo do processo
+- status
+- período de publicação
+
+Colunas planejadas:
+- título
+- número do edital
+- órgão
+- tipo
+- status
+- período das inscrições
+- ações
+
+Ações planejadas:
+- detalhes
+- editar
+- excluir
+
+Tela de detalhes do processo:
+Vai servir para visualizar de forma consolidada:
+- dados gerais
+- cargos vinculados
+- locais de prova
+- casos de isenção
+- anexos
+
+Estratégia de desenvolvimento definida:
+1. Primeiro criar as estruturas auxiliares: cargos, locais de prova e salas
+2. Depois criar o CRUD completo de processos
+3. Depois conectar anexos, isenções e relacionamentos
+4. A parte de inscrição fica para uma etapa futura
+
+Arquivo de documentação detalhada criado em:
+docs/SIGECONCURSOS_PROCESSOS_CADASTRO_ESTRUTURA.md
