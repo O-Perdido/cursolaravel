@@ -6,13 +6,19 @@ use App\Mail\EmailVerificationCode;
 use App\Models\Cidade;
 use App\Models\Estado;
 use App\Models\SigeConcursoCandidato;
+use App\Models\SigeConcursoInscricao;
+use App\Models\SigeConcursoInscricaoDocumento;
+use App\Models\SigeConcursoInscricaoIsencaoDocumento;
+use App\Models\SigeConcursoProcessoLocal;use App\Models\SigeConcursoProcesso;
 use App\Models\User;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
@@ -183,8 +189,343 @@ class SigeConcursoCandidatoPortalController extends Controller
     public function dashboard()
     {
         $candidato = $this->getCandidatoAutenticado();
+        $totalInscricoes = $candidato->inscricoes()->count();
+        $inscricoesRecentes = $candidato->inscricoes()
+            ->with('processo')
+            ->orderByDesc('created_at')
+            ->limit(3)
+            ->get();
 
-        return view('sigeconcursos.candidato.dashboard', compact('candidato'));
+        return view('sigeconcursos.candidato.dashboard', compact('candidato', 'totalInscricoes', 'inscricoesRecentes'));
+    }
+
+    public function processos()
+    {
+        $candidato = $this->getCandidatoAutenticado();
+
+        $query = SigeConcursoProcesso::with(['empresa', 'processoCargos.cargo'])
+            ->where('status', 'inscricoes_abertas')
+            ->where(function ($builder) {
+                $builder->whereNull('data_inicio_inscricoes')
+                    ->orWhere('data_inicio_inscricoes', '<=', now());
+            })
+            ->where(function ($builder) {
+                $builder->whereNull('data_fim_inscricoes')
+                    ->orWhere('data_fim_inscricoes', '>=', now());
+            })
+            ->orderByDesc('data_publicacao')
+            ->orderByDesc('id_processo');
+
+        if (request()->filled('busca')) {
+            $termo = trim((string) request('busca'));
+            $query->where(function ($builder) use ($termo) {
+                $builder->where('titulo', 'like', '%' . $termo . '%')
+                    ->orWhere('numero_edital', 'like', '%' . $termo . '%')
+                    ->orWhereHas('empresa', function ($empresaQuery) use ($termo) {
+                        $empresaQuery->where('nome_razao_social', 'like', '%' . $termo . '%');
+                    });
+            });
+        }
+
+        $processos = $query->paginate(12)->appends(request()->query());
+        $inscricoesDoCandidato = $candidato->inscricoes()
+            ->pluck('id_inscricao', 'fk_id_processo')
+            ->toArray();
+
+        return view('sigeconcursos.candidato.processos.index', compact('processos', 'inscricoesDoCandidato'));
+    }
+
+    public function processoDetalhes(int $id)
+    {
+        $candidato = $this->getCandidatoAutenticado();
+
+        $processo = SigeConcursoProcesso::with([
+            'empresa',
+            'processoCargos.cargo',
+            'isencoes',
+            'arquivos',
+            'documentosExigidos',
+        ])->findOrFail($id);
+
+        $inscricaoExistente = SigeConcursoInscricao::with(['documentos.documentoExigido', 'isencao', 'documentosIsencao'])
+            ->where('fk_id_processo', $processo->id_processo)
+            ->where('fk_id_candidato', $candidato->id_candidato)
+            ->first();
+
+        $podeInscrever = $this->processoComInscricoesAbertas($processo);
+
+        return view('sigeconcursos.candidato.processos.show', compact('processo', 'inscricaoExistente', 'podeInscrever'));
+    }
+
+    public function inscreverProcesso(Request $request, int $id)
+    {
+        $candidato = $this->getCandidatoAutenticado();
+        $processo = SigeConcursoProcesso::with(['documentosExigidos', 'isencoes', 'processoCargos'])->findOrFail($id);
+
+        if (!$this->processoComInscricoesAbertas($processo)) {
+            return back()->with('error', 'Este processo não está com inscrições abertas neste momento.');
+        }
+
+        $inscricaoJaExiste = SigeConcursoInscricao::where('fk_id_processo', $processo->id_processo)
+            ->where('fk_id_candidato', $candidato->id_candidato)
+            ->exists();
+
+        if ($inscricaoJaExiste) {
+            return back()->with('error', 'Você já possui inscrição neste processo.');
+        }
+
+        $modalidadesPermitidas = [];
+        if ($processo->permite_ampla_concorrencia) {
+            $modalidadesPermitidas[] = 'ampla_concorrencia';
+        }
+        if ($processo->permite_pcd) {
+            $modalidadesPermitidas[] = 'pcd';
+        }
+
+        if (empty($modalidadesPermitidas)) {
+            return back()->with('error', 'Este processo está sem modalidade de concorrência habilitada.');
+        }
+
+        $rules = [
+            'modalidade_concorrencia' => ['required', Rule::in($modalidadesPermitidas)],
+            'solicitou_condicao_especial' => ['nullable'],
+            'descricao_condicao_especial' => ['nullable', 'string', 'max:5000'],
+            'documento_condicao_especial' => ['nullable', 'file', 'max:5120'],
+            'solicitou_isencao' => ['nullable'],
+            'fk_id_isencao' => ['nullable', 'integer', 'exists:sigeconcursos_tb_processo_isencoes,id_isencao'],
+            'justificativa_isencao' => ['nullable', 'string', 'max:5000'],
+            'isencao_documentos' => ['nullable', 'array'],
+            'isencao_documentos.*' => ['nullable', 'file', 'max:5120'],
+            'aceite_edital' => [$processo->exige_aceite_edital ? 'accepted' : 'nullable'],
+        ];
+
+        foreach ($processo->documentosExigidos as $documentoExigido) {
+            $campo = 'documentos_exigidos.' . $documentoExigido->id_documento_exigido;
+            $rules[$campo] = [
+                $documentoExigido->obrigatorio ? 'required' : 'nullable',
+                'file',
+                'max:5120',
+            ];
+        }
+
+        $validated = $request->validate($rules, [
+            'aceite_edital.accepted' => 'Você precisa confirmar a leitura do edital para concluir a inscrição.',
+        ]);
+
+        $solicitouCondicaoEspecial = $request->boolean('solicitou_condicao_especial');
+        $descricaoCondicaoEspecial = trim((string) ($validated['descricao_condicao_especial'] ?? ''));
+
+        if ($solicitouCondicaoEspecial && $descricaoCondicaoEspecial === '') {
+            throw ValidationException::withMessages([
+                'descricao_condicao_especial' => 'Descreva a condição especial de aplicação solicitada.',
+            ]);
+        }
+
+        if (!$processo->permite_condicao_especial) {
+            $solicitouCondicaoEspecial = false;
+            $descricaoCondicaoEspecial = '';
+        }
+
+        if ($solicitouCondicaoEspecial && $processo->exige_documento_condicao_especial && !$request->hasFile('documento_condicao_especial')) {
+            throw ValidationException::withMessages([
+                'documento_condicao_especial' => 'Este processo exige laudo/documento para a condição especial.',
+            ]);
+        }
+
+        $caminhoDocumentoCondicaoEspecial = null;
+
+        if ($solicitouCondicaoEspecial && $request->hasFile('documento_condicao_especial')) {
+            $caminhoDocumentoCondicaoEspecial = $request->file('documento_condicao_especial')
+                ->store('sigeconcursos/inscricoes/condicao-especial/processo_' . $processo->id_processo . '/candidato_' . $candidato->id_candidato, 'public');
+        }
+
+        $solicitouIsencao = $request->boolean('solicitou_isencao');
+        $idIsencaoSelecionada = $request->input('fk_id_isencao');
+        $justificativaIsencao = trim((string) $request->input('justificativa_isencao'));
+
+        if (!$processo->possui_taxa_inscricao) {
+            $solicitouIsencao = false;
+            $idIsencaoSelecionada = null;
+            $justificativaIsencao = '';
+        }
+
+        if ($solicitouIsencao && $processo->isencoes->isEmpty()) {
+            throw ValidationException::withMessages([
+                'solicitou_isencao' => 'Este processo não possui casos de isenção cadastrados.',
+            ]);
+        }
+
+        if ($solicitouIsencao && !$idIsencaoSelecionada) {
+            throw ValidationException::withMessages([
+                'fk_id_isencao' => 'Selecione o caso de isenção desejado.',
+            ]);
+        }
+
+        if ($solicitouIsencao && $justificativaIsencao === '') {
+            throw ValidationException::withMessages([
+                'justificativa_isencao' => 'Descreva a justificativa da solicitação de isenção.',
+            ]);
+        }
+
+        if ($solicitouIsencao && !$processo->isencoes->contains('id_isencao', (int) $idIsencaoSelecionada)) {
+            throw ValidationException::withMessages([
+                'fk_id_isencao' => 'Caso de isenção inválido para este processo.',
+            ]);
+        }
+
+        $statusIsencao = $solicitouIsencao ? 'pendente' : 'nao_solicitada';
+
+        $valorTaxaAplicada = null;
+        $statusPagamento = 'nao_aplicavel';
+
+        if ($processo->possui_taxa_inscricao) {
+            $valorTaxaAplicada = $this->resolveValorTaxaAplicada($processo, $validated['modalidade_concorrencia']);
+            $statusPagamento = $solicitouIsencao ? 'aguardando_isencao' : 'pendente';
+        }
+
+        try {
+            DB::transaction(function () use (
+                $processo,
+                $candidato,
+                $validated,
+                $solicitouCondicaoEspecial,
+                $descricaoCondicaoEspecial,
+                $caminhoDocumentoCondicaoEspecial,
+                $solicitouIsencao,
+                $idIsencaoSelecionada,
+                $justificativaIsencao,
+                $statusIsencao,
+                $valorTaxaAplicada,
+                $statusPagamento,
+                $request
+            ) {
+                SigeConcursoInscricao::where('fk_id_processo', $processo->id_processo)
+                    ->lockForUpdate()
+                    ->first();
+
+                $inscricaoExistente = SigeConcursoInscricao::where('fk_id_processo', $processo->id_processo)
+                    ->where('fk_id_candidato', $candidato->id_candidato)
+                    ->lockForUpdate()
+                    ->first();
+
+                if ($inscricaoExistente) {
+                    throw ValidationException::withMessages([
+                        'modalidade_concorrencia' => 'Você já possui inscrição para este processo.',
+                    ]);
+                }
+
+                $inscricao = SigeConcursoInscricao::create([
+                    'fk_id_processo' => $processo->id_processo,
+                    'fk_id_candidato' => $candidato->id_candidato,
+                    'numero_inscricao' => SigeConcursoInscricao::gerarNumeroInscricao($processo->id_processo),
+                    'modalidade_concorrencia' => $validated['modalidade_concorrencia'],
+                    'status_inscricao' => 'inscrito',
+                    'aceite_edital' => $request->boolean('aceite_edital'),
+                    'solicitou_condicao_especial' => $solicitouCondicaoEspecial,
+                    'descricao_condicao_especial' => $solicitouCondicaoEspecial ? $descricaoCondicaoEspecial : null,
+                    'caminho_documento_condicao_especial' => $caminhoDocumentoCondicaoEspecial,
+                    'solicitou_isencao' => $solicitouIsencao,
+                    'fk_id_isencao' => $solicitouIsencao ? (int) $idIsencaoSelecionada : null,
+                    'justificativa_isencao' => $solicitouIsencao ? $justificativaIsencao : null,
+                    'status_isencao' => $statusIsencao,
+                    'valor_taxa_aplicada' => $valorTaxaAplicada,
+                    'status_pagamento' => $statusPagamento,
+                ]);
+
+                foreach ($processo->documentosExigidos as $documentoExigido) {
+                    $arquivo = $request->file('documentos_exigidos.' . $documentoExigido->id_documento_exigido);
+
+                    if (!$arquivo) {
+                        continue;
+                    }
+
+                    $caminho = $arquivo->store('sigeconcursos/inscricoes/documentos/processo_' . $processo->id_processo . '/inscricao_' . $inscricao->id_inscricao, 'public');
+
+                    SigeConcursoInscricaoDocumento::create([
+                        'fk_id_inscricao' => $inscricao->id_inscricao,
+                        'fk_id_documento_exigido' => $documentoExigido->id_documento_exigido,
+                        'titulo_documento' => $documentoExigido->titulo,
+                        'caminho_arquivo' => $caminho,
+                    ]);
+                }
+
+                if ($solicitouIsencao && $request->hasFile('isencao_documentos')) {
+                    foreach ($request->file('isencao_documentos') as $arquivoIsencao) {
+                        if (!$arquivoIsencao || !$arquivoIsencao->isValid()) {
+                            continue;
+                        }
+
+                        $caminhoIsencao = $arquivoIsencao->store('sigeconcursos/inscricoes/isencao/processo_' . $processo->id_processo . '/inscricao_' . $inscricao->id_inscricao, 'public');
+
+                        SigeConcursoInscricaoIsencaoDocumento::create([
+                            'fk_id_inscricao' => $inscricao->id_inscricao,
+                            'nome_documento' => $arquivoIsencao->getClientOriginalName(),
+                            'caminho_arquivo' => $caminhoIsencao,
+                        ]);
+                    }
+                }
+            });
+        } catch (QueryException $exception) {
+            return back()->withInput()->with('error', 'Não foi possível concluir sua inscrição neste momento. Tente novamente.');
+        }
+
+        return redirect()->route('sigeconcursos.candidato.minhas-inscricoes')
+            ->with('success', 'Inscrição realizada com sucesso!');
+    }
+
+    public function minhasInscricoes()
+    {
+        $candidato = $this->getCandidatoAutenticado();
+
+        $inscricoes = $candidato->inscricoes()
+            ->with(['processo.empresa', 'documentos', 'isencao', 'documentosIsencao'])
+            ->orderByDesc('created_at')
+            ->paginate(20);
+
+        return view('sigeconcursos.candidato.inscricoes.index', compact('inscricoes'));
+    }
+
+    public function minhasIsencoes(Request $request)
+    {
+        $candidato = $this->getCandidatoAutenticado();
+
+        $query = $candidato->inscricoes()
+            ->with(['processo.empresa', 'isencao', 'documentosIsencao'])
+            ->where('solicitou_isencao', true)
+            ->orderByDesc('created_at');
+
+        if ($request->filled('status_isencao')) {
+            $query->where('status_isencao', $request->status_isencao);
+        }
+
+        $isencoes = $query->paginate(20)->appends($request->query());
+
+        return view('sigeconcursos.candidato.isencoes.index', compact('isencoes'));
+    }
+
+    public function meuLocalProva(int $idInscricao)
+    {
+        $candidato = $this->getCandidatoAutenticado();
+
+        $inscricao = SigeConcursoInscricao::with([
+            'processo',
+            'localAtribuido.processoLocal.localProva',
+            'salaAtribuida.sala.localProva',
+        ])->where('id_inscricao', $idInscricao)
+            ->where('fk_id_candidato', $candidato->id_candidato)
+            ->firstOrFail();
+
+        // Só exibe se o processo está na etapa de local liberado
+        if ($inscricao->processo->etapa_fluxo_atual !== 'local_prova_liberado') {
+            return back()->with('error', 'As informações de local de prova ainda não foram divulgadas para este processo.');
+        }
+
+        // Também precisa estar deferido
+        if ($inscricao->status_inscricao !== 'deferido') {
+            return back()->with('error', 'Apenas inscrições deferidas possuem local de prova atribuído.');
+        }
+
+        return view('sigeconcursos.candidato.local-prova', compact('inscricao'));
     }
 
     public function perfil()
@@ -412,6 +753,42 @@ class SigeConcursoCandidatoPortalController extends Controller
         throw ValidationException::withMessages([
             'email' => 'Já existe um acesso de candidato cadastrado com este e-mail.',
         ]);
+    }
+
+    private function processoComInscricoesAbertas(SigeConcursoProcesso $processo): bool
+    {
+        if ($processo->status !== 'inscricoes_abertas') {
+            return false;
+        }
+
+        if ($processo->data_inicio_inscricoes && now()->lt($processo->data_inicio_inscricoes)) {
+            return false;
+        }
+
+        if ($processo->data_fim_inscricoes && now()->gt($processo->data_fim_inscricoes)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    private function resolveValorTaxaAplicada(SigeConcursoProcesso $processo, string $modalidade): ?float
+    {
+        $taxaPorCargo = $processo->processoCargos()
+            ->whereNotNull('valor_taxa_inscricao')
+            ->where('valor_taxa_inscricao', '>', 0)
+            ->orderBy('valor_taxa_inscricao')
+            ->value('valor_taxa_inscricao');
+
+        if ($taxaPorCargo !== null) {
+            return (float) $taxaPorCargo;
+        }
+
+        if ($processo->valor_taxa_padrao !== null) {
+            return (float) $processo->valor_taxa_padrao;
+        }
+
+        return $modalidade === 'pcd' ? 0.0 : null;
     }
 
     private function orgaoExpedidorOptions(): array

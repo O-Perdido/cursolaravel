@@ -22,6 +22,7 @@ class SigeConcursoProcesso extends Model
         'tipo_processo',
         'fk_id_empresa',
         'status',
+        'etapa_fluxo_atual',
         'resumo',
         'descricao',
         'requisitos_gerais',
@@ -33,7 +34,8 @@ class SigeConcursoProcesso extends Model
         'data_resultado_final',
         'fases',
         'exige_aceite_edital',
-        'permite_escolha_local_prova',
+        'permite_condicao_especial',
+        'exige_documento_condicao_especial',
         'possui_taxa_inscricao',
         'valor_taxa_padrao',
         'permite_ampla_concorrencia',
@@ -50,7 +52,8 @@ class SigeConcursoProcesso extends Model
             'data_resultado_final' => 'datetime',
             'fases' => 'array',
             'exige_aceite_edital' => 'boolean',
-            'permite_escolha_local_prova' => 'boolean',
+            'permite_condicao_especial' => 'boolean',
+            'exige_documento_condicao_especial' => 'boolean',
             'possui_taxa_inscricao' => 'boolean',
             'permite_ampla_concorrencia' => 'boolean',
             'permite_pcd' => 'boolean',
@@ -81,6 +84,85 @@ class SigeConcursoProcesso extends Model
     public function arquivos()
     {
         return $this->hasMany(SigeConcursoProcessoArquivo::class, 'fk_id_processo', 'id_processo');
+    }
+
+    public function documentosExigidos()
+    {
+        return $this->hasMany(SigeConcursoProcessoDocumentoExigido::class, 'fk_id_processo', 'id_processo')
+            ->orderBy('ordem_exibicao')
+            ->orderBy('id_documento_exigido');
+    }
+
+    public function inscricoes()
+    {
+        return $this->hasMany(SigeConcursoInscricao::class, 'fk_id_processo', 'id_processo');
+    }
+
+    public static function etapasFluxoDefinicoes(): array
+    {
+        return [
+            'cadastro' => [
+                'titulo' => 'Cadastro do processo',
+                'descricao' => 'Estrutura inicial, regras do edital e configuracoes do fluxo.',
+            ],
+            'inscricoes' => [
+                'titulo' => 'Inscricoes',
+                'descricao' => 'Periodo de inscricao, coleta de dados, documentos e opcoes do candidato.',
+            ],
+            'homologacao_inscricoes' => [
+                'titulo' => 'Homologacao das inscricoes',
+                'descricao' => 'Analise administrativa, deferimentos e indeferimentos.',
+            ],
+            'distribuicao_locais' => [
+                'titulo' => 'Distribuicao por locais',
+                'descricao' => 'Separacao automatica dos candidatos deferidos entre os locais de prova.',
+            ],
+            'distribuicao_salas' => [
+                'titulo' => 'Distribuicao por salas',
+                'descricao' => 'Organizacao dos candidatos em salas e ajustes manuais.',
+            ],
+            'local_prova_liberado' => [
+                'titulo' => 'Local de prova liberado',
+                'descricao' => 'Consulta do local e sala de prova disponibilizada ao candidato.',
+            ],
+            'etapas_finais' => [
+                'titulo' => 'Etapas finais',
+                'descricao' => 'Aplicacao, resultados, recursos e publicacoes finais.',
+            ],
+        ];
+    }
+
+    public function fluxoOperacional(): array
+    {
+        $etapas = static::etapasFluxoDefinicoes();
+        $chaves = array_keys($etapas);
+        $indiceAtual = array_search($this->etapa_fluxo_atual ?: 'cadastro', $chaves, true);
+
+        if ($indiceAtual === false) {
+            $indiceAtual = 0;
+        }
+
+        $fluxo = [];
+
+        foreach ($chaves as $indice => $chave) {
+            $etapa = $etapas[$chave];
+            $situacao = 'pendente';
+
+            if ($indice < $indiceAtual) {
+                $situacao = 'concluida';
+            } elseif ($indice === $indiceAtual) {
+                $situacao = 'atual';
+            }
+
+            $fluxo[] = [
+                'chave' => $chave,
+                'titulo' => $etapa['titulo'],
+                'descricao' => $etapa['descricao'],
+                'situacao' => $situacao,
+            ];
+        }
+
+        return $fluxo;
     }
 
     public static function formatarNumeroProcesso(int $id): string

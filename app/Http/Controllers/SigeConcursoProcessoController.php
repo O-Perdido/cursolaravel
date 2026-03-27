@@ -4,9 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Models\SigeConcursoCargo;
 use App\Models\SigeConcursoEmpresa;
+use App\Models\SigeConcursoInscricao;
+use App\Models\SigeConcursoInscricaoLocal;
+use App\Models\SigeConcursoInscricaoSala;
 use App\Models\SigeConcursoLocalProva;
 use App\Models\SigeConcursoProcesso;
 use App\Models\SigeConcursoProcessoArquivo;
+use App\Models\SigeConcursoProcessoDocumentoExigido;
+use App\Models\SigeConcursoProcessoLocal;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -77,6 +82,7 @@ class SigeConcursoProcessoController extends Controller
         $cargos = $this->formatarCargos($request->input('cargos', []));
         $locais = $this->formatarLocais($request->input('locais', []));
         $isencoes = $this->formatarIsencoes($request->input('isencoes', []));
+        $documentosExigidos = $this->formatarDocumentosExigidos($request->input('documentos_exigidos', []));
 
         if (empty($cargos)) {
             throw ValidationException::withMessages([
@@ -84,7 +90,7 @@ class SigeConcursoProcessoController extends Controller
             ]);
         }
 
-        $processo = DB::transaction(function () use ($data, $fases, $cargos, $locais, $isencoes) {
+        $processo = DB::transaction(function () use ($data, $fases, $cargos, $locais, $isencoes, $documentosExigidos) {
             $processo = SigeConcursoProcesso::create(array_merge($data, [
                 'fases' => !empty($fases) ? $fases : null,
                 'numero_processo' => null,
@@ -97,6 +103,7 @@ class SigeConcursoProcessoController extends Controller
             $processo->processoCargos()->createMany($cargos);
             $processo->processoLocais()->createMany($locais);
             $processo->isencoes()->createMany($isencoes);
+            $processo->documentosExigidos()->createMany($documentosExigidos);
 
             return $processo;
         });
@@ -116,6 +123,7 @@ class SigeConcursoProcessoController extends Controller
             'processoLocais.localProva.salas',
             'isencoes',
             'arquivos',
+            'documentosExigidos',
         ])->findOrFail($id);
 
         return view('sigeconcursos.processos.show', compact('processo'));
@@ -123,7 +131,7 @@ class SigeConcursoProcessoController extends Controller
 
     public function edit($id)
     {
-        $processo = SigeConcursoProcesso::with(['processoCargos.cargo', 'processoLocais.localProva', 'isencoes', 'arquivos'])
+        $processo = SigeConcursoProcesso::with(['processoCargos.cargo', 'processoLocais.localProva', 'isencoes', 'arquivos', 'documentosExigidos'])
             ->findOrFail($id);
         $orgaos = SigeConcursoEmpresa::orderBy('nome_razao_social')->get();
         $cargos = SigeConcursoCargo::where('ativo', true)->orderBy('nome_cargo')->get();
@@ -140,6 +148,7 @@ class SigeConcursoProcessoController extends Controller
         $cargos = $this->formatarCargos($request->input('cargos', []));
         $locais = $this->formatarLocais($request->input('locais', []));
         $isencoes = $this->formatarIsencoes($request->input('isencoes', []));
+        $documentosExigidos = $this->formatarDocumentosExigidos($request->input('documentos_exigidos', []));
 
         if (empty($cargos)) {
             throw ValidationException::withMessages([
@@ -147,7 +156,7 @@ class SigeConcursoProcessoController extends Controller
             ]);
         }
 
-        DB::transaction(function () use ($processo, $data, $fases, $cargos, $locais, $isencoes) {
+        DB::transaction(function () use ($processo, $data, $fases, $cargos, $locais, $isencoes, $documentosExigidos) {
             $processo->update(array_merge($data, [
                 'fases' => !empty($fases) ? $fases : null,
             ]));
@@ -155,10 +164,12 @@ class SigeConcursoProcessoController extends Controller
             $processo->processoCargos()->delete();
             $processo->processoLocais()->delete();
             $processo->isencoes()->delete();
+            $processo->documentosExigidos()->delete();
 
             $processo->processoCargos()->createMany($cargos);
             $processo->processoLocais()->createMany($locais);
             $processo->isencoes()->createMany($isencoes);
+            $processo->documentosExigidos()->createMany($documentosExigidos);
         });
 
         $this->salvarArquivos($request, $processo);
@@ -201,6 +212,404 @@ class SigeConcursoProcessoController extends Controller
         return back()->with('success', 'Arquivo removido com sucesso!');
     }
 
+    public function removerDocumentoExigido($id)
+    {
+        $documento = SigeConcursoProcessoDocumentoExigido::findOrFail($id);
+        $documento->delete();
+
+        return back()->with('success', 'Documento exigido removido com sucesso!');
+    }
+
+    public function inscricoes(Request $request, $id)
+    {
+        $processo = SigeConcursoProcesso::with(['empresa'])->findOrFail($id);
+
+        $query = SigeConcursoInscricao::with([
+            'candidato',
+            'documentos.documentoExigido',
+            'isencao',
+            'documentosIsencao',
+        ])->where('fk_id_processo', $processo->id_processo);
+
+        if ($request->filled('nome')) {
+            $nome = trim((string) $request->nome);
+            $query->whereHas('candidato', function ($candidatoQuery) use ($nome) {
+                $candidatoQuery->where('nome_completo', 'like', '%' . $nome . '%');
+            });
+        }
+
+        if ($request->filled('cpf')) {
+            $cpf = preg_replace('/\D/', '', (string) $request->cpf);
+            $query->whereHas('candidato', function ($candidatoQuery) use ($cpf) {
+                $candidatoQuery->where('numero_cpf', 'like', '%' . $cpf . '%');
+            });
+        }
+
+        if ($request->filled('modalidade_concorrencia')) {
+            $query->where('modalidade_concorrencia', $request->modalidade_concorrencia);
+        }
+
+        if ($request->filled('status_inscricao')) {
+            $query->where('status_inscricao', $request->status_inscricao);
+        }
+
+        if ($request->filled('status_isencao')) {
+            $query->where('status_isencao', $request->status_isencao);
+        }
+
+        if ($request->filled('status_pagamento')) {
+            $query->where('status_pagamento', $request->status_pagamento);
+        }
+
+        $inscricoes = $query->orderByDesc('created_at')->paginate(25)->appends($request->query());
+
+        $resumo = [
+            'total' => (clone $query)->count(),
+            'deferidas' => (clone $query)->where('status_inscricao', 'deferido')->count(),
+            'indeferidas' => (clone $query)->where('status_inscricao', 'indeferido')->count(),
+            'pendentes' => (clone $query)->where('status_inscricao', 'inscrito')->count(),
+            'aptos' => (clone $query)
+                ->where('status_inscricao', 'inscrito')
+                ->whereIn('status_pagamento', ['pago', 'isento', 'nao_aplicavel'])
+                ->count(),
+        ];
+
+        return view('sigeconcursos.processos.inscricoes', compact('processo', 'inscricoes', 'resumo'));
+    }
+
+    public function atualizarStatusInscricao(Request $request, $id)
+    {
+        $processo = SigeConcursoProcesso::findOrFail($id);
+
+        $validated = $request->validate([
+            'inscricao_id' => ['required', 'integer', 'exists:sigeconcursos_tb_inscricoes,id_inscricao'],
+            'novo_status' => ['required', 'in:inscrito,deferido,indeferido'],
+            'observacoes' => ['nullable', 'string'],
+        ]);
+
+        $inscricao = SigeConcursoInscricao::where('id_inscricao', $validated['inscricao_id'])
+            ->where('fk_id_processo', $processo->id_processo)
+            ->firstOrFail();
+
+        $inscricao->update([
+            'status_inscricao' => $validated['novo_status'],
+            'observacoes' => trim((string) ($validated['observacoes'] ?? '')) ?: null,
+        ]);
+
+        return back()->with('success', 'Status da inscrição atualizado com sucesso.');
+    }
+    
+    public function atualizarStatusIsencao(Request $request, $id)
+    {
+        $processo = SigeConcursoProcesso::findOrFail($id);
+
+        $validated = $request->validate([
+            'inscricao_id' => ['required', 'integer', 'exists:sigeconcursos_tb_inscricoes,id_inscricao'],
+            'novo_status_isencao' => ['required', 'in:nao_solicitada,pendente,deferida,indeferida'],
+            'parecer_isencao' => ['nullable', 'string'],
+        ]);
+
+        $inscricao = SigeConcursoInscricao::where('id_inscricao', $validated['inscricao_id'])
+            ->where('fk_id_processo', $processo->id_processo)
+            ->firstOrFail();
+
+        $novoStatusIsencao = $validated['novo_status_isencao'];
+        $novoStatusPagamento = $inscricao->status_pagamento;
+
+        if ($processo->possui_taxa_inscricao) {
+            if ($novoStatusIsencao === 'deferida') {
+                $novoStatusPagamento = 'isento';
+            } elseif ($novoStatusIsencao === 'indeferida' || $novoStatusIsencao === 'nao_solicitada') {
+                $novoStatusPagamento = 'pendente';
+            } elseif ($novoStatusIsencao === 'pendente') {
+                $novoStatusPagamento = 'aguardando_isencao';
+            }
+        } else {
+            $novoStatusPagamento = 'nao_aplicavel';
+        }
+
+        $inscricao->update([
+            'status_isencao' => $novoStatusIsencao,
+            'solicitou_isencao' => $novoStatusIsencao !== 'nao_solicitada',
+            'parecer_isencao' => trim((string) ($validated['parecer_isencao'] ?? '')) ?: null,
+            'status_pagamento' => $novoStatusPagamento,
+        ]);
+
+        return back()->with('success', 'Status da isenção atualizado com sucesso.');
+    }
+
+    public function isencoes(Request $request, $id)
+    {
+        $processo = SigeConcursoProcesso::with(['empresa'])->findOrFail($id);
+
+        $query = SigeConcursoInscricao::with([
+            'candidato',
+            'isencao',
+            'documentosIsencao',
+        ])->where('fk_id_processo', $processo->id_processo)
+            ->where('solicitou_isencao', true);
+
+        if ($request->filled('nome')) {
+            $nome = trim((string) $request->nome);
+            $query->whereHas('candidato', function ($candidatoQuery) use ($nome) {
+                $candidatoQuery->where('nome_completo', 'like', '%' . $nome . '%');
+            });
+        }
+
+        if ($request->filled('cpf')) {
+            $cpf = preg_replace('/\D/', '', (string) $request->cpf);
+            $query->whereHas('candidato', function ($candidatoQuery) use ($cpf) {
+                $candidatoQuery->where('numero_cpf', 'like', '%' . $cpf . '%');
+            });
+        }
+
+        if ($request->filled('status_isencao')) {
+            $query->where('status_isencao', $request->status_isencao);
+        }
+
+        $isencoes = $query->orderByDesc('created_at')->paginate(25)->appends($request->query());
+
+        $resumo = [
+            'total' => (clone $query)->count(),
+            'pendentes' => (clone $query)->where('status_isencao', 'pendente')->count(),
+            'deferidas' => (clone $query)->where('status_isencao', 'deferida')->count(),
+            'indeferidas' => (clone $query)->where('status_isencao', 'indeferida')->count(),
+        ];
+
+        return view('sigeconcursos.processos.isencoes', compact('processo', 'isencoes', 'resumo'));
+    }
+
+    public function distribuicaoLocais(Request $request, $id)
+    {
+        $processo = SigeConcursoProcesso::with([
+            'processoLocais.localProva',
+        ])->findOrFail($id);
+
+        $locais = $processo->processoLocais()->with([
+            'localProva',
+            'inscricoesAtribuidas.inscricao.candidato',
+        ])->get();
+
+        $totalDeferidos = SigeConcursoInscricao::where('fk_id_processo', $processo->id_processo)
+            ->where('status_inscricao', 'deferido')
+            ->count();
+
+        $totalDistribuidos = SigeConcursoInscricaoLocal::whereHas('processoLocal', function ($q) use ($processo) {
+            $q->where('fk_id_processo', $processo->id_processo);
+        })->count();
+
+        return view('sigeconcursos.processos.distribuicao-locais', compact(
+            'processo',
+            'locais',
+            'totalDeferidos',
+            'totalDistribuidos'
+        ));
+    }
+
+    public function distribuirPorLocais(Request $request, $id)
+    {
+        $processo = SigeConcursoProcesso::findOrFail($id);
+
+        $locais = SigeConcursoProcessoLocal::where('fk_id_processo', $processo->id_processo)
+            ->orderBy('id_processo_local')
+            ->get();
+
+        if ($locais->isEmpty()) {
+            return back()->with('error', 'O processo não possui locais de prova cadastrados.');
+        }
+
+        $inscricoesDeferidas = SigeConcursoInscricao::with('candidato')
+            ->where('fk_id_processo', $processo->id_processo)
+            ->where('status_inscricao', 'deferido')
+            ->whereHas('candidato')
+            ->join('sigeconcursos_tb_candidatos', 'sigeconcursos_tb_inscricoes.fk_id_candidato', '=', 'sigeconcursos_tb_candidatos.id_candidato')
+            ->orderBy('sigeconcursos_tb_candidatos.nome_completo')
+            ->select('sigeconcursos_tb_inscricoes.*')
+            ->get();
+
+        if ($inscricoesDeferidas->isEmpty()) {
+            return back()->with('error', 'Não há candidatos deferidos para distribuir.');
+        }
+
+        $totalCandidatos = $inscricoesDeferidas->count();
+        $totalLocais = $locais->count();
+        $porLocal = (int) floor($totalCandidatos / $totalLocais);
+        $resto = $totalCandidatos % $totalLocais;
+
+        DB::transaction(function () use ($inscricoesDeferidas, $locais, $porLocal, $resto) {
+            // Limpa distribuição anterior dos candidatos deferidos deste processo
+            $idsInscricoes = $inscricoesDeferidas->pluck('id_inscricao');
+            SigeConcursoInscricaoLocal::whereIn('fk_id_inscricao', $idsInscricoes)->delete();
+
+            $offset = 0;
+            foreach ($locais as $indice => $processoLocal) {
+                // Último local recebe o resto
+                $quantidade = $porLocal + ($indice === $locais->count() - 1 ? $resto : 0);
+                $fatia = $inscricoesDeferidas->slice($offset, $quantidade);
+
+                foreach ($fatia as $inscricao) {
+                    SigeConcursoInscricaoLocal::create([
+                        'fk_id_inscricao' => $inscricao->id_inscricao,
+                        'fk_id_processo_local' => $processoLocal->id_processo_local,
+                    ]);
+                }
+
+                $offset += $quantidade;
+            }
+        });
+
+        return back()->with('success', "Distribuição realizada: {$totalCandidatos} candidatos distribuídos entre {$totalLocais} local(is).");
+    }
+
+    public function limparDistribuicaoLocais($id)
+    {
+        $processo = SigeConcursoProcesso::findOrFail($id);
+
+        $idsProcessoLocais = SigeConcursoProcessoLocal::where('fk_id_processo', $processo->id_processo)
+            ->pluck('id_processo_local');
+
+        $removidos = SigeConcursoInscricaoLocal::whereIn('fk_id_processo_local', $idsProcessoLocais)->delete();
+
+        return back()->with('success', "Distribuição por locais removida ({$removidos} registro(s) excluído(s)).");
+    }
+
+    public function distribuicaoSalas(Request $request, $id)
+    {
+        $processo = SigeConcursoProcesso::findOrFail($id);
+
+        // Locais do processo, cada um com suas salas e as inscrições atribuídas a cada sala
+        $locais = SigeConcursoProcessoLocal::with([
+            'localProva.salas' => function ($q) {
+                $q->where('ativo', true)->orderBy('nome_sala');
+            },
+            'localProva.salas.inscricoesAtribuidas.inscricao.candidato',
+        ])->where('fk_id_processo', $processo->id_processo)->get();
+
+        $totalDistribuidosLocal = SigeConcursoInscricaoLocal::whereHas('processoLocal', function ($q) use ($processo) {
+            $q->where('fk_id_processo', $processo->id_processo);
+        })->count();
+
+        $totalDistribuidosSala = SigeConcursoInscricaoSala::whereHas('sala.localProva.processos', function ($q) use ($processo) {
+            $q->where('fk_id_processo', $processo->id_processo);
+        })->count();
+
+        return view('sigeconcursos.processos.distribuicao-salas', compact(
+            'processo',
+            'locais',
+            'totalDistribuidosLocal',
+            'totalDistribuidosSala'
+        ));
+    }
+
+    public function distribuirPorSalas(Request $request, $id)
+    {
+        $processo = SigeConcursoProcesso::findOrFail($id);
+
+        // Busca inscrições já atribuídas a locais, com candidato, ordenadas alfabeticamente
+        $atribuicoesLocais = SigeConcursoInscricaoLocal::with(['inscricao.candidato', 'processoLocal.localProva.salas' => function ($q) {
+            $q->where('ativo', true)->orderBy('nome_sala');
+        }])
+            ->whereHas('processoLocal', function ($q) use ($processo) {
+                $q->where('fk_id_processo', $processo->id_processo);
+            })
+            ->get()
+            ->groupBy('fk_id_processo_local');
+
+        if ($atribuicoesLocais->isEmpty()) {
+            return back()->with('error', 'Execute primeiro a distribuição por locais.');
+        }
+
+        $idsInscricoes = SigeConcursoInscricaoLocal::whereHas('processoLocal', function ($q) use ($processo) {
+            $q->where('fk_id_processo', $processo->id_processo);
+        })->pluck('fk_id_inscricao');
+
+        DB::transaction(function () use ($atribuicoesLocais, $idsInscricoes) {
+            // Limpa distribuição anterior por salas para este processo
+            SigeConcursoInscricaoSala::whereIn('fk_id_inscricao', $idsInscricoes)->delete();
+
+            foreach ($atribuicoesLocais as $idProcessoLocal => $atribuicoes) {
+                $salas = $atribuicoes->first()?->processoLocal?->localProva?->salas ?? collect();
+
+                if ($salas->isEmpty()) {
+                    continue; // local sem salas cadastradas — pula
+                }
+
+                // Ordena candidatos deste local alfabeticamente
+                $candidatosLocal = $atribuicoes
+                    ->sortBy(fn($a) => $a->inscricao?->candidato?->nome_completo ?? '')
+                    ->values();
+
+                $totalCandidatos = $candidatosLocal->count();
+                $offset = 0;
+                $assento = 1;
+                $salaIndex = 0;
+                $salaAtual = $salas->get(0);
+                $ocupacaoAtual = 0;
+
+                foreach ($candidatosLocal as $atribuicao) {
+                    // Avança para próxima sala se lotou
+                    while (
+                        $salaAtual !== null &&
+                        $salaAtual->capacidade_maxima > 0 &&
+                        $ocupacaoAtual >= $salaAtual->capacidade_maxima
+                    ) {
+                        $salaIndex++;
+                        $salaAtual = $salas->get($salaIndex);
+                        $ocupacaoAtual = 0;
+                        $assento = 1;
+                    }
+
+                    if ($salaAtual === null) {
+                        break; // sem mais salas disponíveis
+                    }
+
+                    SigeConcursoInscricaoSala::create([
+                        'fk_id_inscricao' => $atribuicao->fk_id_inscricao,
+                        'fk_id_sala' => $salaAtual->id_sala,
+                        'numero_assento' => $assento,
+                    ]);
+
+                    $ocupacaoAtual++;
+                    $assento++;
+                }
+            }
+        });
+
+        return back()->with('success', 'Distribuição por salas realizada com sucesso.');
+    }
+
+    public function limparDistribuicaoSalas($id)
+    {
+        $processo = SigeConcursoProcesso::findOrFail($id);
+
+        $idsInscricoes = SigeConcursoInscricaoLocal::whereHas('processoLocal', function ($q) use ($processo) {
+            $q->where('fk_id_processo', $processo->id_processo);
+        })->pluck('fk_id_inscricao');
+
+        $removidos = SigeConcursoInscricaoSala::whereIn('fk_id_inscricao', $idsInscricoes)->delete();
+
+        return back()->with('success', "Distribuição por salas removida ({$removidos} registro(s) excluído(s)).");
+    }
+
+    public function publicarLocalProva($id)
+    {
+        $processo = SigeConcursoProcesso::findOrFail($id);
+
+        $totalDistribuidosSala = SigeConcursoInscricaoSala::whereHas('sala.localProva.processos', function ($q) use ($processo) {
+            $q->where('fk_id_processo', $processo->id_processo);
+        })->count();
+
+        if ($totalDistribuidosSala === 0) {
+            return back()->with('error', 'Não é possível publicar: nenhuma distribuição por salas foi encontrada.');
+        }
+
+        $processo->update([
+            'etapa_fluxo_atual' => 'local_prova_liberado',
+        ]);
+
+        return back()->with('success', 'Local de prova publicado para os candidatos com inscrição deferida.');
+    }
+
     private function validateData(Request $request): array
     {
         $request->merge([
@@ -213,6 +622,7 @@ class SigeConcursoProcessoController extends Controller
             'tipo_processo' => ['required', 'in:concurso_publico,processo_seletivo'],
             'fk_id_empresa' => ['required', 'exists:sigeconcursos_tb_empresas,id_empresa'],
             'status' => ['required', 'in:rascunho,publicado,inscricoes_abertas,inscricoes_encerradas,em_andamento,finalizado,suspenso'],
+            'etapa_fluxo_atual' => ['required', 'in:cadastro,inscricoes,homologacao_inscricoes,distribuicao_locais,distribuicao_salas,local_prova_liberado,etapas_finais'],
             'resumo' => ['nullable', 'string'],
             'descricao' => ['nullable', 'string'],
             'requisitos_gerais' => ['nullable', 'string'],
@@ -242,6 +652,10 @@ class SigeConcursoProcessoController extends Controller
             'isencoes.*.descricao' => ['nullable', 'string'],
             'isencoes.*.data_inicio' => ['nullable', 'date'],
             'isencoes.*.data_fim' => ['nullable', 'date'],
+            'documentos_exigidos' => ['nullable', 'array'],
+            'documentos_exigidos.*.titulo' => ['nullable', 'string', 'max:255'],
+            'documentos_exigidos.*.descricao' => ['nullable', 'string'],
+            'documentos_exigidos.*.obrigatorio' => ['nullable'],
             'arquivos' => ['nullable', 'array'],
             'arquivos.*' => ['nullable', 'file', 'max:5120'],
             'nome_exibicao' => ['nullable', 'array'],
@@ -253,7 +667,10 @@ class SigeConcursoProcessoController extends Controller
         ]);
 
         $data['exige_aceite_edital'] = $request->boolean('exige_aceite_edital');
-        $data['permite_escolha_local_prova'] = $request->boolean('permite_escolha_local_prova');
+        $data['permite_condicao_especial'] = $request->boolean('permite_condicao_especial');
+        $data['exige_documento_condicao_especial'] = $data['permite_condicao_especial']
+            ? $request->boolean('exige_documento_condicao_especial')
+            : false;
         $data['possui_taxa_inscricao'] = $request->boolean('possui_taxa_inscricao');
         $data['permite_ampla_concorrencia'] = $request->boolean('permite_ampla_concorrencia');
         $data['permite_pcd'] = $request->boolean('permite_pcd');
@@ -269,7 +686,7 @@ class SigeConcursoProcessoController extends Controller
             }
         }
 
-        unset($data['fases'], $data['cargos'], $data['locais'], $data['isencoes'], $data['arquivos'], $data['nome_exibicao'], $data['tipo_arquivo']);
+        unset($data['fases'], $data['cargos'], $data['locais'], $data['isencoes'], $data['documentos_exigidos'], $data['arquivos'], $data['nome_exibicao'], $data['tipo_arquivo']);
 
         return $data;
     }
@@ -344,6 +761,25 @@ class SigeConcursoProcessoController extends Controller
                 'data_inicio' => $isencao['data_inicio'] ?? null,
                 'data_fim' => $isencao['data_fim'] ?? null,
                 'exige_comprovacao' => filter_var($isencao['exige_comprovacao'] ?? false, FILTER_VALIDATE_BOOL),
+            ];
+        })->filter()->values()->all();
+    }
+
+    private function formatarDocumentosExigidos(array $documentosExigidos): array
+    {
+        return collect($documentosExigidos)->map(function ($documento, $index) {
+            $titulo = trim($documento['titulo'] ?? '');
+            $descricao = trim($documento['descricao'] ?? '');
+
+            if ($titulo === '' && $descricao === '') {
+                return null;
+            }
+
+            return [
+                'titulo' => $titulo !== '' ? $titulo : 'Documento complementar',
+                'descricao' => $descricao !== '' ? $descricao : null,
+                'obrigatorio' => filter_var($documento['obrigatorio'] ?? false, FILTER_VALIDATE_BOOL),
+                'ordem_exibicao' => $index + 1,
             ];
         })->filter()->values()->all();
     }

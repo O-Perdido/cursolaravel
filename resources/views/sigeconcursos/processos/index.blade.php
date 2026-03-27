@@ -171,6 +171,8 @@
                         <td>
                             <a href="{{ route('sigeconcursos.processos.show', $processo->id_processo) }}" class="btn btn-sm btn-info">Detalhes</a>
                             <a href="{{ route('sigeconcursos.processos.edit', $processo->id_processo) }}" class="btn btn-sm btn-primary">Editar</a>
+                            <a href="{{ route('sigeconcursos.processos.inscricoes', $processo->id_processo) }}" class="btn btn-sm btn-outline-secondary">Inscrições</a>
+                            <a href="{{ route('sigeconcursos.processos.isencoes', $processo->id_processo) }}" class="btn btn-sm btn-outline-warning">Isenções</a>
                             <form action="{{ route('sigeconcursos.processos.destroy', $processo->id_processo) }}" method="POST"
                                 style="display:inline-block" onsubmit="return confirm('Confirma a exclusão deste processo?');">
                                 @csrf

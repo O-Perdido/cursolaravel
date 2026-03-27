@@ -158,7 +158,6 @@ A PARTIR DAQUI SÃO ANOTAÇÕES SOLTAS
 # INSCRIÇÕES
 Na hora de se inscrever, precisa ter as seguintes opções:
 Uma opção de modalidade de concorrencia (Ampla concorrencia e PCD)
-Uma opção para selecionar o local de prova (opcional por processo)
 Adicionar um "Aceite"  Confirmo a leitura do edital de abertura, e estou ciente de todas as informações contidas.
 
 
@@ -227,6 +226,7 @@ Publicação, início das inscrições, fim das inscrições, data da prova, dat
 
 3. Cargos e vagas
 Selecionar cargos cadastrados e preencher os dados específicos de cada cargo dentro do processo.
+alt - O campo de cadastro reserva, deve ser um campo de seleção (sim/não) e não um campo de número. Se for selecionado "sim", o campo de quantidade de vagas fica desabilitado, e se for selecionado "não", o campo de quantidade de vagas fica habilitado para preenchimento.
 
 4. Locais de prova
 Selecionar um ou mais locais cadastrados no processo.
@@ -235,7 +235,7 @@ Selecionar um ou mais locais cadastrados no processo.
 Lista dinâmica com título, descrição e período.
 
 6. Configurações futuras de inscrição
-Aceite do edital, escolha de local de prova, modalidades habilitadas e taxa de inscrição.
+Aceite do edital, modalidades habilitadas, condição especial de aplicação, documentos exigidos e taxa de inscrição.
 
 7. Arquivos
 Edital, retificações, anexos e conteúdo programático.
@@ -330,3 +330,573 @@ Ainda fica para depois:
 4. distribuição por sala
 5. resultados/convocações
 6. testes mais completos do fluxo em ambiente rodando
+
+
+nov- --- REFORMULAÇÃO DA ORGANIZAÇÃO DO MÓDULO: PROCESSO EM FORMATO DE PASSO A PASSO
+
+Ideia central definida:
+Ao invés de tratar o processo apenas como um cadastro isolado, o processo do SIGE Concursos deve passar a ser enxergado e organizado como uma jornada operacional composta por etapas sequenciais.
+
+Fluxo macro que ficou definido:
+1. Cadastro do processo
+2. Inscrições
+3. Deferimento/indeferimento das inscrições
+4. Distribuição de candidatos entre locais de prova
+5. Distribuição de candidatos entre salas
+6. Liberação da consulta do local de prova pelo candidato
+7. Acompanhamento das etapas finais do processo
+
+Objetivo dessa reformulação:
+- deixar o módulo mais visual e sistemático
+- permitir que o operador/admin entenda em que fase o processo está
+- preparar o sistema para fluxos operacionais reais do concurso
+- evitar que inscrições, isenções, deferimentos e distribuição fiquem espalhados sem contexto
+
+
+nov- DETALHAMENTO DO QUE FOI ENTENDIDO SOBRE CADA ETAPA
+
+1. Cadastro do processo
+Esta continua sendo a primeira etapa do fluxo.
+É o momento em que o processo seletivo/concurso nasce no sistema.
+Além dos dados já existentes, o cadastro do processo precisa ficar preparado para as regras operacionais da inscrição.
+
+No cadastro do processo deverá existir configuração para:
+- modalidades habilitadas de concorrência
+- aceite obrigatório do edital
+- casos de isenção
+- taxa de inscrição
+- solicitação opcional de documentos/arquivos do candidato no ato da inscrição
+
+Importante sobre documentos da inscrição:
+Essa solicitação precisa ser configurável por processo, pois depende do edital.
+Pode haver processo que não solicite nenhum documento, processo que solicite apenas um documento e processo que solicite vários documentos.
+Portanto o processo deve permitir cadastrar uma lista dinâmica de documentos exigidos na inscrição.
+
+Exemplos de documentos que podem ser exigidos:
+- comprovante de residência
+- laudo
+- documento de identificação complementar
+- outros anexos definidos no edital
+
+
+2. Inscrições
+Essa etapa passa a ser uma etapa grande do fluxo, com subetapas próprias.
+É aqui que o candidato efetivamente se inscreve no processo.
+
+Na inscrição do candidato devem existir recursos como:
+- escolha da modalidade de concorrência, conforme o processo permitir
+- confirmação de leitura/aceite do edital, quando exigido
+- opção de informar condição especial de aplicação
+- campo para descrever a condição especial de aplicação
+- campo para anexar documento ou laudo referente à condição especial
+- envio dos documentos adicionais exigidos pelo edital no momento da inscrição
+
+Observação importante:
+O candidato poderá precisar enviar mais de um documento na inscrição.
+Logo a inscrição deve aceitar múltiplos documentos vinculados a uma mesma inscrição, respeitando o que estiver configurado no processo.
+
+Regra importante sobre taxa:
+Nesta etapa ainda não será feita a integração com banco para gerar boleto.
+O sistema deve ser preparado para isso, mas a implementação financeira ficará para depois.
+
+
+nov- SUBPASSOS INTERNOS DA ETAPA DE INSCRIÇÕES
+
+2.1. Abertura do período de inscrições
+É o momento em que o candidato pode acessar o processo e realizar a inscrição.
+
+2.2. Solicitação de isenção
+Durante uma janela específica dentro do período de inscrição, o candidato pode escolher:
+- solicitar isenção de taxa, quando houver previsão no processo
+- ou seguir com inscrição normal
+
+Ao solicitar isenção, ele poderá precisar:
+- selecionar o tipo/caso de isenção
+- preencher informações complementares
+- anexar documentos comprobatórios
+
+2.3. Análise das solicitações de isenção pelo operador/admin
+Antes do encerramento geral das inscrições, o operador/admin precisa acessar a lista de solicitações de isenção, analisar os dados e os documentos enviados e definir cada solicitação como:
+- deferida
+- indeferida
+
+Depois disso, o sistema precisa permitir a publicação do resultado das solicitações de isenção.
+
+2.4. Continuidade da inscrição para quem não teve isenção deferida
+Após a análise da isenção e antes do encerramento do período geral das inscrições:
+- quem teve isenção deferida segue com a inscrição sem taxa
+- quem teve isenção indeferida poderá seguir para a etapa de geração/pagamento da taxa futuramente
+- quem não solicitou isenção segue inscrição normal
+
+Mesmo sem integração bancária nesta fase, a estrutura do fluxo precisa nascer prevendo esse comportamento.
+
+
+3. Deferimento e indeferimento das inscrições
+Encerrada a etapa de inscrições, começa a etapa de análise das inscrições válidas para homologação.
+
+O operador/admin precisa acessar uma lista formada pelos candidatos que:
+- pagaram a taxa dentro do prazo futuramente
+- e/ou tiveram a solicitação de isenção deferida
+
+A partir dessa lista, o operador/admin fará a conferência de:
+- dados cadastrais do candidato
+- modalidade escolhida
+- condição especial solicitada
+- documentos exigidos pelo edital
+- documentos de isenção, quando fizer sentido
+
+Depois da análise, a inscrição será marcada como:
+- deferida
+- indeferida
+
+Essa etapa também deverá preparar o sistema para:
+- geração de listagens/relatórios
+- publicação do resultado preliminar das inscrições
+- fase futura de recursos, se o edital exigir
+
+
+4. Distribuição de candidatos entre locais de prova
+Depois de deferidas as inscrições, começa a etapa de distribuição dos candidatos.
+
+Fluxo definido:
+- o operador vincula um ou mais locais de prova ao processo
+- o sistema pega apenas os candidatos com inscrição deferida
+- a ordenação base deve ser alfabética
+- o sistema divide os candidatos igualmente entre os locais vinculados
+
+Exemplo definido:
+Se houver 100 candidatos deferidos e 2 locais vinculados, cada local recebe 50 candidatos.
+
+Esse passo deve existir como uma ação operacional própria do processo, e não apenas como um detalhe no cadastro inicial do processo.
+
+
+5. Distribuição de candidatos entre salas
+Depois da distribuição por local, o operador entra em cada local para distribuir os candidatos entre as salas daquele local.
+
+Ideia visual definida para essa tela:
+- uma lista de candidatos atribuídos ao local
+- vários cards representando as salas
+- botão para distribuição automática
+- possibilidade de ajuste manual posterior
+
+Lógica definida para distribuição automática nas salas:
+1. pegar o total de candidatos daquele local
+2. verificar quantas salas são necessárias somando a capacidade máxima de cada uma, na ordem disponível
+3. assim que a soma das capacidades comportar o total de candidatos, usar apenas essas salas necessárias
+4. dividir os candidatos entre as salas selecionadas
+5. preencher as salas automaticamente mantendo a ordem alfabética
+
+Exemplo definido:
+Se um local recebeu 50 candidatos e possui 5 salas com capacidade 20 cada:
+- a primeira sala comporta 20, então não basta
+- a primeira + segunda comportam 40, então ainda não basta
+- a primeira + segunda + terceira comportam 60, então já atende
+- o sistema usa essas 3 salas para distribuir os 50 candidatos
+
+Após a distribuição automática, o operador/admin deve poder:
+- mover candidatos manualmente entre salas
+- ajustar casos específicos
+- distribuir manualmente se preferir
+
+Ou seja, a distribuição precisa nascer híbrida:
+- automática para agilizar
+- manual para ajuste fino
+
+
+6. Liberação da consulta do local de prova pelo candidato
+Depois que a distribuição em salas estiver concluída, o candidato poderá acessar sua área e consultar:
+- local de prova
+- endereço
+- sala
+- demais detalhes relevantes da aplicação
+
+
+7. Etapas finais do processo
+Depois da distribuição e aplicação da prova, o processo segue para as etapas finais, resumidas em:
+- aplicação da prova
+- publicação do resultado da prova
+- período de recurso
+- publicação do resultado final pós-recursos
+
+Essas etapas ficam registradas desde já como parte do fluxo macro, mesmo que não sejam a próxima implementação imediata.
+
+
+nov- IMPACTO DIRETO NO CADASTRO DE PROCESSOS
+
+O cadastro/edição do processo precisa ser ajustado para deixar de ser apenas um cadastro descritivo e passar a ser um cadastro preparatório das etapas futuras.
+
+Além do que já existe, o processo deverá passar a ter estrutura para:
+- configurar documentos obrigatórios da inscrição
+- configurar se haverá condição especial de aplicação e captura de laudo/documento
+- configurar modalidades disponíveis
+- configurar janelas e regras de isenção
+- futuramente controlar melhor os marcos operacionais de cada etapa do fluxo
+
+Observação importante:
+Locais de prova continuam sendo vinculados administrativamente ao processo, mas não serão escolhidos pelo candidato nesta fase. Esse vínculo inicial não substitui a etapa operacional posterior de distribuição por local e por sala.
+
+
+nov- ESTRUTURA DE IMPLEMENTAÇÃO DIVIDIDA EM ETAPAS
+
+Para não misturar tudo de uma vez, a implementação foi dividida da seguinte forma:
+
+ETAPA 1. Reestruturação conceitual e técnica do processo
+Objetivo:
+Preparar a base do processo para funcionar como fluxo por etapas.
+
+Entregas dessa etapa:
+- revisar o cadastro de processos para refletir melhor a jornada operacional
+- adicionar/configurar no processo os campos necessários para inscrições futuras
+- criar estrutura para documentos exigidos na inscrição
+- retirar a antiga configuração de escolha de local de prova pelo candidato
+- revisar status e/ou criar conceito de etapa operacional do processo
+- ajustar tela de detalhes do processo para exibir o passo a passo macro
+
+Observação:
+Essa etapa é a fundação. Antes dela, o restante tende a ficar improvisado.
+
+
+ETAPA 2. Inscrição do candidato no SIGE Concursos
+Objetivo:
+Permitir que o candidato realize a inscrição no processo.
+
+Entregas dessa etapa:
+- listagem de processos disponíveis para inscrição na área do candidato
+- tela de detalhes do processo para o candidato
+- formulário de inscrição
+- escolha de modalidade
+- aceite do edital
+- condição especial de aplicação com descrição e anexo
+- upload dos documentos exigidos pelo processo
+- geração do número da inscrição
+- prevenção de inscrição duplicada
+
+Fora desta etapa ainda:
+- integração bancária do boleto
+
+
+ETAPA 3. Solicitação e análise de isenção
+Objetivo:
+Tratar a subetapa de isenção dentro do fluxo de inscrições.
+
+Entregas dessa etapa:
+- permitir solicitação de isenção pelo candidato
+- permitir anexos/documentos comprobatórios da isenção
+- painel/listagem administrativa das solicitações
+- ações de deferir e indeferir solicitação de isenção
+- publicação/listagem do resultado das solicitações
+
+
+ETAPA 4. Homologação das inscrições
+Objetivo:
+Dar ao operador/admin uma área para conferência final das inscrições aptas.
+
+Entregas dessa etapa:
+- listagem administrativa das inscrições
+- filtros por processo, cargo, modalidade, situação e pendências
+- visualização dos documentos enviados
+- conferência de dados do candidato
+- deferimento e indeferimento da inscrição
+- observações/motivos do indeferimento
+- base para relatórios e publicação do resultado
+
+
+ETAPA 5. Distribuição entre locais de prova
+Objetivo:
+Automatizar a distribuição inicial de candidatos deferidos entre os locais vinculados ao processo.
+
+Entregas dessa etapa:
+- tela operacional da distribuição por locais
+- ação para distribuir automaticamente em ordem alfabética
+- visão consolidada da quantidade por local
+- possibilidade de redistribuição controlada, se necessário
+
+
+ETAPA 6. Distribuição entre salas
+Objetivo:
+Distribuir os candidatos de cada local entre as salas cadastradas.
+
+Entregas dessa etapa:
+- tela visual com lista de candidatos e cards de salas
+- distribuição automática por capacidade
+- drag and drop para ajustes manuais
+- salvamento da organização por local
+- validações para não exceder capacidade das salas
+
+
+ETAPA 7. Consulta do local de prova pelo candidato
+Objetivo:
+Liberar ao candidato a consulta do local/sala após conclusão da distribuição.
+
+Entregas dessa etapa:
+- card/tela na área do candidato
+- exibição do local, endereço, sala e observações
+- controle para só liberar quando a distribuição estiver publicada
+
+
+ETAPA 8. Resultados e fases finais
+Objetivo:
+Cobrir o fluxo pós-prova.
+
+Entregas futuras:
+- publicação de resultados
+- recursos
+- resultado final
+- demais fases administrativas do processo
+
+
+nov- ORDEM RECOMENDADA DE DESENVOLVIMENTO PRÁTICO
+
+1. Primeiro reestruturar o processo para suportar a jornada completa
+2. Depois implementar a inscrição do candidato com documentos e condição especial
+3. Depois implementar a isenção
+4. Depois implementar o deferimento/indeferimento das inscrições
+5. Depois implementar a distribuição por locais
+6. Depois implementar a distribuição por salas com ajuste manual
+7. Depois liberar a consulta do local de prova ao candidato
+8. Depois seguir para resultados e fases finais
+
+
+nov- OBSERVAÇÃO FINAL DESSA DEFINIÇÃO
+
+A parte financeira de boleto/taxa bancária ficou propositalmente fora da primeira implementação das inscrições.
+Mesmo assim, toda a modelagem e o fluxo devem ser pensados desde já para suportar:
+- inscrição com taxa
+- isenção deferida/indeferida
+- pagamento posterior
+- homologação condicionada ao pagamento ou à isenção deferida
+
+Essa definição passa a orientar as próximas implementações do módulo SIGE Concursos.
+
+
+alt- --- AJUSTE DE DIREÇÃO DEFINIDO APÓS A REFORMULAÇÃO
+
+Ficou decidido que o candidato não poderá escolher o local de prova nesta fase do sistema.
+Essa possibilidade foi removida do planejamento atual do processo e da inscrição.
+
+Regra atual definida:
+- os locais de prova continuam sendo vinculados ao processo pelo operador/admin
+- a distribuição dos candidatos entre os locais será feita posteriormente pelo sistema/operador
+- se um dia a escolha direta pelo candidato for implementada, isso será tratado como expansão futura e não como regra desta etapa
+
+
+alt- --- STATUS DA IMPLEMENTAÇÃO DA ETAPA 1 APÓS O INÍCIO DAS ALTERAÇÕES
+
+Implementado no início desta etapa:
+1. criação do conceito de etapa operacional atual do processo
+2. remoção da configuração de escolha de local de prova pelo candidato
+3. inclusão de configuração de condição especial de aplicação no processo
+4. inclusão de configuração para exigir documento/laudo da condição especial
+5. criação da estrutura de documentos exigidos na inscrição por processo
+6. ajuste da tela de detalhes do processo para mostrar o fluxo operacional
+7. ajuste do cadastro/edição do processo para suportar essas novas configurações
+
+
+nov- --- STATUS DA IMPLEMENTAÇÃO DA ETAPA 2 (INÍCIO): INSCRIÇÃO DO CANDIDATO
+
+Implementado nesta rodada:
+1. estrutura de banco para inscrições do SIGE Concursos
+2. estrutura de banco para documentos enviados na inscrição
+3. model SigeConcursoInscricao com geração de número de inscrição
+4. model SigeConcursoInscricaoDocumento para anexos da inscrição
+5. relacionamento de inscrições no candidato e no processo
+6. rotas autenticadas do candidato para:
+- listar processos com inscrições abertas
+- ver detalhes de um processo para inscrição
+- realizar inscrição no processo
+- listar minhas inscrições
+7. backend da inscrição no portal do candidato com validações de:
+- período de inscrição
+- modalidade permitida pelo processo
+- aceite do edital (quando obrigatório)
+- condição especial de aplicação
+- laudo/documento da condição especial (quando exigido)
+- documentos obrigatórios configurados no processo
+- prevenção de inscrição duplicada
+8. upload e vínculo dos documentos enviados na inscrição
+9. atualização do dashboard do candidato com atalhos e resumo de inscrições
+
+Observação importante desta fase:
+A inscrição já nasce preparada para isenção e pagamento, mas sem integração bancária de boleto por enquanto.
+Os campos de status de isenção/pagamento já ficaram estruturados para evolução futura.
+
+Pendências para a continuidade da etapa 2:
+1. refinamentos visuais e mensagens da tela de inscrição
+2. download/visualização dos anexos enviados pelo candidato
+3. listagem administrativa das inscrições (próxima etapa de homologação)
+
+
+alt- --- STATUS DA IMPLEMENTAÇÃO DA ETAPA 4 (INÍCIO): HOMOLOGAÇÃO DE INSCRIÇÕES
+
+Implementado nesta rodada:
+1. rotas administrativas para gestão de inscrições por processo
+2. backend no módulo de processos para:
+- listar inscrições de um processo
+- filtrar por nome, CPF, modalidade, status da inscrição, status de isenção e status de pagamento
+- atualizar status da inscrição (inscrito, deferido, indeferido)
+- registrar observações da análise na própria inscrição
+3. tela administrativa de inscrições do processo com:
+- cards de resumo (total, pendentes, deferidas, indeferidas)
+- tabela detalhada dos candidatos inscritos
+- visualização de documentos da inscrição e do laudo de condição especial
+- formulário rápido por linha para deferir/indeferir
+4. atalhos adicionados para abrir a gestão de inscrições em:
+- listagem de processos
+- detalhes do processo
+
+Observação desta fase:
+O fluxo de homologação já permite o deferimento/indeferimento das inscrições.
+A parte de deferimento/indeferimento de isenção com publicação específica ainda será refinada na etapa dedicada de isenção.
+
+
+alt- --- STATUS DA IMPLEMENTAÇÃO DA ETAPA 3 (REFINAMENTO): SOLICITAÇÃO E ANÁLISE DE ISENÇÃO
+
+Implementado nesta rodada:
+1. estrutura de banco adicional para fluxo completo de isenção:
+- vínculo da inscrição com o caso de isenção selecionado
+- campo de justificativa da solicitação
+- campo de parecer administrativo da análise
+- tabela de documentos comprobatórios de isenção por inscrição
+2. model específico para documentos de isenção da inscrição
+3. backend da inscrição do candidato atualizado para:
+- exigir seleção do caso de isenção quando solicitado
+- exigir justificativa da isenção
+- validar se o caso pertence ao processo
+- receber múltiplos anexos comprobatórios da isenção
+4. listagem administrativa de inscrições atualizada para:
+- exibir caso de isenção selecionado
+- exibir justificativa do candidato
+- exibir parecer da análise
+- exibir anexos de isenção enviados
+5. nova ação administrativa para atualizar status da isenção:
+- não solicitada
+- pendente
+- deferida
+- indeferida
+6. ajuste do status de pagamento conforme decisão da isenção:
+- deferida -> isento
+- pendente -> aguardando isenção
+- indeferida/nao solicitada -> pendente (quando houver taxa)
+7. área do candidato ajustada para:
+- exibir dados da solicitação de isenção na tela do processo
+- exibir parecer da isenção no acompanhamento das inscrições
+
+Validações executadas nesta rodada:
+1. verificação de erros nos arquivos alterados (sem erros)
+2. validação da nova rota de atualização de isenção
+3. dry-run das migrations da etapa de isenção (SQL gerado com sucesso)
+
+Próximo refinamento recomendado:
+1. publicação/listagem específica de resultado de isenção em tela dedicada, se necessário no fluxo operacional
+2. testes de ponta a ponta com cenários:
+- solicitação de isenção deferida
+- solicitação de isenção indeferida
+- inscrição sem solicitação de isenção
+
+
+alt- --- STATUS DA IMPLEMENTAÇÃO DA ETAPA 3 (COMPLEMENTO): TELA DEDICADA DE ISENÇÃO
+
+Implementado neste complemento:
+1. criação de rota administrativa específica para solicitações de isenção por processo
+2. criação de action dedicada no controller para:
+- listar apenas inscrições com solicitação de isenção
+- filtrar por nome, CPF e status de isenção
+- exibir resumo por situação (pendente, deferida, indeferida)
+3. criação da view administrativa dedicada de solicitações de isenção com:
+- tabela com caso de isenção e justificativa do candidato
+- lista de documentos comprobatórios da isenção
+- formulário rápido para atualizar status e parecer
+4. inclusão de atalhos para a tela de isenção em:
+- listagem de processos
+- detalhes do processo
+
+Validações deste complemento:
+1. validação de erros dos arquivos alterados (sem erros)
+2. validação da rota da tela dedicada de isenção no route:list
+
+
+alt- --- AJUSTE TÉCNICO DE MIGRATIONS (27/03/2026)
+
+Contexto identificado:
+1. ao executar php artisan migrate em banco já parcialmente ajustado, houve falha por coluna duplicada na migration de reestruturação de processos
+2. na sequência, houve falha por limite de tamanho de identificador do MySQL em nome automático de chave estrangeira
+
+Correções aplicadas:
+1. migration de reestruturação de processos ajustada para ser resiliente a execução em ambiente já alterado:
+- verificações de existência de colunas antes de adicionar/remover
+- verificação de existência da tabela de documentos exigidos antes de criar
+2. migrations de inscrições/isencão ajustadas com nomes curtos e explícitos para chaves estrangeiras, compatíveis com limite do MySQL
+3. migration de documentos da inscrição ajustada para suportar retomada após execução parcial
+
+Resultado final:
+1. execução completa do php artisan migrate concluída com sucesso
+
+
+alt- --- STATUS DA IMPLEMENTAÇÃO DA ETAPA 3 (CANDIDATO): ACOMPANHAMENTO DEDICADO DE ISENÇÃO
+
+Implementado nesta rodada:
+1. rota autenticada do candidato para tela dedicada de isenção:
+- /sigeconcursos/candidato/minhas-isencoes
+2. action no portal do candidato para listar solicitações de isenção com:
+- processo/edital
+- caso de isenção selecionado
+- justificativa enviada
+- status da isenção
+- status de pagamento
+- parecer da análise administrativa
+- anexos de comprovação da isenção
+3. nova view dedicada de acompanhamento de isenção na área do candidato
+4. atalhos adicionados para acesso rápido em:
+- dashboard do candidato
+- tela de minhas inscrições
+
+Validações desta rodada:
+1. validação de erros dos arquivos alterados (sem erros)
+2. validação da rota no route:list (registrada com sucesso)
+
+
+alt- --- REFINAMENTO DA TELA DO CANDIDATO: MINHAS ISENCOES (FILTRO)
+
+Implementado neste refinamento:
+1. filtro por status de isencao na tela do candidato
+2. opcoes de filtro:
+- pendente
+- deferida
+- indeferida
+3. botao para limpar filtros e retorno da listagem completa
+4. paginacao mantendo query string dos filtros
+
+Validacoes deste refinamento:
+1. validacao de erros dos arquivos alterados (sem erros)
+2. confirmacao da rota do candidato no route:list
+
+
+alt- --- STATUS DA IMPLEMENTAÇÃO DAS ETAPAS 4, 5, 6 E 7 (HOMOLOGAÇÃO + DISTRIBUIÇÃO + CONSULTA)
+
+Implementado nesta evolução:
+1. etapa 4 (homologação) refinada com indicador de aptos para homologar
+- regra aplicada no resumo: inscrito + pagamento regularizado (pago, isento ou nao_aplicavel)
+- atalhos rápidos de filtro na tela administrativa de inscrições
+2. etapa 5 (distribuição por locais) implementada com:
+- tabela de vínculo de inscrição por local
+- distribuição automática em ordem alfabética dos candidatos deferidos
+- divisão equilibrada entre locais, com resto no último local
+- tela administrativa para executar, visualizar e limpar a distribuição
+3. etapa 6 (distribuição por salas) implementada com:
+- tabela de vínculo de inscrição por sala (com numero de assento)
+- distribuição automática por capacidade de cada sala dentro de cada local
+- ordenação alfabética dos candidatos por local
+- tela administrativa por local/sala com ocupação visual e limpeza da distribuição
+4. etapa 7 (consulta do candidato) implementada com:
+- rota de consulta individual de local/sala por inscrição
+- tela do candidato exibindo local, endereço, sala, bloco e assento
+- botão de acesso em "minhas inscrições" apenas quando inscrição deferida e etapa liberada
+5. publicação da consulta de local de prova no admin:
+- nova ação/rota para publicar local de prova
+- ao publicar, processo avança para etapa_fluxo_atual = local_prova_liberado
+- bloqueio de publicação quando não existe distribuição por salas
+
+Validações desta evolução:
+1. migrations de distribuição executadas com sucesso
+2. validação de erros dos arquivos alterados (sem erros)
+3. rotas de distribuição e publicação confirmadas no route:list

@@ -64,12 +64,30 @@
                     </div>
 
                     <p class="text-muted mb-4">
-                        Esta área será expandida para listar inscrições, taxas e boletos. Nesta entrega, o foco está no
-                        cadastro e no acesso do candidato.
+                        Realize novas inscrições, acompanhe seu número de protocolo e verifique o status de cada processo.
                     </p>
 
-                    <div class="alert alert-info mb-0">
-                        Em breve você poderá acompanhar aqui suas inscrições em concursos e processos seletivos.
+                    <div class="alert alert-info mb-3">
+                        <strong>Total de inscrições:</strong> {{ $totalInscricoes ?? 0 }}
+                    </div>
+
+                    @if(!empty($inscricoesRecentes) && $inscricoesRecentes->count() > 0)
+                        <div class="mb-3">
+                            @foreach($inscricoesRecentes as $inscricaoRecente)
+                                <div class="small text-muted mb-1">
+                                    {{ $inscricaoRecente->numero_inscricao }} - {{ $inscricaoRecente->processo?->titulo }}
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
+
+                    <div class="d-grid gap-2">
+                        <a href="{{ route('sigeconcursos.candidato.processos.index') }}" class="btn btn-success">Ver
+                            Processos com Inscrições Abertas</a>
+                        <a href="{{ route('sigeconcursos.candidato.minhas-inscricoes') }}"
+                            class="btn btn-outline-success">Minhas Inscrições</a>
+                        <a href="{{ route('sigeconcursos.candidato.minhas-isencoes') }}"
+                            class="btn btn-outline-warning">Minhas Isenções</a>
                     </div>
                 </div>
             </div>

@@ -35,6 +35,13 @@
             'exige_comprovacao' => $item->exige_comprovacao,
         ];
     })->all() ?? [['titulo' => '', 'descricao' => '', 'data_inicio' => '', 'data_fim' => '', 'exige_comprovacao' => false]]);
+    $documentosExigidosData = old('documentos_exigidos', $processo?->documentosExigidos?->map(function ($item) {
+        return [
+            'titulo' => $item->titulo,
+            'descricao' => $item->descricao,
+            'obrigatorio' => $item->obrigatorio,
+        ];
+    })->all() ?? [['titulo' => '', 'descricao' => '', 'obrigatorio' => true]]);
     $cargoOptionsData = $cargos->map(function ($cargo) {
         return [
             'id' => $cargo->id_cargo,
@@ -66,6 +73,33 @@
     @csrf
     @if ($method !== 'POST')
         @method($method)
+    @endif
+
+    @if($processo && $processo->documentosExigidos->count() > 0)
+        <div class="card shadow-sm mb-3">
+            <div class="card-header">Documentos Exigidos Atuais</div>
+            <div class="card-body">
+                <div class="list-group list-group-flush">
+                    @foreach($processo->documentosExigidos as $documento)
+                        <div class="list-group-item d-flex justify-content-between align-items-center flex-wrap gap-2">
+                            <div>
+                                <div class="fw-semibold">{{ $documento->titulo }}</div>
+                                <div class="small text-muted">{{ $documento->obrigatorio ? 'Obrigatório' : 'Opcional' }}</div>
+                                @if($documento->descricao)
+                                    <div class="small text-muted">{{ $documento->descricao }}</div>
+                                @endif
+                            </div>
+                            <form action="{{ route('sigeconcursos.processos.documentos-exigidos.destroy', $documento->id_documento_exigido) }}" method="POST"
+                                onsubmit="return confirm('Remover este documento exigido?');">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn btn-outline-danger btn-sm">Excluir</button>
+                            </form>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        </div>
     @endif
 
     @if($processo && $processo->arquivos->count() > 0)
@@ -138,6 +172,20 @@
                             </option>
                         @endforeach
                     </select>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label for="etapa_fluxo_atual" class="form-label">Etapa Operacional Atual</label>
+                    <select class="form-select @error('etapa_fluxo_atual') is-invalid @enderror" id="etapa_fluxo_atual" name="etapa_fluxo_atual" required>
+                        @foreach(\App\Models\SigeConcursoProcesso::etapasFluxoDefinicoes() as $chave => $etapa)
+                            <option value="{{ $chave }}" {{ old('etapa_fluxo_atual', $processo?->etapa_fluxo_atual ?? 'cadastro') === $chave ? 'selected' : '' }}>
+                                {{ $etapa['titulo'] }}
+                            </option>
+                        @endforeach
+                    </select>
+                    <small class="text-muted">Usado para organizar o processo em formato de jornada operacional.</small>
                 </div>
             </div>
 
@@ -224,11 +272,6 @@
             </button>
         </div>
         <div class="card-body">
-            <div class="form-check mb-3">
-                <input class="form-check-input" type="checkbox" id="permite_escolha_local_prova" name="permite_escolha_local_prova" value="1"
-                    {{ old('permite_escolha_local_prova', $processo?->permite_escolha_local_prova) ? 'checked' : '' }}>
-                <label class="form-check-label" for="permite_escolha_local_prova">Permite escolha do local de prova na inscrição futura</label>
-            </div>
             <div id="locais-container"></div>
         </div>
     </div>
@@ -265,6 +308,16 @@
                             {{ old('permite_pcd', $processo?->permite_pcd ?? true) ? 'checked' : '' }}>
                         <label class="form-check-label" for="permite_pcd">Habilitar modalidade PCD</label>
                     </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="permite_condicao_especial" name="permite_condicao_especial" value="1"
+                            {{ old('permite_condicao_especial', $processo?->permite_condicao_especial ?? true) ? 'checked' : '' }}>
+                        <label class="form-check-label" for="permite_condicao_especial">Permitir solicitação de condição especial de aplicação</label>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="exige_documento_condicao_especial" name="exige_documento_condicao_especial" value="1"
+                            {{ old('exige_documento_condicao_especial', $processo?->exige_documento_condicao_especial ?? true) ? 'checked' : '' }}>
+                        <label class="form-check-label" for="exige_documento_condicao_especial">Exigir documento/laudo para condição especial</label>
+                    </div>
                 </div>
                 <div class="col-md-6">
                     <div class="form-check mb-2">
@@ -279,6 +332,21 @@
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm mb-3">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span>Documentos Exigidos na Inscrição</span>
+            <button type="button" class="btn btn-outline-primary btn-sm" id="adicionar-documento-exigido">
+                <i class="fas fa-plus me-1"></i> Adicionar Documento
+            </button>
+        </div>
+        <div class="card-body">
+            <div class="alert alert-light border mb-3">
+                Cadastre aqui os documentos que o candidato precisará enviar no momento da inscrição, conforme o edital.
+            </div>
+            <div id="documentos-exigidos-container"></div>
         </div>
     </div>
 
@@ -347,15 +415,19 @@
         const cargosData = @json($cargosData);
         const locaisData = @json($locaisData);
         const isencoesData = @json($isencoesData);
+        const documentosExigidosData = @json($documentosExigidosData);
         const cargoOptions = @json($cargoOptionsData);
         const localOptions = @json($localOptionsData);
         const fasesContainer = document.getElementById('fases-container');
         const cargosContainer = document.getElementById('cargos-container');
         const locaisContainer = document.getElementById('locais-container');
         const isencoesContainer = document.getElementById('isencoes-container');
+        const documentosExigidosContainer = document.getElementById('documentos-exigidos-container');
         const arquivosContainer = document.getElementById('arquivos-container');
         const adicionarArquivo = document.getElementById('adicionar-arquivo');
         const valorTaxaPadrao = document.getElementById('valor_taxa_padrao');
+        const permiteCondicaoEspecial = document.getElementById('permite_condicao_especial');
+        const exigeDocumentoCondicaoEspecial = document.getElementById('exige_documento_condicao_especial');
 
         function applyMoneyMask(value) {
             value = (value || '').replace(/\D/g, '');
@@ -516,6 +588,36 @@
             isencoesContainer.appendChild(item);
         }
 
+        function renderDocumentoExigido(data = {}) {
+            const index = documentosExigidosContainer.querySelectorAll('.documento-exigido-item').length;
+            const item = document.createElement('div');
+            item.className = 'documento-exigido-item border rounded p-3 mb-3 bg-light';
+            item.innerHTML = `
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="mb-0">Documento Exigido</h6>
+                    <button type="button" class="btn btn-outline-danger btn-sm remover-item"><i class="fas fa-trash"></i></button>
+                </div>
+                <div class="row">
+                    <div class="col-md-5 mb-2">
+                        <label class="form-label small">Título</label>
+                        <input type="text" class="form-control form-control-sm" name="documentos_exigidos[${index}][titulo]" value="${data.titulo ?? ''}" placeholder="Ex: Comprovante de residência">
+                    </div>
+                    <div class="col-md-5 mb-2">
+                        <label class="form-label small">Descrição/Orientação</label>
+                        <input type="text" class="form-control form-control-sm" name="documentos_exigidos[${index}][descricao]" value="${data.descricao ?? ''}" placeholder="Ex: arquivo legível em PDF">
+                    </div>
+                    <div class="col-md-2 mb-2 d-flex align-items-end">
+                        <div class="form-check mb-0">
+                            <input class="form-check-input" type="checkbox" name="documentos_exigidos[${index}][obrigatorio]" value="1" ${data.obrigatorio ? 'checked' : ''}>
+                            <label class="form-check-label small">Obrigatório</label>
+                        </div>
+                    </div>
+                </div>
+            `;
+            bindRemove(item, documentosExigidosContainer, 'documentos_exigidos', '.documento-exigido-item');
+            documentosExigidosContainer.appendChild(item);
+        }
+
         function bindRemove(item, container, prefix, selector) {
             item.querySelector('.remover-item').addEventListener('click', function () {
                 item.remove();
@@ -567,14 +669,26 @@
         updateRemoveArquivoButtons();
         bindMoneyMask(valorTaxaPadrao);
 
+        function syncCondicaoEspecialState() {
+            exigeDocumentoCondicaoEspecial.disabled = !permiteCondicaoEspecial.checked;
+            if (!permiteCondicaoEspecial.checked) {
+                exigeDocumentoCondicaoEspecial.checked = false;
+            }
+        }
+
+        permiteCondicaoEspecial.addEventListener('change', syncCondicaoEspecialState);
+        syncCondicaoEspecialState();
+
         (fasesData && fasesData.length ? fasesData : [{ descricao: '', periodo: '' }]).forEach(renderFase);
         (cargosData && cargosData.length ? cargosData : [{}]).forEach(renderCargo);
         (locaisData && locaisData.length ? locaisData : [{}]).forEach(renderLocal);
         (isencoesData && isencoesData.length ? isencoesData : [{}]).forEach(renderIsencao);
+        (documentosExigidosData && documentosExigidosData.length ? documentosExigidosData : [{}]).forEach(renderDocumentoExigido);
 
         document.getElementById('adicionar-fase').addEventListener('click', () => renderFase());
         document.getElementById('adicionar-cargo').addEventListener('click', () => renderCargo());
         document.getElementById('adicionar-local').addEventListener('click', () => renderLocal());
         document.getElementById('adicionar-isencao').addEventListener('click', () => renderIsencao());
+        document.getElementById('adicionar-documento-exigido').addEventListener('click', () => renderDocumentoExigido({ obrigatorio: true }));
     });
 </script>

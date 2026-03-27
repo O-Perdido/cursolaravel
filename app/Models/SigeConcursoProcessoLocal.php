@@ -30,4 +30,9 @@ class SigeConcursoProcessoLocal extends Model
     {
         return $this->belongsTo(SigeConcursoLocalProva::class, 'fk_id_local_prova', 'id_local_prova');
     }
+
+    public function inscricoesAtribuidas()
+    {
+        return $this->hasMany(SigeConcursoInscricaoLocal::class, 'fk_id_processo_local', 'id_processo_local');
+    }
 }

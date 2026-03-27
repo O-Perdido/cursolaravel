@@ -55,7 +55,19 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/processos/{id}/edit', [SigeConcursoProcessoController::class, 'edit'])->name('processos.edit');
         Route::put('/processos/{id}', [SigeConcursoProcessoController::class, 'update'])->name('processos.update');
         Route::delete('/processos/{id}', [SigeConcursoProcessoController::class, 'destroy'])->name('processos.destroy');
+        Route::get('/processos/{id}/inscricoes', [SigeConcursoProcessoController::class, 'inscricoes'])->name('processos.inscricoes');
+        Route::get('/processos/{id}/isencoes', [SigeConcursoProcessoController::class, 'isencoes'])->name('processos.isencoes');
+        Route::get('/processos/{id}/distribuicao-locais', [SigeConcursoProcessoController::class, 'distribuicaoLocais'])->name('processos.distribuicao-locais');
+        Route::post('/processos/{id}/distribuicao-locais', [SigeConcursoProcessoController::class, 'distribuirPorLocais'])->name('processos.distribuicao-locais.distribuir');
+        Route::delete('/processos/{id}/distribuicao-locais', [SigeConcursoProcessoController::class, 'limparDistribuicaoLocais'])->name('processos.distribuicao-locais.limpar');
+        Route::get('/processos/{id}/distribuicao-salas', [SigeConcursoProcessoController::class, 'distribuicaoSalas'])->name('processos.distribuicao-salas');
+        Route::post('/processos/{id}/distribuicao-salas', [SigeConcursoProcessoController::class, 'distribuirPorSalas'])->name('processos.distribuicao-salas.distribuir');
+        Route::delete('/processos/{id}/distribuicao-salas', [SigeConcursoProcessoController::class, 'limparDistribuicaoSalas'])->name('processos.distribuicao-salas.limpar');
+        Route::post('/processos/{id}/publicar-local-prova', [SigeConcursoProcessoController::class, 'publicarLocalProva'])->name('processos.local-prova.publicar');
+        Route::post('/processos/{id}/inscricoes/atualizar-status', [SigeConcursoProcessoController::class, 'atualizarStatusInscricao'])->name('processos.inscricoes.atualizar-status');
+        Route::post('/processos/{id}/inscricoes/atualizar-isencao', [SigeConcursoProcessoController::class, 'atualizarStatusIsencao'])->name('processos.inscricoes.atualizar-isencao');
         Route::delete('/processos/arquivos/{id}', [SigeConcursoProcessoController::class, 'removerArquivo'])->name('processos.arquivos.destroy');
+        Route::delete('/processos/documentos-exigidos/{id}', [SigeConcursoProcessoController::class, 'removerDocumentoExigido'])->name('processos.documentos-exigidos.destroy');
         Route::get('/cargos', [SigeConcursoCargoController::class, 'index'])->name('cargos.index');
         Route::get('/cargos/create', [SigeConcursoCargoController::class, 'create'])->name('cargos.create');
         Route::post('/cargos', [SigeConcursoCargoController::class, 'store'])->name('cargos.store');
@@ -94,6 +106,12 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/meus-dados', [SigeConcursoCandidatoPortalController::class, 'perfil'])->name('perfil');
         Route::get('/meus-dados/editar', [SigeConcursoCandidatoPortalController::class, 'editarPerfil'])->name('perfil.editar');
         Route::put('/meus-dados', [SigeConcursoCandidatoPortalController::class, 'atualizarPerfil'])->name('perfil.atualizar');
+        Route::get('/processos', [SigeConcursoCandidatoPortalController::class, 'processos'])->name('processos.index');
+        Route::get('/processos/{id}', [SigeConcursoCandidatoPortalController::class, 'processoDetalhes'])->name('processos.show');
+        Route::post('/processos/{id}/inscrever', [SigeConcursoCandidatoPortalController::class, 'inscreverProcesso'])->name('processos.inscrever');
+        Route::get('/minhas-inscricoes', [SigeConcursoCandidatoPortalController::class, 'minhasInscricoes'])->name('minhas-inscricoes');
+        Route::get('/minhas-isencoes', [SigeConcursoCandidatoPortalController::class, 'minhasIsencoes'])->name('minhas-isencoes');
+        Route::get('/minhas-inscricoes/{id}/local-prova', [SigeConcursoCandidatoPortalController::class, 'meuLocalProva'])->name('local-prova');
     });
 
     // Rotas para o estagiário gerenciar seu próprio perfil

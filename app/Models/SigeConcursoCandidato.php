@@ -55,4 +55,9 @@ class SigeConcursoCandidato extends Model
     {
         return $this->hasOne(User::class, 'fk_id_candidato', 'id_candidato');
     }
+
+    public function inscricoes()
+    {
+        return $this->hasMany(SigeConcursoInscricao::class, 'fk_id_candidato', 'id_candidato');
+    }
 }

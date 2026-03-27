@@ -36,4 +36,9 @@ class SigeConcursoSala extends Model
     {
         return $this->belongsTo(SigeConcursoLocalProva::class, 'fk_id_local_prova', 'id_local_prova');
     }
+
+    public function inscricoesAtribuidas()
+    {
+        return $this->hasMany(SigeConcursoInscricaoSala::class, 'fk_id_sala', 'id_sala');
+    }
 }

@@ -73,8 +73,10 @@ Campos sugeridos:
 | data_fim_inscricoes | dateTime nullable | uso futuro |
 | data_prova_objetiva | dateTime nullable | opcional |
 | data_resultado_final | dateTime nullable | opcional |
+| etapa_fluxo_atual | string(50) | cadastro, inscricoes, homologacao_inscricoes, distribuicao_locais, distribuicao_salas, local_prova_liberado, etapas_finais |
 | exige_aceite_edital | boolean | default true |
-| permite_escolha_local_prova | boolean | default false |
+| permite_condicao_especial | boolean | default true |
+| exige_documento_condicao_especial | boolean | default true |
 | possui_taxa_inscricao | boolean | default false |
 | valor_taxa_padrao | decimal(10,2) nullable | usar apenas se houver taxa única |
 | permite_pcd | boolean | default true |
@@ -84,7 +86,7 @@ Campos sugeridos:
 | updated_at | timestamp nullable | recomendado adicionar |
 
 Observação:
-Mesmo que a inscrição fique para depois, vale a pena deixar desde já os campos exige_aceite_edital, permite_escolha_local_prova, possui_taxa_inscricao e modalidades habilitadas, porque isso evita migration corretiva logo na sequência.
+Mesmo que a inscrição fique para depois, vale a pena deixar desde já os campos da etapa operacional, aceite do edital, condição especial, taxa e modalidades habilitadas, porque isso evita migration corretiva logo na sequência.
 
 ### 2. Tabela geral de cargos
 Tabela sugerida: sigeconcursos_tb_cargos
@@ -198,6 +200,20 @@ Campos sugeridos:
 | ordem_exibicao | integer nullable | ordenar na tela |
 | created_at | timestamp nullable | recomendado |
 
+### 9. Tabela de documentos exigidos na inscrição
+Tabela sugerida: sigeconcursos_tb_processo_documentos_exigidos
+
+Campos sugeridos:
+
+| Campo | Tipo sugerido | Observação |
+| --- | --- | --- |
+| id_documento_exigido | integer auto increment | PK |
+| fk_id_processo | integer | processo pai |
+| titulo | string(255) | nome do documento a ser solicitado |
+| descricao | text nullable | instrução complementar para o candidato |
+| obrigatorio | boolean | indica se o envio é obrigatório |
+| ordem_exibicao | integer nullable | ordem na tela |
+
 ## Modelos Laravel Sugeridos
 - SigeConcursoProcesso
 - SigeConcursoCargo
@@ -215,6 +231,7 @@ Relações principais:
 - processo hasMany processoLocais
 - processo hasMany isencoes
 - processo hasMany arquivos
+- processo hasMany documentosExigidos
 - cargo hasMany processoCargos
 - localProva hasMany salas
 - localProva belongsTo cidade
@@ -386,9 +403,11 @@ View sugerida: resources/views/sigeconcursos/processos/show.blade.php
 Objetivo:
 
 - visão consolidada do processo
+- mostrar o fluxo operacional atual
 - mostrar cargos vinculados
 - mostrar locais de prova
 - mostrar isenções cadastradas
+- mostrar documentos exigidos na inscrição
 - listar anexos
 - servir de base futura para acompanhar inscrições, resultados e relatórios
 
