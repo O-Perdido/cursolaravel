@@ -38,7 +38,8 @@
                     <button class="btn btn-primary flex-fill" type="submit">
                         <i class="fa-solid fa-magnifying-glass me-1"></i> Buscar
                     </button>
-                    <a href="{{ route('sigeconcursos.candidato.processos.index') }}" class="btn btn-outline-secondary flex-fill">Limpar</a>
+                    <a href="{{ route('sigeconcursos.candidato.processos.index') }}"
+                        class="btn btn-outline-secondary flex-fill">Limpar</a>
                 </div>
             </div>
         </div>
@@ -56,26 +57,36 @@
                         <span class="badge bg-success">Inscrições abertas</span>
                     </div>
                     <div class="card-body d-flex flex-column">
+                        @if($processo->icone_processo)
+                            <img src="{{ asset('storage/' . $processo->icone_processo) }}" alt="Ícone"
+                                style="max-height: 60px; max-width: 200px; object-fit: contain; margin-bottom: 0.75rem;">
+                        @endif
                         <h5 class="card-title">{{ $processo->titulo }}</h5>
-                        <p class="text-muted small mb-2">Órgão: {{ $processo->empresa?->nome_razao_social ?? 'Não informado' }}</p>
+                        <p class="text-muted small mb-2">Órgão: {{ $processo->empresa?->nome_razao_social ?? 'Não informado' }}
+                        </p>
 
                         <div class="small text-muted mb-3">
-                            <div><strong>Início:</strong> {{ $processo->data_inicio_inscricoes?->format('d/m/Y H:i') ?: 'Não definido' }}</div>
-                            <div><strong>Fim:</strong> {{ $processo->data_fim_inscricoes?->format('d/m/Y H:i') ?: 'Não definido' }}</div>
+                            <div><strong>Início:</strong>
+                                {{ $processo->data_inicio_inscricoes?->format('d/m/Y H:i') ?: 'Não definido' }}</div>
+                            <div><strong>Fim:</strong>
+                                {{ $processo->data_fim_inscricoes?->format('d/m/Y H:i') ?: 'Não definido' }}</div>
                         </div>
 
                         @if($processo->resumo)
-                            <p class="text-muted flex-grow-1" style="white-space: pre-line;">{{ \Illuminate\Support\Str::limit($processo->resumo, 220) }}</p>
+                            <p class="text-muted flex-grow-1" style="white-space: pre-line;">
+                                {{ \Illuminate\Support\Str::limit($processo->resumo, 220) }}</p>
                         @else
                             <p class="text-muted flex-grow-1">Sem resumo cadastrado.</p>
                         @endif
 
                         <div class="d-flex gap-2 mt-2">
-                            <a href="{{ route('sigeconcursos.candidato.processos.show', $processo->id_processo) }}" class="btn btn-primary w-100">
+                            <a href="{{ route('sigeconcursos.candidato.processos.show', $processo->id_processo) }}"
+                                class="btn btn-primary w-100">
                                 <i class="fa-solid fa-circle-info me-1"></i> Ver Detalhes
                             </a>
                             @if($inscricaoId)
-                                <a href="{{ route('sigeconcursos.candidato.minhas-inscricoes') }}" class="btn btn-outline-success w-100">
+                                <a href="{{ route('sigeconcursos.candidato.minhas-inscricoes') }}"
+                                    class="btn btn-outline-success w-100">
                                     <i class="fa-solid fa-check me-1"></i> Já Inscrito
                                 </a>
                             @endif

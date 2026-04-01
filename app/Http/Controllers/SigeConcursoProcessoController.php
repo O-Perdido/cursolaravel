@@ -109,6 +109,7 @@ class SigeConcursoProcessoController extends Controller
         });
 
         $this->salvarArquivos($request, $processo);
+        $this->salvarIcone($request, $processo);
 
         return redirect()->route('sigeconcursos.processos.index')
             ->with('success', 'Processo cadastrado com sucesso!');
@@ -173,6 +174,7 @@ class SigeConcursoProcessoController extends Controller
         });
 
         $this->salvarArquivos($request, $processo);
+        $this->salvarIcone($request, $processo);
 
         return redirect()->route('sigeconcursos.processos.index')
             ->with('success', 'Processo atualizado com sucesso!');
@@ -187,6 +189,10 @@ class SigeConcursoProcessoController extends Controller
                 if (Storage::disk('public')->exists($arquivo->caminho_arquivo)) {
                     Storage::disk('public')->delete($arquivo->caminho_arquivo);
                 }
+            }
+
+            if ($processo->icone_processo && Storage::disk('public')->exists($processo->icone_processo)) {
+                Storage::disk('public')->delete($processo->icone_processo);
             }
 
             $processo->delete();
@@ -662,6 +668,7 @@ class SigeConcursoProcessoController extends Controller
             'nome_exibicao.*' => ['nullable', 'string', 'max:255'],
             'tipo_arquivo' => ['nullable', 'array'],
             'tipo_arquivo.*' => ['nullable', 'string', 'max:50'],
+            'icone_processo' => ['nullable', 'image', 'max:2048'],
         ], [
             'fk_id_empresa.exists' => 'Selecione um órgão/empresa válido.',
         ]);
@@ -686,7 +693,7 @@ class SigeConcursoProcessoController extends Controller
             }
         }
 
-        unset($data['fases'], $data['cargos'], $data['locais'], $data['isencoes'], $data['documentos_exigidos'], $data['arquivos'], $data['nome_exibicao'], $data['tipo_arquivo']);
+        unset($data['fases'], $data['cargos'], $data['locais'], $data['isencoes'], $data['documentos_exigidos'], $data['arquivos'], $data['nome_exibicao'], $data['tipo_arquivo'], $data['icone_processo']);
 
         return $data;
     }
@@ -720,7 +727,7 @@ class SigeConcursoProcessoController extends Controller
             return [
                 'fk_id_cargo' => (int) $cargoId,
                 'quantidade_vagas' => $this->nullableInteger($cargo['quantidade_vagas'] ?? null),
-                'quantidade_cadastro_reserva' => $this->nullableInteger($cargo['quantidade_cadastro_reserva'] ?? null),
+                'quantidade_cadastro_reserva' => !empty($cargo['is_cadastro_reserva']) ? 1 : 0,
                 'valor_remuneracao' => $this->normalizeMoney($cargo['valor_remuneracao'] ?? null),
                 'valor_taxa_inscricao' => $this->normalizeMoney($cargo['valor_taxa_inscricao'] ?? null),
                 'carga_horaria' => trim($cargo['carga_horaria'] ?? '') ?: null,
@@ -782,6 +789,20 @@ class SigeConcursoProcessoController extends Controller
                 'ordem_exibicao' => $index + 1,
             ];
         })->filter()->values()->all();
+    }
+
+    private function salvarIcone(Request $request, SigeConcursoProcesso $processo): void
+    {
+        if (!$request->hasFile('icone_processo')) {
+            return;
+        }
+
+        if ($processo->icone_processo && Storage::disk('public')->exists($processo->icone_processo)) {
+            Storage::disk('public')->delete($processo->icone_processo);
+        }
+
+        $iconePath = $request->file('icone_processo')->store('sigeconcursos/processos/icones', 'public');
+        $processo->update(['icone_processo' => $iconePath]);
     }
 
     private function salvarArquivos(Request $request, SigeConcursoProcesso $processo): void

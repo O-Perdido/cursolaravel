@@ -25,6 +25,7 @@ use App\Http\Controllers\SigeConcursoCandidatoController;
 use App\Http\Controllers\SigeConcursoCandidatoPortalController;
 use App\Http\Controllers\SigeConcursoLocalProvaController;
 use App\Http\Controllers\SigeConcursoProcessoController;
+use App\Http\Controllers\SigeConcursoPublicoController;
 
 $manutencao = false; // Defina como true para ativar a manutenção
 
@@ -582,6 +583,12 @@ Route::get('/', function () {
 Route::get('/processos-publicos', [App\Http\Controllers\ProcessoSeletivoPublicoController::class, 'listarPublicos'])->name('processos-seletivos.publicos');
 Route::get('/processos-seletivos/{id}/detalhes-publico', [App\Http\Controllers\ProcessoSeletivoPublicoController::class, 'detalhesPublico'])->name('processos-seletivos.detalhes.publico');
 Route::get('/processos-seletivos/arquivos/{id}/download-publico', [App\Http\Controllers\ProcessoSeletivoPublicoController::class, 'downloadArquivoPublico'])->name('processos-seletivos.arquivos.download-publico');
+
+// Rotas publicas do SIGE Concursos
+Route::prefix('sigeconcursos')->name('sigeconcursos.publico.')->group(function () {
+    Route::get('/processos-publicos', [SigeConcursoPublicoController::class, 'index'])->name('processos.index');
+    Route::get('/processos/{id}/detalhes-publico', [SigeConcursoPublicoController::class, 'show'])->name('processos.show');
+});
 
 // Rotas públicas de avaliação (sem autenticação)
 Route::get('/avaliacoes/responder/{token}', [\App\Http\Controllers\AvaliacaoController::class, 'responder'])->name('avaliacoes.responder');

@@ -318,7 +318,7 @@
 
 <div class="container-fluid py-4">
     <div class="container mb-5">
-        <div class="row row-cols-1 row-cols-md-3 g-4">
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4">
             <!-- Card 1: Processos Seletivos -->
             <div class="col">
                 <div class="card h-100 shadow border-0 overflow-hidden hover-lift-card"
@@ -399,6 +399,30 @@
                                 <i class="fas fa-user me-2"></i>Acessar Perfil
                             </a>
                         @endguest
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 4: SIGE Concursos -->
+            <div class="col">
+                <div class="card h-100 shadow border-0 overflow-hidden hover-lift-card"
+                    style="border-radius: 12px; transition: all 0.3s ease;">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center mb-4">
+                            <div class="rounded-circle p-3 me-3"
+                                style="background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); width: 60px; height: 60px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-landmark text-white" style="font-size: 28px;"></i>
+                            </div>
+                            <h3 class="mb-0 text-dark">Concursos Públicos</h3>
+                        </div>
+                        <p class="text-muted mb-4" style="font-size: 0.95rem; line-height: 1.6;">
+                            Acompanhe concursos públicos e processos seletivos governamentais,
+                            consulte editais e inscreva-se diretamente pelo portal.
+                        </p>
+                        <a href="{{ route('sigeconcursos.publico.processos.index') }}" class="btn fw-bold"
+                            style="background-color: #4f46e5; color: white; border: none; transition: all 0.3s;">
+                            <i class="fas fa-arrow-right me-2"></i>Explorar
+                        </a>
                     </div>
                 </div>
             </div>

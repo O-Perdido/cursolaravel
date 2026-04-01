@@ -900,3 +900,27 @@ Validações desta evolução:
 1. migrations de distribuição executadas com sucesso
 2. validação de erros dos arquivos alterados (sem erros)
 3. rotas de distribuição e publicação confirmadas no route:list
+
+
+alt- --- STATUS DA IMPLEMENTAÇÃO: PÁGINA PÚBLICA DE PROCESSOS/CONCURSOS SIGE CONCURSOS
+
+Implementado nesta rodada:
+1. criação de rotas públicas (sem autenticação) para SIGE Concursos:
+- /sigeconcursos/processos-publicos
+- /sigeconcursos/processos/{id}/detalhes-publico
+2. criação de controller público dedicado para:
+- listagem pública com filtros por busca, tipo e status
+- detalhes públicos do processo
+- validação para não expor processos em rascunho
+3. criação de views públicas do módulo em pasta própria sigeconcursos:
+- listagem pública de processos e concursos
+- tela de detalhes pública
+4. comportamento de inscrição alinhado ao fluxo definido:
+- visitante pode listar e ver detalhes sem login
+- inscrição continua exigindo usuário candidato autenticado
+- CTAs na tela pública para login/cadastro de candidato
+
+Validações desta rodada:
+1. rotas públicas adicionadas no arquivo de rotas
+2. separação das views públicas mantida dentro do módulo sigeconcursos
+3. regra de inscrição preservada: somente candidato logado pode efetivar inscrição

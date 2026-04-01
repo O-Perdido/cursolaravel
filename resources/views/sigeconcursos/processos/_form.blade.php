@@ -5,7 +5,7 @@
         return [
             'fk_id_cargo' => $item->fk_id_cargo,
             'quantidade_vagas' => $item->quantidade_vagas,
-            'quantidade_cadastro_reserva' => $item->quantidade_cadastro_reserva,
+            'is_cadastro_reserva' => (bool) $item->quantidade_cadastro_reserva,
             'valor_remuneracao' => $item->valor_remuneracao,
             'valor_taxa_inscricao' => $item->valor_taxa_inscricao,
             'carga_horaria' => $item->carga_horaria,
@@ -14,7 +14,7 @@
     })->all() ?? [[
         'fk_id_cargo' => '',
         'quantidade_vagas' => '',
-        'quantidade_cadastro_reserva' => '',
+        'is_cadastro_reserva' => false,
         'valor_remuneracao' => '',
         'valor_taxa_inscricao' => '',
         'carga_horaria' => '',
@@ -69,64 +69,64 @@
     </div>
 @endif
 
-<form action="{{ $action }}" method="POST" enctype="multipart/form-data">
-    @csrf
-    @if ($method !== 'POST')
-        @method($method)
-    @endif
+@if($processo && $processo->documentosExigidos->count() > 0)
+    <div class="card shadow-sm mb-3">
+        <div class="card-header">Documentos Exigidos Atuais</div>
+        <div class="card-body">
+            <div class="list-group list-group-flush">
+                @foreach($processo->documentosExigidos as $documento)
+                    <div class="list-group-item d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <div>
+                            <div class="fw-semibold">{{ $documento->titulo }}</div>
+                            <div class="small text-muted">{{ $documento->obrigatorio ? 'Obrigatório' : 'Opcional' }}</div>
+                            @if($documento->descricao)
+                                <div class="small text-muted">{{ $documento->descricao }}</div>
+                            @endif
+                        </div>
+                        <form action="{{ route('sigeconcursos.processos.documentos-exigidos.destroy', $documento->id_documento_exigido) }}" method="POST"
+                            onsubmit="return confirm('Remover este documento exigido?');">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="btn btn-outline-danger btn-sm">Excluir</button>
+                        </form>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+    </div>
+@endif
 
-    @if($processo && $processo->documentosExigidos->count() > 0)
-        <div class="card shadow-sm mb-3">
-            <div class="card-header">Documentos Exigidos Atuais</div>
-            <div class="card-body">
-                <div class="list-group list-group-flush">
-                    @foreach($processo->documentosExigidos as $documento)
-                        <div class="list-group-item d-flex justify-content-between align-items-center flex-wrap gap-2">
-                            <div>
-                                <div class="fw-semibold">{{ $documento->titulo }}</div>
-                                <div class="small text-muted">{{ $documento->obrigatorio ? 'Obrigatório' : 'Opcional' }}</div>
-                                @if($documento->descricao)
-                                    <div class="small text-muted">{{ $documento->descricao }}</div>
-                                @endif
-                            </div>
-                            <form action="{{ route('sigeconcursos.processos.documentos-exigidos.destroy', $documento->id_documento_exigido) }}" method="POST"
-                                onsubmit="return confirm('Remover este documento exigido?');">
+@if($processo && $processo->arquivos->count() > 0)
+    <div class="card shadow-sm mb-3">
+        <div class="card-header">Arquivos Atuais</div>
+        <div class="card-body">
+            <div class="list-group list-group-flush">
+                @foreach($processo->arquivos as $arquivo)
+                    <div class="list-group-item d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <div>
+                            <div class="fw-semibold">{{ $arquivo->nome_exibicao }}</div>
+                            <div class="small text-muted">{{ ucfirst($arquivo->tipo_arquivo) }}</div>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <a href="{{ asset('storage/' . $arquivo->caminho_arquivo) }}" target="_blank" class="btn btn-outline-primary btn-sm">Abrir</a>
+                            <form action="{{ route('sigeconcursos.processos.arquivos.destroy', $arquivo->id_arquivo) }}" method="POST"
+                                onsubmit="return confirm('Remover este arquivo?');">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="btn btn-outline-danger btn-sm">Excluir</button>
                             </form>
                         </div>
-                    @endforeach
-                </div>
+                    </div>
+                @endforeach
             </div>
         </div>
-    @endif
+    </div>
+@endif
 
-    @if($processo && $processo->arquivos->count() > 0)
-        <div class="card shadow-sm mb-3">
-            <div class="card-header">Arquivos Atuais</div>
-            <div class="card-body">
-                <div class="list-group list-group-flush">
-                    @foreach($processo->arquivos as $arquivo)
-                        <div class="list-group-item d-flex justify-content-between align-items-center flex-wrap gap-2">
-                            <div>
-                                <div class="fw-semibold">{{ $arquivo->nome_exibicao }}</div>
-                                <div class="small text-muted">{{ ucfirst($arquivo->tipo_arquivo) }}</div>
-                            </div>
-                            <div class="d-flex gap-2">
-                                <a href="{{ asset('storage/' . $arquivo->caminho_arquivo) }}" target="_blank" class="btn btn-outline-primary btn-sm">Abrir</a>
-                                <form action="{{ route('sigeconcursos.processos.arquivos.destroy', $arquivo->id_arquivo) }}" method="POST"
-                                    onsubmit="return confirm('Remover este arquivo?');">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-outline-danger btn-sm">Excluir</button>
-                                </form>
-                            </div>
-                        </div>
-                    @endforeach
-                </div>
-            </div>
-        </div>
+<form action="{{ $action }}" method="POST" enctype="multipart/form-data">
+    @csrf
+    @if ($method !== 'POST')
+        @method($method)
     @endif
 
     <div class="card shadow-sm mb-3">
@@ -193,6 +193,23 @@
                 <label for="titulo" class="form-label">Título</label>
                 <input type="text" class="form-control @error('titulo') is-invalid @enderror" id="titulo" name="titulo"
                     value="{{ old('titulo', $processo?->titulo) }}" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="icone_processo" class="form-label">Ícone / Imagem do Processo</label>
+                @if($processo?->icone_processo)
+                    <div class="mb-2">
+                        <img src="{{ asset('storage/' . $processo->icone_processo) }}" alt="Ícone atual"
+                            style="max-height: 80px; border-radius: 8px; border: 1px solid #dee2e6;">
+                        <small class="text-muted d-block mt-1">Ícone atual. Envie uma nova imagem para substituir.</small>
+                    </div>
+                @endif
+                <input type="file" class="form-control @error('icone_processo') is-invalid @enderror" id="icone_processo"
+                    name="icone_processo" accept="image/*">
+                @error('icone_processo')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
+                <small class="text-muted">Opcional. Imagem PNG/JPG, máx. 2 MB.</small>
             </div>
 
             <div class="mb-3">
@@ -497,11 +514,13 @@
                     </div>
                     <div class="col-md-2 mb-2">
                         <label class="form-label small">Vagas</label>
-                        <input type="number" min="0" class="form-control form-control-sm" name="cargos[${index}][quantidade_vagas]" value="${data.quantidade_vagas ?? ''}">
+                        <input type="number" min="0" class="form-control form-control-sm vagas-input" name="cargos[${index}][quantidade_vagas]" value="${data.is_cadastro_reserva ? 0 : (data.quantidade_vagas ?? '')}" ${data.is_cadastro_reserva ? 'disabled' : ''}>
                     </div>
-                    <div class="col-md-2 mb-2">
-                        <label class="form-label small">Cadastro Reserva</label>
-                        <input type="number" min="0" class="form-control form-control-sm" name="cargos[${index}][quantidade_cadastro_reserva]" value="${data.quantidade_cadastro_reserva ?? ''}">
+                    <div class="col-md-2 mb-2 d-flex align-items-end">
+                        <div class="form-check mb-1">
+                            <input class="form-check-input cadastro-reserva-check" type="checkbox" name="cargos[${index}][is_cadastro_reserva]" value="1" id="cr_${index}" ${data.is_cadastro_reserva ? 'checked' : ''}>
+                            <label class="form-check-label small" for="cr_${index}">Cadastro Reserva</label>
+                        </div>
                     </div>
                     <div class="col-md-2 mb-2">
                         <label class="form-label small">Remuneração</label>
@@ -524,6 +543,18 @@
             bindRemove(item, cargosContainer, 'cargos', '.cargo-item');
             cargosContainer.appendChild(item);
             item.querySelectorAll('.money-field').forEach(bindMoneyMask);
+
+            const checkboxCR = item.querySelector('.cadastro-reserva-check');
+            const vagasInput = item.querySelector('.vagas-input');
+            checkboxCR.addEventListener('change', function () {
+                if (this.checked) {
+                    vagasInput.value = 0;
+                    vagasInput.disabled = true;
+                } else {
+                    vagasInput.disabled = false;
+                    vagasInput.value = '';
+                }
+            });
         }
 
         function renderLocal(data = {}) {

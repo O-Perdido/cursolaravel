@@ -19,6 +19,7 @@ class SigeConcursoProcesso extends Model
         'numero_processo',
         'numero_edital',
         'titulo',
+        'icone_processo',
         'tipo_processo',
         'fk_id_empresa',
         'status',
