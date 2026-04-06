@@ -3,6 +3,12 @@
 @section('title', 'SIGE Concursos | Detalhes do Processo')
 
 @section('content')
+    @php
+        $statusFluxo = $processo->statusApresentacaoDefinicao();
+        $etapaAtual = $processo->etapaFluxoAtualDefinicao();
+        $proximaAcao = $processo->proximaAcaoOperacional();
+    @endphp
+
     @if(session('success'))
         <div class="alert alert-success">{{ session('success') }}</div>
     @endif
@@ -23,6 +29,28 @@
             <a href="{{ route('sigeconcursos.candidato.minhas-inscricoes') }}" class="btn btn-outline-primary">
                 <i class="fa-solid fa-clipboard-list me-1"></i> Minhas Inscrições
             </a>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm mb-4" style="border-radius: 22px; overflow: hidden; background: linear-gradient(135deg, #fcfaf6 0%, #eef7f4 100%);">
+        <div class="card-body p-4">
+            <div class="d-flex flex-column flex-xl-row justify-content-between gap-4">
+                <div>
+                    <div class="d-flex flex-wrap gap-2 mb-3">
+                        <span class="badge {{ $statusFluxo['badge_class'] }} px-3 py-2">{{ $statusFluxo['titulo'] }}</span>
+                        <span class="badge text-dark" style="background: rgba(17, 49, 58, 0.08);">
+                            <i class="fa-solid {{ $etapaAtual['icone'] ?? 'fa-circle' }} me-1"></i>{{ $etapaAtual['titulo'] }}
+                        </span>
+                    </div>
+                    <h5 class="mb-2">Como este processo esta agora</h5>
+                    <p class="text-muted mb-0">{{ $statusFluxo['descricao'] }}</p>
+                </div>
+                <div class="rounded-4 p-3 bg-white border" style="max-width: 340px;">
+                    <div class="small text-uppercase text-muted fw-semibold mb-2">Proximo marco</div>
+                    <div class="fw-semibold mb-1">{{ $proximaAcao['titulo'] ?? $etapaAtual['titulo'] }}</div>
+                    <div class="small text-muted">{{ $proximaAcao['resumo'] ?? $etapaAtual['descricao'] }}</div>
+                </div>
+            </div>
         </div>
     </div>
 

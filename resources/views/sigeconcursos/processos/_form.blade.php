@@ -172,10 +172,21 @@
                             </option>
                         @endforeach
                     </select>
+                    <small class="text-muted">Use manualmente apenas para rascunho, publicado, suspenso ou finalizado. Durante a operacao normal o sistema sincroniza esse campo conforme o andamento real.</small>
                 </div>
             </div>
 
             <div class="row">
+                <div class="col-md-8 mb-3">
+                    <div class="rounded-3 border p-3 bg-light h-100">
+                        <div class="fw-semibold mb-2">Como a jornada funciona agora</div>
+                        <div class="small text-muted mb-2">O processo passa a ser guiado principalmente pelo andamento operacional:</div>
+                        <div class="small text-muted">1. Publicado ou inscricoes abertas mantem a etapa de inscricoes.</div>
+                        <div class="small text-muted">2. Quando as inscricoes terminam e ha candidaturas, o processo entra em homologacao.</div>
+                        <div class="small text-muted">3. Distribuicoes por local e por sala atualizam a jornada automaticamente.</div>
+                        <div class="small text-muted">4. Suspenso e finalizado continuam como controles administrativos manuais.</div>
+                    </div>
+                </div>
                 <div class="col-md-4 mb-3">
                     <label for="etapa_fluxo_atual" class="form-label">Etapa Operacional Atual</label>
                     <select class="form-select @error('etapa_fluxo_atual') is-invalid @enderror" id="etapa_fluxo_atual" name="etapa_fluxo_atual" required>
@@ -185,7 +196,7 @@
                             </option>
                         @endforeach
                     </select>
-                    <small class="text-muted">Usado para organizar o processo em formato de jornada operacional.</small>
+                    <small class="text-muted">Use como ajuste fino apenas em excecoes. O hub e as paginas operacionais priorizam a etapa calculada automaticamente.</small>
                 </div>
             </div>
 

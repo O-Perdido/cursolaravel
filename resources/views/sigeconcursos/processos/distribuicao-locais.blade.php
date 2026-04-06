@@ -23,6 +23,8 @@
         </div>
     </div>
 
+    @include('sigeconcursos.processos._workflow-hub', ['processo' => $processo])
+
     {{-- Resumo --}}
     <div class="row g-3 mb-4">
         <div class="col-md-3">
@@ -38,7 +40,8 @@
                 <div class="card-body">
                     <div class="text-muted small">Distribuídos</div>
                     <div class="h4 mb-0 {{ $totalDistribuidos > 0 ? 'text-success' : 'text-muted' }}">
-                        {{ $totalDistribuidos }}</div>
+                        {{ $totalDistribuidos }}
+                    </div>
                 </div>
             </div>
         </div>

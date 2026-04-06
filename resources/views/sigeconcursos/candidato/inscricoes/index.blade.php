@@ -102,7 +102,7 @@
                                     @endif
                                 </td>
                                 <td>
-                                    @if($inscricao->status_inscricao === 'deferido' && $inscricao->processo?->etapa_fluxo_atual === 'local_prova_liberado')
+                                    @if($inscricao->status_inscricao === 'deferido' && $inscricao->processo?->localProvaPublicado())
                                         <a href="{{ route('sigeconcursos.candidato.local-prova', $inscricao->id_inscricao) }}"
                                             class="btn btn-sm btn-success">
                                             <i class="fa-solid fa-location-dot me-1"></i> Ver local

@@ -108,6 +108,8 @@ class SigeConcursoProcessoController extends Controller
             return $processo;
         });
 
+        $this->sincronizarFluxoProcesso($processo);
+
         $this->salvarArquivos($request, $processo);
         $this->salvarIcone($request, $processo);
 
@@ -172,6 +174,8 @@ class SigeConcursoProcessoController extends Controller
             $processo->isencoes()->createMany($isencoes);
             $processo->documentosExigidos()->createMany($documentosExigidos);
         });
+
+        $this->sincronizarFluxoProcesso($processo);
 
         $this->salvarArquivos($request, $processo);
         $this->salvarIcone($request, $processo);
@@ -302,6 +306,8 @@ class SigeConcursoProcessoController extends Controller
             'observacoes' => trim((string) ($validated['observacoes'] ?? '')) ?: null,
         ]);
 
+        $this->sincronizarFluxoProcesso($processo);
+
         return back()->with('success', 'Status da inscrição atualizado com sucesso.');
     }
     
@@ -340,6 +346,8 @@ class SigeConcursoProcessoController extends Controller
             'parecer_isencao' => trim((string) ($validated['parecer_isencao'] ?? '')) ?: null,
             'status_pagamento' => $novoStatusPagamento,
         ]);
+
+        $this->sincronizarFluxoProcesso($processo);
 
         return back()->with('success', 'Status da isenção atualizado com sucesso.');
     }
@@ -464,6 +472,8 @@ class SigeConcursoProcessoController extends Controller
             }
         });
 
+        $this->sincronizarFluxoProcesso($processo);
+
         return back()->with('success', "Distribuição realizada: {$totalCandidatos} candidatos distribuídos entre {$totalLocais} local(is).");
     }
 
@@ -475,6 +485,8 @@ class SigeConcursoProcessoController extends Controller
             ->pluck('id_processo_local');
 
         $removidos = SigeConcursoInscricaoLocal::whereIn('fk_id_processo_local', $idsProcessoLocais)->delete();
+
+        $this->sincronizarFluxoProcesso($processo);
 
         return back()->with('success', "Distribuição por locais removida ({$removidos} registro(s) excluído(s)).");
     }
@@ -581,6 +593,8 @@ class SigeConcursoProcessoController extends Controller
             }
         });
 
+        $this->sincronizarFluxoProcesso($processo);
+
         return back()->with('success', 'Distribuição por salas realizada com sucesso.');
     }
 
@@ -593,6 +607,8 @@ class SigeConcursoProcessoController extends Controller
         })->pluck('fk_id_inscricao');
 
         $removidos = SigeConcursoInscricaoSala::whereIn('fk_id_inscricao', $idsInscricoes)->delete();
+
+        $this->sincronizarFluxoProcesso($processo);
 
         return back()->with('success', "Distribuição por salas removida ({$removidos} registro(s) excluído(s)).");
     }
@@ -613,13 +629,73 @@ class SigeConcursoProcessoController extends Controller
             'etapa_fluxo_atual' => 'local_prova_liberado',
         ]);
 
+        $this->sincronizarFluxoProcesso($processo);
+
         return back()->with('success', 'Local de prova publicado para os candidatos com inscrição deferida.');
+    }
+
+    public function publicarEdital(Request $request, $id)
+    {
+        $processo = SigeConcursoProcesso::findOrFail($id);
+
+        if (in_array($processo->status, ['suspenso', 'finalizado'], true)) {
+            return back()->with('error', 'Não é possível publicar edital para um processo suspenso ou finalizado.');
+        }
+
+        $processo->update([
+            'status' => 'publicado',
+            'etapa_fluxo_atual' => 'cadastro',
+            'data_publicacao' => $processo->data_publicacao ?: now(),
+        ]);
+
+        $this->sincronizarFluxoProcesso($processo);
+
+        $redirectTo = (string) $request->input('redirect_to', '');
+
+        if ($redirectTo !== '' && str_starts_with($redirectTo, '/')) {
+            return redirect($redirectTo)->with('success', 'Edital publicado com sucesso.');
+        }
+
+        return back()->with('success', 'Edital publicado com sucesso.');
+    }
+
+    public function iniciarInscricoes(Request $request, $id)
+    {
+        $processo = SigeConcursoProcesso::findOrFail($id);
+
+        if (in_array($processo->status, ['suspenso', 'finalizado'], true)) {
+            return back()->with('error', 'Não é possível iniciar inscrições para um processo suspenso ou finalizado.');
+        }
+
+        $processo->update([
+            'status' => 'inscricoes_abertas',
+            'etapa_fluxo_atual' => 'inscricoes',
+            'data_publicacao' => $processo->data_publicacao ?: now(),
+        ]);
+
+        $this->sincronizarFluxoProcesso($processo);
+
+        $processo->refresh();
+
+        $mensagem = $processo->inscricoesAbertasAgora()
+            ? 'Fluxo atualizado para inscrições e etapa operacional sincronizada.'
+            : 'Etapa de inscrições ativada. O processo ficará com inscrições abertas somente dentro do período configurado.';
+
+        $redirectTo = (string) $request->input('redirect_to', '');
+
+        if ($redirectTo !== '' && str_starts_with($redirectTo, '/')) {
+            return redirect($redirectTo)->with('success', $mensagem);
+        }
+
+        return redirect()->route('sigeconcursos.processos.inscricoes', $processo->id_processo)
+            ->with('success', $mensagem);
     }
 
     private function validateData(Request $request): array
     {
         $request->merge([
             'valor_taxa_padrao' => $this->normalizeMoney($request->input('valor_taxa_padrao')),
+            'etapa_fluxo_atual' => $this->resolverEtapaFluxoEntrada($request),
         ]);
 
         $data = $request->validate([
@@ -696,6 +772,29 @@ class SigeConcursoProcessoController extends Controller
         unset($data['fases'], $data['cargos'], $data['locais'], $data['isencoes'], $data['documentos_exigidos'], $data['arquivos'], $data['nome_exibicao'], $data['tipo_arquivo'], $data['icone_processo']);
 
         return $data;
+    }
+
+    private function resolverEtapaFluxoEntrada(Request $request): string
+    {
+        $status = (string) $request->input('status', 'rascunho');
+
+        if (in_array($status, ['suspenso', 'finalizado'], true)) {
+            return (string) $request->input('etapa_fluxo_atual', 'etapas_finais');
+        }
+
+        return match ($status) {
+            'rascunho' => 'cadastro',
+            'publicado', 'inscricoes_abertas' => 'inscricoes',
+            'inscricoes_encerradas', 'em_andamento' => (string) $request->input('etapa_fluxo_atual', 'homologacao_inscricoes'),
+            default => 'cadastro',
+        };
+    }
+
+    private function sincronizarFluxoProcesso(SigeConcursoProcesso $processo): void
+    {
+        $processo->refresh();
+        $processo->update($processo->sincronizacaoFluxo());
+        $processo->refresh();
     }
 
     private function formatarFases(array $fases): array

@@ -258,6 +258,79 @@ Relações principais:
 
 ### Rotas auxiliares de locais e salas
 - GET sigeconcursos/locais-prova
+
+## Refatoracao do Hub Operacional - Abril 2026
+
+### Objetivo desta etapa
+- Transformar a pagina de detalhes do processo em um hub operacional, e nao apenas em uma pagina de consulta.
+- Reduzir a dependencia de dois controles manuais paralelos: status e etapa_fluxo_atual.
+- Exibir a jornada do processo de forma coerente para equipe interna, area publica e candidatos.
+
+### Decisao tecnica adotada
+- O campo status continua existindo como referencia administrativa e de governanca.
+- O campo etapa_fluxo_atual continua existindo como ajuste manual e compatibilidade com o fluxo atual.
+- A leitura principal da interface agora e calculada pela model SigeConcursoProcesso, usando:
+  - datas de inscricao
+  - quantidade de inscricoes
+  - homologacoes realizadas
+  - distribuicao por locais
+  - distribuicao por salas
+  - publicacao de local de prova
+  - encerramento final do processo
+
+### Metodos centrais introduzidos na model
+- statusApresentacao(): define o status que sera exibido nas telas.
+- statusApresentacaoDefinicao(): devolve titulo, badge e descricao do status atual.
+- etapaFluxoAtualCalculada(): resolve automaticamente a etapa operacional dominante.
+- etapaFluxoAtualDefinicao(): devolve titulo, icone e metadados da etapa atual.
+- indicadoresOperacionais(): consolida numeros-chave do processo.
+- fluxoOperacional(): monta a jornada passo a passo para renderizacao nas views.
+- proximaAcaoOperacional(): destaca o proximo foco de trabalho do processo.
+- inscricoesAbertasAgora(): passou a ser a fonte comum para validar janela de inscricao.
+- localProvaPublicado(): passou a indicar quando o candidato ja pode consultar local/sala.
+
+### Impacto nas telas
+- A tela sigeconcursos/processos/{id} agora funciona como hub operacional.
+- As telas de inscricoes, isencoes, distribuicao por locais e distribuicao por salas passaram a reutilizar o mesmo cabecalho de jornada.
+- A vitrine publica e a area do candidato agora exibem badges e etapa atual com base na mesma leitura centralizada.
+
+### Beneficios esperados
+- Menor risco de inconsistencias entre o que a equipe enxerga e o que o candidato enxerga.
+- Mais clareza sobre o que ja foi concluido e qual e a proxima acao esperada.
+- Melhor base para a segunda etapa da refatoracao, que deve atacar:
+  1. simplificacao do formulario de gestao de status/etapa
+  2. automacoes de transicao entre etapas
+  3. reorganizacao mais profunda das telas operacionais por contexto de trabalho
+
+## Segunda Etapa da Refatoracao - Sincronizacao de Fluxo
+
+### O que mudou
+- O formulario de processo passou a orientar melhor quando usar status e etapa manualmente.
+- O backend passou a sincronizar status e etapa depois das principais operacoes operacionais.
+
+### Regras novas
+- Status manual continua prioritario apenas para:
+  - rascunho
+  - suspenso
+  - finalizado
+- Nos demais cenarios, a leitura administrativa e publica passa a ser sincronizada com base no andamento real.
+- A etapa operacional tambem passa a ser recalculada apos eventos-chave do fluxo.
+
+### Operacoes que agora sincronizam o processo
+- criacao do processo
+- atualizacao do processo
+- homologacao manual de inscricoes
+- analise de isencao
+- distribuicao por locais
+- limpeza da distribuicao por locais
+- distribuicao por salas
+- limpeza da distribuicao por salas
+- publicacao de local de prova
+
+### Resultado pratico
+- O cadastro deixa de depender tanto de lembrar manualmente em que etapa o processo esta.
+- A jornada exibida no hub fica mais proxima do estado real de execucao.
+- O formulario continua permitindo ajuste fino, mas esse ajuste passa a ser excecao e nao regra de operacao.
 - GET sigeconcursos/locais-prova/create
 - POST sigeconcursos/locais-prova
 - GET sigeconcursos/locais-prova/{id}

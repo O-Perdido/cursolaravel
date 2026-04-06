@@ -924,3 +924,87 @@ Validações desta rodada:
 1. rotas públicas adicionadas no arquivo de rotas
 2. separação das views públicas mantida dentro do módulo sigeconcursos
 3. regra de inscrição preservada: somente candidato logado pode efetivar inscrição
+
+
+alt- --- AJUSTE DE UX NO HUB OPERACIONAL (HOMOLOGAÇÃO)
+
+Contexto identificado:
+1. no card da jornada operacional, o botão "Acompanhar inscrições" pode apontar para a mesma rota já aberta
+2. quando isso acontece, para o usuário parece que o botão não funciona
+
+Correção aplicada:
+1. no partial do hub operacional, os CTAs agora verificam se a rota alvo é a rota atual
+2. quando for a mesma rota, o botão é exibido como estado desabilitado com texto contextual:
+- "Etapa atual" (bloco foco operacional)
+- "Voce ja esta nesta etapa" (cards da jornada)
+3. quando a rota for diferente, o CTA continua navegando normalmente
+
+Validação:
+1. rota administrativa de inscrições confirmada no route:list
+2. view ajustada sem erros de editor
+
+
+alt- --- CORREÇÃO DE LÓGICA NO STATUS VISUAL DOS BOTÕES DA JORNADA
+
+Contexto identificado:
+1. as etapas "Inscrições" e "Homologação das inscrições" compartilham a mesma rota administrativa
+2. a regra visual anterior marcava "Você já está nesta etapa" apenas por coincidência de rota
+3. isso gerava falso positivo quando a etapa atual real era outra (exemplo: cadastro)
+
+Correção aplicada:
+1. o estado visual de "etapa atual" passou a usar a situação calculada da etapa no fluxo (situacao = atual)
+2. a coincidência de rota isolada não é mais usada para desabilitar CTA
+
+Validação:
+1. view do hub sem erros após ajuste
+
+
+alt- --- AJUSTE DE NAVEGAÇÃO DO CTA "ACOMPANHAR INSCRIÇÕES"
+
+Contexto identificado:
+1. ao clicar em "Acompanhar inscrições" já dentro da tela de inscrições, a URL era a mesma e a sensação era de simples recarregamento
+
+Correção aplicada:
+1. CTAs da rota de inscrições no hub passaram a incluir âncora para o painel operacional da homologação
+2. criada âncora de destino na view de inscrições (painel-homologacao)
+3. resultado esperado: clique leva direto para a seção de execução, inclusive quando o usuário já está na mesma página
+
+Validação:
+1. views ajustadas sem erros de editor
+
+
+alt- --- CORREÇÃO DE TRAVAMENTO DA ETAPA EM "CADASTRO DO PROCESSO"
+
+Contexto identificado:
+1. alguns processos permaneciam visualmente em "Cadastro do processo" mesmo após movimentação operacional
+2. a lógica do model priorizava status rascunho de forma rígida, retornando sempre etapa cadastro antes de avaliar indicadores
+
+Correção aplicada:
+1. ajuste no cálculo de etapa para permitir sair de cadastro quando houver movimentação real (inscrições e/ou distribuições)
+2. ajuste no status de apresentação para manter "rascunho" apenas quando a etapa calculada continuar em cadastro
+3. status manuais bloqueados (suspenso/finalizado) permanecem preservados
+
+Validação:
+1. model ajustado sem erros de editor
+
+
+alt- --- NOVO FLUXO OPERACIONAL EXPLÍCITO: PUBLICAR EDITAL E INICIAR INSCRIÇÕES
+
+Implementado nesta rodada:
+1. nova ação administrativa para publicar edital:
+- altera status para publicado
+- tira o processo do rascunho
+- mantém sincronização de fluxo
+2. nova ação administrativa para iniciar/acompanhar inscrições:
+- altera status para inscricoes_abertas
+- altera etapa para inscricoes
+- redireciona para a tela de homologação/inscrições
+3. CTA "Acompanhar inscrições" no hub passou de link passivo para ação POST real de mudança de estado
+4. botão "Publicar edital" adicionado no hub e no card de ações administrativas quando o processo estiver em rascunho
+5. ajuste no cálculo de status apresentado:
+- "Inscrições abertas" só aparece quando o processo está dentro da janela de inscrição
+- fora da janela, o status exibido volta para publicado (antes) ou inscrições encerradas (depois)
+
+Validações desta rodada:
+1. arquivos alterados sem erros no editor
+2. novas rotas de publicar edital e iniciar inscrições registradas no route:list

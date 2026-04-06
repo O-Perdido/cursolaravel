@@ -27,6 +27,8 @@
         </div>
     </div>
 
+    @include('sigeconcursos.processos._workflow-hub', ['processo' => $processo])
+
     {{-- Resumo --}}
     <div class="row g-3 mb-4">
         <div class="col-md-4">
@@ -58,10 +60,6 @@
                 </div>
             </div>
         </div>
-    </div>
-
-    <div class="alert {{ $processo->etapa_fluxo_atual === 'local_prova_liberado' ? 'alert-success' : 'alert-secondary' }} mb-4">
-        <strong>Etapa atual:</strong> {{ str_replace('_', ' ', $processo->etapa_fluxo_atual) }}
     </div>
 
     {{-- Ações principais --}}
@@ -96,7 +94,7 @@
                         </button>
                     </form>
 
-                    @if($processo->etapa_fluxo_atual !== 'local_prova_liberado')
+                    @if(!$processo->localProvaPublicado())
                         <form action="{{ route('sigeconcursos.processos.local-prova.publicar', $processo->id_processo) }}"
                             method="POST">
                             @csrf

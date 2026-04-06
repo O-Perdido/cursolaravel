@@ -60,35 +60,6 @@
         </div>
     </form>
 
-    @php
-        $statusColors = [
-            'publicado' => '#0d6efd',
-            'inscricoes_abertas' => '#198754',
-            'inscricoes_encerradas' => '#6c757d',
-            'em_andamento' => '#0891b2',
-            'finalizado' => '#1e293b',
-            'suspenso' => '#d97706',
-        ];
-
-        $statusBadgeClasses = [
-            'publicado' => 'bg-primary',
-            'inscricoes_abertas' => 'bg-success',
-            'inscricoes_encerradas' => 'bg-secondary',
-            'em_andamento' => 'bg-info text-dark',
-            'finalizado' => 'bg-dark',
-            'suspenso' => 'bg-warning text-dark',
-        ];
-
-        $statusLabels = [
-            'publicado' => 'Publicado',
-            'inscricoes_abertas' => 'Inscrições Abertas',
-            'inscricoes_encerradas' => 'Inscrições Encerradas',
-            'em_andamento' => 'Em Andamento',
-            'finalizado' => 'Finalizado',
-            'suspenso' => 'Suspenso',
-        ];
-    @endphp
-
     @if($processos->total() > 0)
         <p class="text-muted small mb-3">{{ $processos->total() }}
             {{ $processos->total() === 1 ? 'processo encontrado' : 'processos encontrados' }}</p>
@@ -97,9 +68,11 @@
     <div class="d-flex flex-column gap-3">
         @forelse($processos as $processo)
             @php
-                $cor = $statusColors[$processo->status] ?? '#6c757d';
-                $badgeClass = $statusBadgeClasses[$processo->status] ?? 'bg-secondary';
-                $label = $statusLabels[$processo->status] ?? ucfirst(str_replace('_', ' ', (string) $processo->status));
+                $statusFluxo = $processo->statusApresentacaoDefinicao();
+                $etapaAtual = $processo->etapaFluxoAtualDefinicao();
+                $cor = $statusFluxo['color'] ?? '#6c757d';
+                $badgeClass = $statusFluxo['badge_class'] ?? 'bg-secondary';
+                $label = $statusFluxo['titulo'] ?? 'Status';
                 $tipoLabel = $processo->tipo_processo === 'concurso_publico' ? 'Concurso Público' : 'Processo Seletivo';
                 $primeiraIsencao = $processo->isencoes->first();
             @endphp
@@ -138,6 +111,11 @@
                                 Edital nº <strong>{{ $processo->numero_edital }}</strong>
                             </div>
 
+                            <div class="small text-muted mb-2">
+                                <i class="fa-solid {{ $etapaAtual['icone'] ?? 'fa-circle' }} me-1"></i>
+                                Etapa atual: <strong>{{ $etapaAtual['titulo'] }}</strong>
+                            </div>
+
                             {{-- Datas de inscrição --}}
                             @if($processo->data_inicio_inscricoes || $processo->data_fim_inscricoes)
                                 <div class="d-flex align-items-center flex-wrap gap-2 small mb-1">
@@ -148,9 +126,9 @@
                                         a
                                         <strong>{{ $processo->data_fim_inscricoes?->format('d/m/Y') ?? '?' }}</strong>
                                     </span>
-                                    @if($processo->status === 'inscricoes_abertas')
+                                    @if($processo->inscricoesAbertasAgora())
                                         <span class="badge bg-success">Inscrições Abertas!</span>
-                                    @elseif($processo->status === 'inscricoes_encerradas')
+                                    @elseif($processo->inscricoesEncerradas())
                                         <span class="badge bg-secondary">Encerradas</span>
                                     @endif
                                 </div>

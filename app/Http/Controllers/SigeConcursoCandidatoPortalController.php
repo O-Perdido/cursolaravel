@@ -757,19 +757,7 @@ class SigeConcursoCandidatoPortalController extends Controller
 
     private function processoComInscricoesAbertas(SigeConcursoProcesso $processo): bool
     {
-        if ($processo->status !== 'inscricoes_abertas') {
-            return false;
-        }
-
-        if ($processo->data_inicio_inscricoes && now()->lt($processo->data_inicio_inscricoes)) {
-            return false;
-        }
-
-        if ($processo->data_fim_inscricoes && now()->gt($processo->data_fim_inscricoes)) {
-            return false;
-        }
-
-        return true;
+        return $processo->inscricoesAbertasAgora();
     }
 
     private function resolveValorTaxaAplicada(SigeConcursoProcesso $processo, string $modalidade): ?float

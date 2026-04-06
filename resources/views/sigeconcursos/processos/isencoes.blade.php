@@ -17,7 +17,8 @@
             <p class="text-muted mb-0">{{ $processo->titulo }} - Edital {{ $processo->numero_edital }}</p>
         </div>
         <div class="d-flex gap-2">
-            <a href="{{ route('sigeconcursos.processos.inscricoes', $processo->id_processo) }}" class="btn btn-outline-secondary">
+            <a href="{{ route('sigeconcursos.processos.inscricoes', $processo->id_processo) }}"
+                class="btn btn-outline-secondary">
                 <i class="fa-solid fa-clipboard-list me-1"></i> Ver Inscrições
             </a>
             <a href="{{ route('sigeconcursos.processos.show', $processo->id_processo) }}" class="btn btn-outline-secondary">
@@ -25,6 +26,8 @@
             </a>
         </div>
     </div>
+
+    @include('sigeconcursos.processos._workflow-hub', ['processo' => $processo])
 
     <div class="row g-3 mb-4">
         <div class="col-md-3">
@@ -66,8 +69,8 @@
             <div class="row g-2 align-items-end">
                 <div class="col-md-4">
                     <label class="form-label mb-1" for="nome">Nome</label>
-                    <input type="text" name="nome" id="nome" class="form-control form-control-sm" value="{{ request('nome') }}"
-                        placeholder="Nome do candidato">
+                    <input type="text" name="nome" id="nome" class="form-control form-control-sm"
+                        value="{{ request('nome') }}" placeholder="Nome do candidato">
                 </div>
                 <div class="col-md-3">
                     <label class="form-label mb-1" for="cpf">CPF</label>
@@ -78,14 +81,18 @@
                     <label class="form-label mb-1" for="status_isencao">Status isenção</label>
                     <select name="status_isencao" id="status_isencao" class="form-select form-select-sm">
                         <option value="">Todos</option>
-                        <option value="pendente" {{ request('status_isencao') === 'pendente' ? 'selected' : '' }}>Pendente</option>
-                        <option value="deferida" {{ request('status_isencao') === 'deferida' ? 'selected' : '' }}>Deferida</option>
-                        <option value="indeferida" {{ request('status_isencao') === 'indeferida' ? 'selected' : '' }}>Indeferida</option>
+                        <option value="pendente" {{ request('status_isencao') === 'pendente' ? 'selected' : '' }}>Pendente
+                        </option>
+                        <option value="deferida" {{ request('status_isencao') === 'deferida' ? 'selected' : '' }}>Deferida
+                        </option>
+                        <option value="indeferida" {{ request('status_isencao') === 'indeferida' ? 'selected' : '' }}>
+                            Indeferida</option>
                     </select>
                 </div>
                 <div class="col-md-2 d-grid d-md-flex gap-2">
                     <button type="submit" class="btn btn-primary btn-sm flex-fill"><i class="fas fa-search"></i></button>
-                    <a href="{{ route('sigeconcursos.processos.isencoes', $processo->id_processo) }}" class="btn btn-outline-secondary btn-sm flex-fill">Limpar</a>
+                    <a href="{{ route('sigeconcursos.processos.isencoes', $processo->id_processo) }}"
+                        class="btn btn-outline-secondary btn-sm flex-fill">Limpar</a>
                 </div>
             </div>
         </div>
@@ -122,7 +129,8 @@
                                     <div class="small text-muted">{{ $inscricao->created_at?->format('d/m/Y H:i') }}</div>
                                 </td>
                                 <td>
-                                    <div class="small"><strong>Caso:</strong> {{ $inscricao->isencao?->titulo ?: 'Não informado' }}</div>
+                                    <div class="small"><strong>Caso:</strong>
+                                        {{ $inscricao->isencao?->titulo ?: 'Não informado' }}</div>
                                     <div class="small text-muted mt-1" style="white-space: pre-line;">
                                         {{ $inscricao->justificativa_isencao ?: 'Sem justificativa registrada.' }}
                                     </div>
@@ -132,7 +140,8 @@
                                         @foreach($inscricao->documentosIsencao as $documento)
                                             <div class="small mb-1">
                                                 {{ $documento->nome_documento }}
-                                                <a href="{{ asset('storage/' . $documento->caminho_arquivo) }}" target="_blank" class="ms-1">Abrir</a>
+                                                <a href="{{ asset('storage/' . $documento->caminho_arquivo) }}" target="_blank"
+                                                    class="ms-1">Abrir</a>
                                             </div>
                                         @endforeach
                                     @else
@@ -140,13 +149,17 @@
                                     @endif
                                 </td>
                                 <td>
-                                    <span class="badge {{ $badgeIsencao }}">{{ ucfirst(str_replace('_', ' ', $inscricao->status_isencao)) }}</span>
+                                    <span
+                                        class="badge {{ $badgeIsencao }}">{{ ucfirst(str_replace('_', ' ', $inscricao->status_isencao)) }}</span>
                                     @if($inscricao->parecer_isencao)
-                                        <div class="small text-muted mt-1" style="white-space: pre-line;">{{ $inscricao->parecer_isencao }}</div>
+                                        <div class="small text-muted mt-1" style="white-space: pre-line;">
+                                            {{ $inscricao->parecer_isencao }}</div>
                                     @endif
                                 </td>
                                 <td>
-                                    <form action="{{ route('sigeconcursos.processos.inscricoes.atualizar-isencao', $processo->id_processo) }}" method="POST" class="d-grid gap-2">
+                                    <form
+                                        action="{{ route('sigeconcursos.processos.inscricoes.atualizar-isencao', $processo->id_processo) }}"
+                                        method="POST" class="d-grid gap-2">
                                         @csrf
                                         <input type="hidden" name="inscricao_id" value="{{ $inscricao->id_inscricao }}">
                                         <select name="novo_status_isencao" class="form-select form-select-sm" required>
@@ -154,14 +167,16 @@
                                             <option value="deferida" {{ $inscricao->status_isencao === 'deferida' ? 'selected' : '' }}>Deferida</option>
                                             <option value="indeferida" {{ $inscricao->status_isencao === 'indeferida' ? 'selected' : '' }}>Indeferida</option>
                                         </select>
-                                        <textarea name="parecer_isencao" rows="2" class="form-control form-control-sm" placeholder="Parecer da análise">{{ $inscricao->parecer_isencao }}</textarea>
+                                        <textarea name="parecer_isencao" rows="2" class="form-control form-control-sm"
+                                            placeholder="Parecer da análise">{{ $inscricao->parecer_isencao }}</textarea>
                                         <button type="submit" class="btn btn-sm btn-primary">Salvar análise</button>
                                     </form>
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="text-center text-muted py-4">Nenhuma solicitação de isenção encontrada.</td>
+                                <td colspan="6" class="text-center text-muted py-4">Nenhuma solicitação de isenção encontrada.
+                                </td>
                             </tr>
                         @endforelse
                     </tbody>

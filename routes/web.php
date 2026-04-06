@@ -64,6 +64,8 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/processos/{id}/distribuicao-salas', [SigeConcursoProcessoController::class, 'distribuicaoSalas'])->name('processos.distribuicao-salas');
         Route::post('/processos/{id}/distribuicao-salas', [SigeConcursoProcessoController::class, 'distribuirPorSalas'])->name('processos.distribuicao-salas.distribuir');
         Route::delete('/processos/{id}/distribuicao-salas', [SigeConcursoProcessoController::class, 'limparDistribuicaoSalas'])->name('processos.distribuicao-salas.limpar');
+        Route::post('/processos/{id}/publicar-edital', [SigeConcursoProcessoController::class, 'publicarEdital'])->name('processos.publicar-edital');
+        Route::post('/processos/{id}/iniciar-inscricoes', [SigeConcursoProcessoController::class, 'iniciarInscricoes'])->name('processos.iniciar-inscricoes');
         Route::post('/processos/{id}/publicar-local-prova', [SigeConcursoProcessoController::class, 'publicarLocalProva'])->name('processos.local-prova.publicar');
         Route::post('/processos/{id}/inscricoes/atualizar-status', [SigeConcursoProcessoController::class, 'atualizarStatusInscricao'])->name('processos.inscricoes.atualizar-status');
         Route::post('/processos/{id}/inscricoes/atualizar-isencao', [SigeConcursoProcessoController::class, 'atualizarStatusIsencao'])->name('processos.inscricoes.atualizar-isencao');

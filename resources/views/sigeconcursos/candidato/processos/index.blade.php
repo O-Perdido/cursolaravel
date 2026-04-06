@@ -49,12 +49,14 @@
         @forelse($processos as $processo)
             @php
                 $inscricaoId = $inscricoesDoCandidato[$processo->id_processo] ?? null;
+                $statusFluxo = $processo->statusApresentacaoDefinicao();
+                $etapaAtual = $processo->etapaFluxoAtualDefinicao();
             @endphp
             <div class="col-lg-6">
                 <div class="card h-100 border-0 shadow-sm">
                     <div class="card-header bg-white d-flex justify-content-between align-items-center">
                         <strong>{{ $processo->numero_edital }}</strong>
-                        <span class="badge bg-success">Inscrições abertas</span>
+                        <span class="badge {{ $statusFluxo['badge_class'] }}">{{ $statusFluxo['titulo'] }}</span>
                     </div>
                     <div class="card-body d-flex flex-column">
                         @if($processo->icone_processo)
@@ -64,6 +66,11 @@
                         <h5 class="card-title">{{ $processo->titulo }}</h5>
                         <p class="text-muted small mb-2">Órgão: {{ $processo->empresa?->nome_razao_social ?? 'Não informado' }}
                         </p>
+
+                        <div class="small text-muted mb-2">
+                            <i class="fa-solid {{ $etapaAtual['icone'] ?? 'fa-circle' }} me-1"></i>
+                            {{ $etapaAtual['titulo'] }}
+                        </div>
 
                         <div class="small text-muted mb-3">
                             <div><strong>Início:</strong>
