@@ -3,6 +3,54 @@
 @section('title', 'SIGE Concursos | Homologação de Inscrições')
 
 @section('content')
+    @once
+        <style>
+            .sc-insc-list-card {
+                border: 1px solid rgba(17, 49, 58, 0.12);
+                border-radius: 16px;
+                box-shadow: 0 8px 20px rgba(17, 49, 58, 0.08);
+            }
+
+            .sc-insc-list-card.apta {
+                border-color: rgba(255, 193, 7, 0.45);
+                background: linear-gradient(180deg, rgba(255, 243, 205, 0.32), #fff);
+            }
+
+            .sc-insc-list-title {
+                color: #11313a;
+                font-weight: 700;
+                margin-bottom: 0;
+            }
+
+            .sc-insc-section-title {
+                font-size: 0.76rem;
+                text-transform: uppercase;
+                letter-spacing: 0.04em;
+                color: #607580;
+                font-weight: 700;
+                margin-bottom: 0.4rem;
+            }
+
+            .sc-doc-list {
+                max-height: 180px;
+                overflow: auto;
+                border: 1px solid rgba(17, 49, 58, 0.1);
+                border-radius: 10px;
+                padding: 0.55rem;
+                background: #fff;
+            }
+
+            .sc-doc-list .item {
+                font-size: 0.86rem;
+                margin-bottom: 0.25rem;
+            }
+
+            .sc-doc-list .item:last-child {
+                margin-bottom: 0;
+            }
+        </style>
+    @endonce
+
     @if(session('success'))
         <div class="alert alert-success">{{ session('success') }}</div>
     @endif
@@ -226,190 +274,183 @@
         </span>
     </div>
 
-    {{-- Tabela de homologação --}}
-    <div class="card border-0 shadow-sm">
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Nº</th>
-                            <th>Candidato</th>
-                            <th>Modalidade</th>
-                            <th>Situação</th>
-                            <th>Documentos</th>
-                            <th style="width: 260px;">Análise</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($inscricoes as $inscricao)
-                            @php
-                                $badgeInscricao = [
-                                    'inscrito' => 'bg-info',
-                                    'deferido' => 'bg-success',
-                                    'indeferido' => 'bg-danger',
-                                ][$inscricao->status_inscricao] ?? 'bg-secondary';
+    {{-- Lista operacional de homologação --}}
+    <div class="d-grid gap-3">
+        @forelse($inscricoes as $inscricao)
+            @php
+                $badgeInscricao = [
+                    'inscrito' => 'bg-info',
+                    'deferido' => 'bg-success',
+                    'indeferido' => 'bg-danger',
+                ][$inscricao->status_inscricao] ?? 'bg-secondary';
 
-                                $badgePagamento = match ($inscricao->status_pagamento) {
-                                    'pago' => 'bg-success',
-                                    'isento' => 'bg-success',
-                                    'nao_aplicavel' => 'bg-secondary',
-                                    'pendente' => 'bg-warning text-dark',
-                                    'aguardando_isencao' => 'bg-warning text-dark',
-                                    default => 'bg-secondary',
-                                };
+                $badgePagamento = match ($inscricao->status_pagamento) {
+                    'pago' => 'bg-success',
+                    'isento' => 'bg-success',
+                    'nao_aplicavel' => 'bg-secondary',
+                    'pendente' => 'bg-warning text-dark',
+                    'aguardando_isencao' => 'bg-warning text-dark',
+                    default => 'bg-secondary',
+                };
 
-                                $aptaParaDecisao = $inscricao->status_inscricao === 'inscrito'
-                                    && in_array($inscricao->status_pagamento, ['pago', 'isento', 'nao_aplicavel'], true);
+                $aptaParaDecisao = $inscricao->status_inscricao === 'inscrito'
+                    && in_array($inscricao->status_pagamento, ['pago', 'isento', 'nao_aplicavel'], true);
 
-                                $isencaoPendente = $inscricao->status_isencao === 'pendente';
-                                $temIsencao = $inscricao->status_isencao !== 'nao_solicitada';
+                $isencaoPendente = $inscricao->status_isencao === 'pendente';
+                $temIsencao = $inscricao->status_isencao !== 'nao_solicitada';
 
-                                $badgeIsencao = match ($inscricao->status_isencao) {
-                                    'pendente' => 'bg-warning text-dark',
-                                    'deferida' => 'bg-success',
-                                    'indeferida' => 'bg-danger',
-                                    default => 'bg-secondary',
-                                };
-                            @endphp
-                            <tr class="{{ $aptaParaDecisao ? 'table-warning' : '' }}">
-                                <td class="fw-semibold small">{{ $inscricao->numero_inscricao ?: '—' }}</td>
-                                <td>
-                                    <div class="fw-semibold">{{ $inscricao->candidato?->nome_completo }}</div>
-                                    <div class="small text-muted">{{ $inscricao->candidato?->numero_cpf }}</div>
-                                    <div class="small text-muted">{{ $inscricao->candidato?->email }}</div>
-                                    <div class="small text-muted">{{ $inscricao->created_at?->format('d/m/Y H:i') }}</div>
-                                </td>
-                                <td class="small">{{ $inscricao->modalidadeLabel() }}</td>
-                                <td>
-                                    <span class="badge {{ $badgeInscricao }}">{{ ucfirst($inscricao->status_inscricao) }}</span>
-                                    <div class="mt-1">
-                                        <span class="badge {{ $badgePagamento }}">
-                                            {{ ucfirst(str_replace('_', ' ', $inscricao->status_pagamento)) }}
-                                        </span>
+                $badgeIsencao = match ($inscricao->status_isencao) {
+                    'pendente' => 'bg-warning text-dark',
+                    'deferida' => 'bg-success',
+                    'indeferida' => 'bg-danger',
+                    default => 'bg-secondary',
+                };
+            @endphp
+
+            <div class="card sc-insc-list-card {{ $aptaParaDecisao ? 'apta' : '' }}">
+                <div class="card-body">
+                    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-2 mb-3">
+                        <div>
+                            <h5 class="sc-insc-list-title">{{ $inscricao->candidato?->nome_completo }}</h5>
+                            <div class="small text-muted">
+                                Nº {{ $inscricao->numero_inscricao ?: '—' }} • {{ $inscricao->candidato?->numero_cpf }} • {{ $inscricao->candidato?->email }}
+                            </div>
+                        </div>
+                        <div class="d-flex flex-wrap gap-1">
+                            <span class="badge {{ $badgeInscricao }}">{{ ucfirst($inscricao->status_inscricao) }}</span>
+                            <span class="badge {{ $badgePagamento }}">{{ ucfirst(str_replace('_', ' ', $inscricao->status_pagamento)) }}</span>
+                            @if($temIsencao)
+                                <span class="badge {{ $badgeIsencao }}">Isenção: {{ ucfirst($inscricao->status_isencao) }}</span>
+                            @endif
+                            @if($aptaParaDecisao)
+                                <span class="badge text-dark" style="background: #ffe69c;">Apto para decidir</span>
+                            @endif
+                        </div>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-12 col-lg-3">
+                            <div class="sc-insc-section-title">Dados da inscrição</div>
+                            <div class="small"><strong>Modalidade:</strong> {{ $inscricao->modalidadeLabel() }}</div>
+                            <div class="small"><strong>Data:</strong> {{ $inscricao->created_at?->format('d/m/Y H:i') }}</div>
+                            @if($inscricao->valor_taxa_aplicada !== null)
+                                <div class="small"><strong>Taxa:</strong> R$ {{ number_format((float) $inscricao->valor_taxa_aplicada, 2, ',', '.') }}</div>
+                            @endif
+                            @if($inscricao->observacoes)
+                                <div class="small text-muted mt-2"><strong>Obs atual:</strong> {{ Str::limit($inscricao->observacoes, 90) }}</div>
+                            @endif
+                        </div>
+
+                        <div class="col-12 col-lg-4">
+                            <div class="sc-insc-section-title">Documentos</div>
+                            <div class="sc-doc-list">
+                                @if($inscricao->solicitou_condicao_especial)
+                                    <div class="item">
+                                        <strong>Cond. especial:</strong>
+                                        {{ Str::limit($inscricao->descricao_condicao_especial ?: 'Solicitada', 60) }}
                                     </div>
-                                    @if($temIsencao)
-                                        <div class="mt-1">
-                                            <span class="badge {{ $badgeIsencao }}">
-                                                Isenção: {{ ucfirst($inscricao->status_isencao) }}
-                                            </span>
-                                        </div>
-                                    @endif
-                                    @if($inscricao->observacoes)
-                                        <div class="small text-muted mt-1">
-                                            {{ Str::limit($inscricao->observacoes, 60) }}
-                                        </div>
-                                    @endif
-                                    @if($inscricao->valor_taxa_aplicada !== null)
-                                        <div class="small text-muted mt-1">
-                                            Taxa: R$ {{ number_format((float) $inscricao->valor_taxa_aplicada, 2, ',', '.') }}
-                                        </div>
-                                    @endif
-                                </td>
-                                <td>
-                                    @if($inscricao->solicitou_condicao_especial)
-                                        <div class="small mb-1">
-                                            <strong>Cond. especial:</strong>
-                                            {{ Str::limit($inscricao->descricao_condicao_especial ?: 'Solicitada', 50) }}
-                                        </div>
-                                        @if($inscricao->caminho_documento_condicao_especial)
+                                    @if($inscricao->caminho_documento_condicao_especial)
+                                        <div class="item">
                                             <a href="{{ asset('storage/' . $inscricao->caminho_documento_condicao_especial) }}"
-                                                target="_blank" class="btn btn-sm btn-outline-primary mb-2">
-                                                <i class="fa-solid fa-file me-1"></i> Laudo
+                                                target="_blank">
+                                                <i class="fa-solid fa-file-medical me-1"></i>Laudo condição especial
                                             </a>
-                                        @endif
+                                        </div>
                                     @endif
+                                @endif
 
-                                    @foreach($inscricao->documentos as $documento)
-                                        <div class="small mb-1">
-                                            <a href="{{ asset('storage/' . $documento->caminho_arquivo) }}" target="_blank">
-                                                <i class="fa-solid fa-paperclip me-1"></i>{{ $documento->titulo_documento }}
+                                @foreach($inscricao->documentos as $documento)
+                                    <div class="item">
+                                        <a href="{{ asset('storage/' . $documento->caminho_arquivo) }}" target="_blank">
+                                            <i class="fa-solid fa-paperclip me-1"></i>{{ $documento->titulo_documento }}
+                                        </a>
+                                    </div>
+                                @endforeach
+
+                                @if($inscricao->documentosIsencao->count() > 0)
+                                    <div class="item text-muted fw-semibold mt-2">Docs isenção</div>
+                                    @foreach($inscricao->documentosIsencao as $documentoIsencao)
+                                        <div class="item">
+                                            <a href="{{ asset('storage/' . $documentoIsencao->caminho_arquivo) }}" target="_blank">
+                                                <i class="fa-solid fa-paperclip me-1"></i>{{ $documentoIsencao->nome_documento }}
                                             </a>
                                         </div>
                                     @endforeach
+                                @endif
 
-                                    @if($inscricao->documentosIsencao->count() > 0)
-                                        <div class="small fw-semibold text-muted mt-2 mb-1">Docs isenção</div>
-                                        @foreach($inscricao->documentosIsencao as $documentoIsencao)
-                                            <div class="small mb-1">
-                                                <a href="{{ asset('storage/' . $documentoIsencao->caminho_arquivo) }}" target="_blank">
-                                                    <i class="fa-solid fa-paperclip me-1"></i>{{ $documentoIsencao->nome_documento }}
-                                                </a>
-                                            </div>
-                                        @endforeach
-                                    @endif
+                                @if(!$inscricao->solicitou_condicao_especial && $inscricao->documentos->count() === 0 && $inscricao->documentosIsencao->count() === 0)
+                                    <span class="text-muted small">Sem documentos enviados.</span>
+                                @endif
+                            </div>
+                        </div>
 
-                                    @if(!$inscricao->solicitou_condicao_especial && $inscricao->documentos->count() === 0 && $inscricao->documentosIsencao->count() === 0)
-                                        <span class="text-muted small">—</span>
-                                    @endif
-                                </td>
-                                <td>
-                                    {{-- Formulário: status da inscrição --}}
-                                    <form
-                                        action="{{ route('sigeconcursos.processos.inscricoes.atualizar-status', $processo->id_processo) }}"
+                        <div class="col-12 col-lg-5">
+                            <div class="row g-2">
+                                <div class="col-12 col-xl-6">
+                                    <div class="sc-insc-section-title">Análise da inscrição</div>
+                                    <form action="{{ route('sigeconcursos.processos.inscricoes.atualizar-status', $processo->id_processo) }}"
                                         method="POST">
                                         @csrf
                                         <input type="hidden" name="inscricao_id" value="{{ $inscricao->id_inscricao }}">
-                                        <p class="small text-muted fw-semibold mb-1">Inscrição</p>
-                                        <select name="novo_status" class="form-select form-select-sm mb-1" required>
+                                        <select name="novo_status" class="form-select form-select-sm mb-2" required>
                                             <option value="inscrito" {{ $inscricao->status_inscricao === 'inscrito' ? 'selected' : '' }}>Inscrito</option>
                                             <option value="deferido" {{ $inscricao->status_inscricao === 'deferido' ? 'selected' : '' }}>Deferido</option>
                                             <option value="indeferido" {{ $inscricao->status_inscricao === 'indeferido' ? 'selected' : '' }}>Indeferido</option>
                                         </select>
-                                        <textarea name="observacoes" rows="1" class="form-control form-control-sm mb-1"
+                                        <textarea name="observacoes" rows="2" class="form-control form-control-sm mb-2"
                                             placeholder="Observações">{{ $inscricao->observacoes }}</textarea>
-                                        <button type="submit" class="btn btn-sm btn-primary w-100">Salvar</button>
+                                        <button type="submit" class="btn btn-sm btn-primary w-100">Salvar inscrição</button>
                                     </form>
+                                </div>
 
-                                    {{-- Formulário: análise de isenção (apenas quando solicitada) --}}
+                                <div class="col-12 col-xl-6">
                                     @if($temIsencao)
-                                        <hr class="my-2">
-                                        <form
-                                            action="{{ route('sigeconcursos.processos.inscricoes.atualizar-isencao', $processo->id_processo) }}"
+                                        <div class="sc-insc-section-title {{ $isencaoPendente ? 'text-warning' : '' }}">
+                                            @if($isencaoPendente)
+                                                <i class="fa-solid fa-triangle-exclamation me-1"></i>
+                                            @endif
+                                            Análise da isenção
+                                        </div>
+                                        <form action="{{ route('sigeconcursos.processos.inscricoes.atualizar-isencao', $processo->id_processo) }}"
                                             method="POST">
                                             @csrf
                                             <input type="hidden" name="inscricao_id" value="{{ $inscricao->id_inscricao }}">
-                                            <p
-                                                class="small fw-semibold mb-1 {{ $isencaoPendente ? 'text-warning' : 'text-muted' }}">
-                                                @if($isencaoPendente)
-                                                    <i class="fa-solid fa-triangle-exclamation me-1"></i>
-                                                @endif
-                                                Isenção
-                                                @if($inscricao->isencao)
-                                                    <span class="fw-normal text-muted">— {{ $inscricao->isencao->titulo }}</span>
-                                                @endif
-                                            </p>
-                                            @if($inscricao->justificativa_isencao)
-                                                <div class="small text-muted mb-1">
-                                                    <em>{{ Str::limit($inscricao->justificativa_isencao, 80) }}</em>
-                                                </div>
+
+                                            @if($inscricao->isencao)
+                                                <div class="small text-muted mb-1">Caso: {{ $inscricao->isencao->titulo }}</div>
                                             @endif
-                                            <select name="novo_status_isencao" class="form-select form-select-sm mb-1" required>
+                                            @if($inscricao->justificativa_isencao)
+                                                <div class="small text-muted mb-2"><em>{{ Str::limit($inscricao->justificativa_isencao, 90) }}</em></div>
+                                            @endif
+
+                                            <select name="novo_status_isencao" class="form-select form-select-sm mb-2" required>
                                                 <option value="nao_solicitada" {{ $inscricao->status_isencao === 'nao_solicitada' ? 'selected' : '' }}>Não solicitada</option>
                                                 <option value="pendente" {{ $inscricao->status_isencao === 'pendente' ? 'selected' : '' }}>Pendente</option>
                                                 <option value="deferida" {{ $inscricao->status_isencao === 'deferida' ? 'selected' : '' }}>Deferida</option>
                                                 <option value="indeferida" {{ $inscricao->status_isencao === 'indeferida' ? 'selected' : '' }}>Indeferida</option>
                                             </select>
-                                            <textarea name="parecer_isencao" rows="1" class="form-control form-control-sm mb-1"
+                                            <textarea name="parecer_isencao" rows="2" class="form-control form-control-sm mb-2"
                                                 placeholder="Parecer">{{ $inscricao->parecer_isencao }}</textarea>
-                                            <button type="submit" class="btn btn-sm btn-outline-primary w-100">Salvar
-                                                isenção</button>
+                                            <button type="submit" class="btn btn-sm btn-outline-primary w-100">Salvar isenção</button>
                                         </form>
+                                    @else
+                                        <div class="sc-insc-section-title">Análise da isenção</div>
+                                        <div class="text-muted small">Sem solicitação de isenção para esta inscrição.</div>
                                     @endif
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="6" class="text-center text-muted py-5">
-                                    <i class="fa-solid fa-inbox fa-2x mb-2 d-block opacity-50"></i>
-                                    Nenhuma inscrição encontrada com os filtros informados.
-                                </td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-        </div>
+        @empty
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center text-muted py-5">
+                    <i class="fa-solid fa-inbox fa-2x mb-2 d-block opacity-50"></i>
+                    Nenhuma inscrição encontrada com os filtros informados.
+                </div>
+            </div>
+        @endforelse
     </div>
 
     @if($inscricoes->hasPages())

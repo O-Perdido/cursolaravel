@@ -164,7 +164,7 @@
                         @if(!empty($proximaAcao['route_name']))
                         @php($proximaAcaoEhEtapaAtual = ($proximaAcao['situacao'] ?? null) === 'atual')
                         @php($destinoProximaAcao = route($proximaAcao['route_name'], $processo->id_processo))
-                        @if($proximaAcao['route_name'] === 'sigeconcursos.processos.inscricoes')
+                        @if(($proximaAcao['chave'] ?? null) === 'inscricoes')
                             <form method="POST"
                                 action="{{ route('sigeconcursos.processos.iniciar-inscricoes', $processo->id_processo) }}"
                                 class="d-inline">
@@ -175,6 +175,27 @@
                                     {{ $proximaAcao['cta'] ?: 'Iniciar inscricoes' }}
                                 </button>
                             </form>
+                        @elseif(($proximaAcao['chave'] ?? null) === 'homologacao_inscricoes')
+                            <button type="button" class="btn btn-dark btn-sm" data-bs-toggle="modal"
+                                data-bs-target="#modalHomologarInscricoes">
+                                {{ $proximaAcao['cta'] ?: 'Homologar candidaturas' }}
+                            </button>
+                        @elseif(($proximaAcao['chave'] ?? null) === 'etapas_finais')
+                            <div class="d-grid gap-2">
+                                <button type="button" class="btn btn-dark btn-sm" data-bs-toggle="modal"
+                                    data-bs-target="#modalEtapasFinaisArquivo">
+                                    <i class="fa-solid fa-upload me-1"></i> Adicionar arquivo
+                                </button>
+                                <form method="POST"
+                                    action="{{ route('sigeconcursos.processos.encerrar', $processo->id_processo) }}"
+                                    onsubmit="return confirm('Confirma encerrar o processo e marcar como finalizado?');">
+                                    @csrf
+                                    <input type="hidden" name="redirect_to" value="{{ request()->getRequestUri() }}">
+                                    <button type="submit" class="btn btn-outline-danger btn-sm w-100">
+                                        <i class="fa-solid fa-flag-checkered me-1"></i> Encerrar processo
+                                    </button>
+                                </form>
+                            </div>
                         @elseif($proximaAcaoEhEtapaAtual)
                             <span class="btn btn-sm btn-outline-dark disabled" aria-disabled="true">
                                 Etapa atual
@@ -285,7 +306,7 @@
                 @if(!empty($etapa['route_name']))
                 @php($etapaEhAtual = $etapa['situacao'] === 'atual')
                 @php($destinoEtapa = route($etapa['route_name'], $processo->id_processo))
-                @if($etapa['route_name'] === 'sigeconcursos.processos.inscricoes')
+                @if(($etapa['chave'] ?? null) === 'inscricoes')
                     <form method="POST"
                         action="{{ route('sigeconcursos.processos.iniciar-inscricoes', $processo->id_processo) }}"
                         class="d-inline">
@@ -296,6 +317,26 @@
                             {{ $etapa['cta'] ?: 'Iniciar inscricoes' }}
                         </button>
                     </form>
+                @elseif(($etapa['chave'] ?? null) === 'homologacao_inscricoes')
+                    <button type="button" class="btn btn-outline-dark btn-sm" data-bs-toggle="modal"
+                        data-bs-target="#modalHomologarInscricoes">
+                        {{ $etapa['cta'] ?: 'Homologar candidaturas' }}
+                    </button>
+                @elseif(($etapa['chave'] ?? null) === 'etapas_finais')
+                    <div class="d-grid gap-2">
+                        <button type="button" class="btn btn-outline-dark btn-sm" data-bs-toggle="modal"
+                            data-bs-target="#modalEtapasFinaisArquivo">
+                            <i class="fa-solid fa-upload me-1"></i> Adicionar arquivo
+                        </button>
+                        <form method="POST" action="{{ route('sigeconcursos.processos.encerrar', $processo->id_processo) }}"
+                            onsubmit="return confirm('Confirma encerrar o processo e marcar como finalizado?');">
+                            @csrf
+                            <input type="hidden" name="redirect_to" value="{{ request()->getRequestUri() }}">
+                            <button type="submit" class="btn btn-outline-danger btn-sm w-100">
+                                <i class="fa-solid fa-flag-checkered me-1"></i> Encerrar processo
+                            </button>
+                        </form>
+                    </div>
                 @elseif($etapaEhAtual)
                     <a href="{{ $destinoEtapa }}" class="btn btn-sm btn-outline-dark">
                         Abrir etapa atual
@@ -308,6 +349,113 @@
                 @endif
             </div>
             @endforeach
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalHomologarInscricoes" tabindex="-1" aria-labelledby="modalHomologarInscricoesLabel"
+    aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST"
+                action="{{ route('sigeconcursos.processos.homologar-inscricoes', $processo->id_processo) }}"
+                enctype="multipart/form-data">
+                @csrf
+                <input type="hidden" name="redirect_to"
+                    value="{{ route('sigeconcursos.processos.inscricoes', $processo->id_processo, false) }}#painel-homologacao">
+
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalHomologarInscricoesLabel">Homologar candidaturas</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                </div>
+
+                <div class="modal-body">
+                    <p class="small text-muted mb-3">
+                        Envie o arquivo da homologacao para registrar a etapa automaticamente, sem precisar editar o
+                        processo.
+                    </p>
+
+                    <div class="mb-3">
+                        <label for="arquivo_homologacao" class="form-label">Arquivo da homologacao <span
+                                class="text-danger">*</span></label>
+                        <input type="file" class="form-control" id="arquivo_homologacao" name="arquivo_homologacao"
+                            required>
+                        <div class="form-text">Tamanho maximo: 10MB.</div>
+                    </div>
+
+                    <div>
+                        <label for="nome_exibicao_homologacao" class="form-label">Nome para exibicao (opcional)</label>
+                        <input type="text" class="form-control" id="nome_exibicao_homologacao"
+                            name="nome_exibicao_homologacao" maxlength="255"
+                            placeholder="Ex: Homologacao das inscricoes - 2026">
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fa-solid fa-upload me-1"></i> Enviar e homologar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalEtapasFinaisArquivo" tabindex="-1" aria-labelledby="modalEtapasFinaisArquivoLabel"
+    aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST"
+                action="{{ route('sigeconcursos.processos.etapas-finais.arquivo', $processo->id_processo) }}"
+                enctype="multipart/form-data">
+                @csrf
+                <input type="hidden" name="redirect_to" value="{{ request()->getRequestUri() }}">
+
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalEtapasFinaisArquivoLabel">Adicionar arquivo da etapa final</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                </div>
+
+                <div class="modal-body">
+                    <p class="small text-muted mb-3">
+                        Envie arquivos como resultado preliminar, resultado final, recursos ou publicacoes finais.
+                    </p>
+
+                    <div class="mb-3">
+                        <label for="arquivo_etapa_final" class="form-label">Arquivo <span
+                                class="text-danger">*</span></label>
+                        <input type="file" class="form-control" id="arquivo_etapa_final" name="arquivo_etapa_final"
+                            required>
+                        <div class="form-text">Tamanho maximo: 10MB.</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="tipo_arquivo_etapa_final" class="form-label">Tipo do arquivo</label>
+                        <select id="tipo_arquivo_etapa_final" name="tipo_arquivo_etapa_final" class="form-select">
+                            <option value="resultado_preliminar">Resultado preliminar</option>
+                            <option value="resultado_final">Resultado final</option>
+                            <option value="recurso">Recurso</option>
+                            <option value="publicacao_final">Publicacao final</option>
+                            <option value="outro">Outro</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="nome_exibicao_etapa_final" class="form-label">Nome para exibicao (opcional)</label>
+                        <input type="text" class="form-control" id="nome_exibicao_etapa_final"
+                            name="nome_exibicao_etapa_final" maxlength="255"
+                            placeholder="Ex: Resultado preliminar - Lista geral">
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fa-solid fa-upload me-1"></i> Enviar arquivo
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>

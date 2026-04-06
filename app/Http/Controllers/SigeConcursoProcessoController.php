@@ -691,6 +691,125 @@ class SigeConcursoProcessoController extends Controller
             ->with('success', $mensagem);
     }
 
+    public function homologarInscricoesComArquivo(Request $request, $id)
+    {
+        $processo = SigeConcursoProcesso::findOrFail($id);
+
+        if (in_array($processo->status, ['suspenso', 'finalizado'], true)) {
+            return back()->with('error', 'Não é possível homologar inscrições para um processo suspenso ou finalizado.');
+        }
+
+        $validated = $request->validate([
+            'arquivo_homologacao' => ['required', 'file', 'max:10240'],
+            'nome_exibicao_homologacao' => ['nullable', 'string', 'max:255'],
+            'redirect_to' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        $arquivo = $request->file('arquivo_homologacao');
+        $caminho = $arquivo->store('sigeconcursos/processos/' . $processo->id_processo, 'public');
+        $ordem = ((int) $processo->arquivos()->max('ordem_exibicao')) + 1;
+
+        $processo->arquivos()->create([
+            'nome_exibicao' => trim((string) ($validated['nome_exibicao_homologacao'] ?? '')) ?: $arquivo->getClientOriginalName(),
+            'tipo_arquivo' => 'homologacao_inscricoes',
+            'caminho_arquivo' => $caminho,
+            'ordem_exibicao' => $ordem,
+        ]);
+
+        $processo->update([
+            'status' => 'em_andamento',
+            'etapa_fluxo_atual' => 'homologacao_inscricoes',
+        ]);
+
+        $this->sincronizarFluxoProcesso($processo);
+
+        $redirectTo = (string) ($validated['redirect_to'] ?? '');
+
+        if ($redirectTo !== '' && str_starts_with($redirectTo, '/')) {
+            return redirect($redirectTo)->with('success', 'Arquivo anexado e homologação iniciada com sucesso.');
+        }
+
+        return redirect()->route('sigeconcursos.processos.inscricoes', $processo->id_processo)
+            ->with('success', 'Arquivo anexado e homologação iniciada com sucesso.');
+    }
+
+    public function adicionarArquivoEtapasFinais(Request $request, $id)
+    {
+        $processo = SigeConcursoProcesso::findOrFail($id);
+
+        if (in_array($processo->status, ['suspenso', 'finalizado'], true)) {
+            return back()->with('error', 'Não é possível adicionar arquivo para um processo suspenso ou finalizado.');
+        }
+
+        $validated = $request->validate([
+            'arquivo_etapa_final' => ['required', 'file', 'max:10240'],
+            'nome_exibicao_etapa_final' => ['nullable', 'string', 'max:255'],
+            'tipo_arquivo_etapa_final' => ['nullable', 'string', 'max:50'],
+            'redirect_to' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        $arquivo = $request->file('arquivo_etapa_final');
+        $caminho = $arquivo->store('sigeconcursos/processos/' . $processo->id_processo, 'public');
+        $ordem = ((int) $processo->arquivos()->max('ordem_exibicao')) + 1;
+
+        $tipoArquivo = trim((string) ($validated['tipo_arquivo_etapa_final'] ?? '')) ?: 'resultado_preliminar';
+
+        $processo->arquivos()->create([
+            'nome_exibicao' => trim((string) ($validated['nome_exibicao_etapa_final'] ?? '')) ?: $arquivo->getClientOriginalName(),
+            'tipo_arquivo' => $tipoArquivo,
+            'caminho_arquivo' => $caminho,
+            'ordem_exibicao' => $ordem,
+        ]);
+
+        if (!in_array($processo->status, ['finalizado', 'suspenso'], true)) {
+            $processo->update([
+                'status' => 'em_andamento',
+                'etapa_fluxo_atual' => 'etapas_finais',
+            ]);
+
+            $this->sincronizarFluxoProcesso($processo);
+        }
+
+        $redirectTo = (string) ($validated['redirect_to'] ?? '');
+
+        if ($redirectTo !== '' && str_starts_with($redirectTo, '/')) {
+            return redirect($redirectTo)->with('success', 'Arquivo adicionado na etapa final com sucesso.');
+        }
+
+        return redirect()->route('sigeconcursos.processos.show', $processo->id_processo)
+            ->with('success', 'Arquivo adicionado na etapa final com sucesso.');
+    }
+
+    public function encerrarProcesso(Request $request, $id)
+    {
+        $processo = SigeConcursoProcesso::findOrFail($id);
+
+        if ($processo->status === 'finalizado') {
+            return back()->with('success', 'O processo já está finalizado.');
+        }
+
+        if ($processo->status === 'suspenso') {
+            return back()->with('error', 'Não é possível encerrar um processo suspenso.');
+        }
+
+        $processo->update([
+            'status' => 'finalizado',
+            'etapa_fluxo_atual' => 'etapas_finais',
+            'data_resultado_final' => $processo->data_resultado_final ?: now(),
+        ]);
+
+        $this->sincronizarFluxoProcesso($processo);
+
+        $redirectTo = (string) $request->input('redirect_to', '');
+
+        if ($redirectTo !== '' && str_starts_with($redirectTo, '/')) {
+            return redirect($redirectTo)->with('success', 'Processo encerrado e marcado como finalizado.');
+        }
+
+        return redirect()->route('sigeconcursos.processos.show', $processo->id_processo)
+            ->with('success', 'Processo encerrado e marcado como finalizado.');
+    }
+
     private function validateData(Request $request): array
     {
         $request->merge([

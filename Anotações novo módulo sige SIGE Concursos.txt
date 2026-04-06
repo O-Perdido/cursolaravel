@@ -1008,3 +1008,99 @@ Implementado nesta rodada:
 Validações desta rodada:
 1. arquivos alterados sem erros no editor
 2. novas rotas de publicar edital e iniciar inscrições registradas no route:list
+
+
+alt- --- REFORMULAÇÃO VISUAL DA TELA PÚBLICA DE DETALHES DO PROCESSO
+
+Contexto identificado:
+1. a tela pública de detalhes estava com visual simples e com blocos de linguagem mais interna (ex.: panorama/marco operacional)
+2. havia necessidade de melhorar apresentação para usuários finais e foco em acesso mobile
+
+Ajustes aplicados:
+1. removidos blocos com cara operacional interna na área de destaque inicial
+2. hero reformulado com status legível para candidato e CTAs de participação (login/cadastro)
+3. reorganização do conteúdo em cards com melhor hierarquia visual:
+- resumo do edital
+- cargos e vagas
+- documentos exigidos
+- arquivos do processo
+4. sidebar reformulada para inscrição e informações rápidas
+5. comportamento responsivo reforçado com layout mobile-first e ajustes para telas menores
+
+Validação:
+1. view pública de detalhes sem erros no editor
+
+
+alt- --- AJUSTE DE ENXUGAMENTO DA UI PÚBLICA (REMOVER REDUNDÂNCIAS)
+
+Ajustes aplicados:
+1. remoção de badge duplicado de status na área de destaque (quando status e inscrição mostravam o mesmo texto)
+2. remoção de CTAs duplicados no card "Participação" do topo (botões mantidos no card principal de inscrição)
+3. remoção do card lateral de "Informações rápidas" por redundância com o resumo principal
+
+Resultado esperado:
+1. tela mais limpa, com foco em leitura e ação sem repetição de conteúdo
+
+Validação:
+1. view pública de detalhes validada sem erros no editor
+
+
+alt- --- AJUSTE NO TOPO DA TELA PÚBLICA (SEM CARD HERO + IMAGEM DO PROCESSO)
+
+Implementado:
+1. remoção completa do card separado de destaque no topo da tela pública de detalhes
+2. migração dos status para o bloco principal de cabeçalho, em formato compacto
+3. inclusão da imagem/ícone do processo no topo, acima do título, quando houver arquivo configurado
+
+Resultado:
+1. menos ruído visual e menos sensação de redundância
+2. identidade visual mantida, com foco maior no conteúdo principal
+
+Validação:
+1. view pública sem erros no editor após ajuste
+
+
+alt- --- EXIBIÇÃO DAS ETAPAS CADASTRADAS (CRONOGRAMA POR FASES)
+
+Implementado:
+1. inclusão da seção "Etapas do processo" na tela pública de detalhes
+2. inclusão da seção "Etapas do processo" na tela de detalhes do candidato autenticado
+3. leitura direta do array de fases do processo (`fases`), exibindo:
+- descrição da etapa
+- período informado no cadastro
+
+Comportamento:
+1. quando não houver fases cadastradas, a tela mostra mensagem orientativa de ausência de etapas
+
+Validação:
+1. views pública e candidato sem erros no editor
+
+
+alt- --- PADRONIZAÇÃO VISUAL NA TELA DO CANDIDATO AUTENTICADO (DETALHES)
+
+Implementado nesta rodada:
+1. tela de detalhes do processo na área do candidato reformulada com a mesma identidade visual da tela pública
+2. manutenção do comportamento funcional do formulário de inscrição e dos bloqueios por status/período
+3. melhoria de responsividade para mobile:
+- cards com hierarquia visual mais clara
+- coluna lateral com bloco de inscrição e resumo da inscrição existente
+- hero inicial consistente com status e contexto para candidato
+
+Validação:
+1. view da área do candidato sem erros no editor
+
+
+alt- --- PADRONIZAÇÃO VISUAL NA TELA DE LISTAGEM DO CANDIDATO (INDEX)
+
+Implementado nesta rodada:
+1. tela de listagem do candidato reformulada para seguir a mesma linguagem visual da página pública e da tela de detalhes autenticada
+2. inclusão de hero com busca destacada e ações rápidas
+3. cards de processos com melhor hierarquia:
+- status e tipo
+- etapa atual
+- início/fim do período
+- CTA de detalhes e acompanhamento da inscrição
+4. melhoria de responsividade para uso em celular (cards e metadados adaptáveis)
+
+Validação:
+1. view index da área do candidato sem erros no editor
