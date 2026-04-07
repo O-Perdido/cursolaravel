@@ -332,6 +332,9 @@
                         <div class="col-12 col-lg-3">
                             <div class="sc-insc-section-title">Dados da inscrição</div>
                             <div class="small"><strong>Modalidade:</strong> {{ $inscricao->modalidadeLabel() }}</div>
+                            @if($inscricao->solicitou_nome_social && $inscricao->nome_social)
+                                <div class="small"><strong>Nome social:</strong> {{ $inscricao->nome_social }}</div>
+                            @endif
                             <div class="small"><strong>Data:</strong> {{ $inscricao->created_at?->format('d/m/Y H:i') }}</div>
                             @if($inscricao->valor_taxa_aplicada !== null)
                                 <div class="small"><strong>Taxa:</strong> R$ {{ number_format((float) $inscricao->valor_taxa_aplicada, 2, ',', '.') }}</div>
@@ -438,6 +441,18 @@
                                         <div class="text-muted small">Sem solicitação de isenção para esta inscrição.</div>
                                     @endif
                                 </div>
+
+                                <div class="col-12">
+                                    <div class="pt-1 border-top">
+                                        <button type="button"
+                                            class="btn btn-sm btn-outline-danger btn-excluir-inscricao"
+                                            data-url="{{ route('sigeconcursos.processos.inscricoes.destroy', [$processo->id_processo, $inscricao->id_inscricao]) }}"
+                                            data-candidato="{{ $inscricao->candidato?->nome_completo }}"
+                                            data-numero="{{ $inscricao->numero_inscricao ?: 'sem número' }}">
+                                            <i class="fa-solid fa-trash me-1"></i> Excluir inscrição
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -458,4 +473,57 @@
             {{ $inscricoes->links() }}
         </div>
     @endif
+
+    <div class="modal fade" id="modal-excluir-inscricao" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirmar exclusão da inscrição</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                </div>
+                <form method="POST" id="form-excluir-inscricao">
+                    @csrf
+                    @method('DELETE')
+                    <div class="modal-body">
+                        <p id="texto-excluir-inscricao" class="mb-3"></p>
+                        <label for="password_confirm_inscricao" class="form-label">Senha do usuário logado</label>
+                        <input type="password" class="form-control" id="password_confirm_inscricao" name="password_confirm" required>
+                        <small class="text-muted">Informe a senha do operador/admin atual para confirmar a exclusão.</small>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-danger">Excluir inscrição</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const modalElement = document.getElementById('modal-excluir-inscricao');
+            const deleteForm = document.getElementById('form-excluir-inscricao');
+            const deleteText = document.getElementById('texto-excluir-inscricao');
+            const passwordField = document.getElementById('password_confirm_inscricao');
+
+            if (!modalElement || !deleteForm || !deleteText || !passwordField) {
+                return;
+            }
+
+            const modal = new bootstrap.Modal(modalElement);
+
+            document.querySelectorAll('.btn-excluir-inscricao').forEach(function (button) {
+                button.addEventListener('click', function () {
+                    const url = this.dataset.url;
+                    const candidato = this.dataset.candidato;
+                    const numero = this.dataset.numero;
+
+                    deleteForm.action = url;
+                    deleteText.textContent = `Você está prestes a excluir a inscrição ${numero} de ${candidato}. Esta ação remove também os documentos e vínculos de distribuição relacionados a ela.`;
+                    passwordField.value = '';
+                    modal.show();
+                });
+            });
+        });
+    </script>
 @endsection

@@ -181,7 +181,7 @@
                     @forelse($processo->processoCargos as $item)
                         <div class="border rounded-4 p-3 mb-2 bg-light">
                             <div class="fw-semibold">{{ $item->cargo?->nome_cargo }}</div>
-                            <div class="small text-muted">Vagas: {{ $item->quantidade_vagas ?? '0' }} • CR: {{ $item->quantidade_cadastro_reserva ?? '0' }}</div>
+                            <div class="small text-muted">Vagas: {{ $item->descricaoVagas() }}</div>
                             <div class="small text-muted">Remuneracao: {{ $item->valor_remuneracao !== null ? 'R$ ' . number_format((float) $item->valor_remuneracao, 2, ',', '.') : 'Nao informada' }}</div>
                             <div class="small text-muted">Taxa: {{ $item->valor_taxa_inscricao !== null ? 'R$ ' . number_format((float) $item->valor_taxa_inscricao, 2, ',', '.') : 'Nao informada' }}</div>
                             <div class="small text-muted">Carga horaria: {{ $item->carga_horaria ?: 'Nao informada' }}</div>

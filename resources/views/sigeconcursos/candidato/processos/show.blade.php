@@ -273,7 +273,7 @@
                                 <div class="col-md-6">
                                     <div class="sc-candidato-meta h-100">
                                         <div class="value mb-2">{{ $item->cargo?->nome_cargo }}</div>
-                                        <div class="small text-muted mb-1">Vagas: {{ $item->quantidade_vagas ?? '0' }}</div>
+                                        <div class="small text-muted mb-1">Vagas: {{ $item->descricaoVagas() }}</div>
                                         <div class="small text-muted">Taxa:
                                             {{ $item->valor_taxa_inscricao !== null ? 'R$ ' . number_format((float) $item->valor_taxa_inscricao, 2, ',', '.') : 'Seguir regra geral do processo' }}
                                         </div>
@@ -319,6 +319,9 @@
                                 <div class="alert alert-success mb-3">Voce ja esta inscrito(a) neste processo.</div>
                                 <p class="mb-1"><strong>Numero:</strong> {{ $inscricaoExistente->numero_inscricao }}</p>
                                 <p class="mb-1"><strong>Modalidade:</strong> {{ $inscricaoExistente->modalidadeLabel() }}</p>
+                                @if($inscricaoExistente->solicitou_nome_social && $inscricaoExistente->nome_social)
+                                    <p class="mb-1"><strong>Nome social:</strong> {{ $inscricaoExistente->nome_social }}</p>
+                                @endif
                                 <p class="mb-1"><strong>Status:</strong> {{ ucfirst($inscricaoExistente->status_inscricao) }}</p>
                                 <p class="mb-1"><strong>Isencao:</strong> {{ ucfirst(str_replace('_', ' ', $inscricaoExistente->status_isencao)) }}</p>
                                 @if($inscricaoExistente->isencao)
@@ -372,6 +375,18 @@
                                             @endif
                                         </select>
                                         @error('modalidade_concorrencia')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                    </div>
+
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="checkbox" id="solicitou_nome_social" name="solicitou_nome_social" value="1" {{ old('solicitou_nome_social') ? 'checked' : '' }} {{ $inscricaoExistente ? 'disabled' : '' }}>
+                                        <label class="form-check-label" for="solicitou_nome_social">Desejo solicitar tratamento por nome social</label>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="nome_social" class="form-label">Nome social</label>
+                                        <input type="text" id="nome_social" name="nome_social" value="{{ old('nome_social') }}" class="form-control @error('nome_social') is-invalid @enderror" maxlength="255" {{ $inscricaoExistente ? 'disabled' : '' }}>
+                                        <div class="form-text">Preencha somente se desejar que a inscrição utilize nome social.</div>
+                                        @error('nome_social')<div class="invalid-feedback">{{ $message }}</div>@enderror
                                     </div>
 
                                     <div class="form-check mb-2">

@@ -147,6 +147,12 @@
                 <div class="small text-muted mt-2">{{ $inscricaoDescricao }}</div>
             </div>
             <div class="d-flex flex-wrap gap-2">
+                <button type="button" id="btn-compartilhar-processo" class="btn btn-outline-primary btn-sm">
+                    <i class="fa-solid fa-share-nodes me-1"></i> Compartilhar
+                </button>
+                <button type="button" id="btn-copiar-link-processo" class="btn btn-outline-primary btn-sm">
+                    <i class="fa-solid fa-link me-1"></i> Copiar link
+                </button>
                 <a href="{{ route('sigeconcursos.publico.processos.index') }}" class="btn btn-outline-secondary btn-sm">
                     <i class="fa-solid fa-arrow-left me-1"></i> Voltar
                 </a>
@@ -240,7 +246,7 @@
                                 <div class="col-md-6">
                                     <div class="sc-public-meta h-100">
                                         <div class="value mb-2">{{ $item->cargo?->nome_cargo }}</div>
-                                        <div class="small text-muted mb-1">Vagas: {{ $item->quantidade_vagas ?? '0' }}</div>
+                                        <div class="small text-muted mb-1">Vagas: {{ $item->descricaoVagas() }}</div>
                                         <div class="small text-muted">Taxa:
                                             {{ $item->valor_taxa_inscricao !== null ? 'R$ ' . number_format((float) $item->valor_taxa_inscricao, 2, ',', '.') : 'Seguir regra geral do processo' }}
                                         </div>
@@ -348,4 +354,62 @@
             </div>
         </div>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const botaoCompartilhar = document.getElementById('btn-compartilhar-processo');
+            const botaoCopiarLink = document.getElementById('btn-copiar-link-processo');
+            const linkAtual = window.location.href;
+            const tituloProcesso = @json($processo->titulo);
+
+            async function copiarLinkComFeedback() {
+                try {
+                    await navigator.clipboard.writeText(linkAtual);
+                    if (botaoCopiarLink) {
+                        const textoOriginal = botaoCopiarLink.innerHTML;
+                        botaoCopiarLink.innerHTML = '<i class="fa-solid fa-check me-1"></i> Link copiado';
+                        botaoCopiarLink.classList.remove('btn-outline-primary');
+                        botaoCopiarLink.classList.add('btn-success');
+                        setTimeout(function () {
+                            botaoCopiarLink.innerHTML = textoOriginal;
+                            botaoCopiarLink.classList.add('btn-outline-primary');
+                            botaoCopiarLink.classList.remove('btn-success');
+                        }, 1800);
+                    }
+                    return true;
+                } catch (erro) {
+                    window.prompt('Copie o link deste processo:', linkAtual);
+                    return false;
+                }
+            }
+
+            if (botaoCopiarLink) {
+                botaoCopiarLink.addEventListener('click', function () {
+                    copiarLinkComFeedback();
+                });
+            }
+
+            if (botaoCompartilhar) {
+                botaoCompartilhar.addEventListener('click', async function () {
+                    if (navigator.share) {
+                        try {
+                            await navigator.share({
+                                title: tituloProcesso,
+                                text: 'Confira este processo no SIGE Concursos:',
+                                url: linkAtual,
+                            });
+                            return;
+                        } catch (erro) {
+                            // Se o usuario cancelar o share, nao precisa fallback imediato.
+                            if (erro && erro.name === 'AbortError') {
+                                return;
+                            }
+                        }
+                    }
+
+                    copiarLinkComFeedback();
+                });
+            }
+        });
+    </script>
 @endsection

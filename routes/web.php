@@ -72,6 +72,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/processos/{id}/publicar-local-prova', [SigeConcursoProcessoController::class, 'publicarLocalProva'])->name('processos.local-prova.publicar');
         Route::post('/processos/{id}/inscricoes/atualizar-status', [SigeConcursoProcessoController::class, 'atualizarStatusInscricao'])->name('processos.inscricoes.atualizar-status');
         Route::post('/processos/{id}/inscricoes/atualizar-isencao', [SigeConcursoProcessoController::class, 'atualizarStatusIsencao'])->name('processos.inscricoes.atualizar-isencao');
+        Route::delete('/processos/{id}/inscricoes/{inscricao}', [SigeConcursoProcessoController::class, 'destroyInscricao'])->name('processos.inscricoes.destroy');
         Route::delete('/processos/arquivos/{id}', [SigeConcursoProcessoController::class, 'removerArquivo'])->name('processos.arquivos.destroy');
         Route::delete('/processos/documentos-exigidos/{id}', [SigeConcursoProcessoController::class, 'removerDocumentoExigido'])->name('processos.documentos-exigidos.destroy');
         Route::get('/cargos', [SigeConcursoCargoController::class, 'index'])->name('cargos.index');

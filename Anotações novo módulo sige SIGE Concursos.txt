@@ -1104,3 +1104,53 @@ Implementado nesta rodada:
 
 Validação:
 1. view index da área do candidato sem erros no editor
+
+
+--- AJUSTES IMPLEMENTADOS: VAGAS COM CADASTRO RESERVA + NOME SOCIAL
+
+Implementado nesta rodada:
+1. ajuste no cadastro/edição de processos para permitir informar quantidade de vagas e marcar cadastro reserva ao mesmo tempo no mesmo cargo
+2. manutenção do cadastro reserva como opcional, sem zerar automaticamente o campo de vagas
+3. correção da exibição de vagas nas telas do processo para refletir corretamente combinações como:
+- 1 vaga + CR
+- 2 vagas + CR
+- somente CR
+4. correção específica da tela pública de detalhes do processo para não exibir mais 0 quando o cargo estiver marcado como cadastro reserva
+5. inclusão, no formulário de inscrição do candidato, da solicitação de tratamento por nome social
+6. armazenamento do nome social diretamente na inscrição do SIGE Concursos
+7. exibição do nome social solicitado nas áreas de acompanhamento relevantes da inscrição
+
+Observação desta rodada:
+1. o nome social foi tratado como dado da inscrição, e não como alteração permanente do cadastro base do candidato
+2. isso permite que o pedido fique vinculado ao contexto do processo e da homologação administrativa
+
+
+--- AJUSTE IMPLEMENTADO: EXCLUSAO ADMINISTRATIVA DE INSCRICAO COM SENHA
+
+Implementado nesta rodada:
+1. inclusão da ação de excluir inscrição na tela administrativa de homologação do processo
+2. abertura de modal de confirmação antes da exclusão
+3. exigência da senha do operador/admin logado para confirmar a exclusão
+4. exclusão da inscrição com limpeza dos arquivos enviados e dos vínculos de distribuição por local/sala relacionados à inscrição
+
+Observação desta rodada:
+1. a validação da senha segue o mesmo padrão já usado na exclusão administrativa de candidatos do módulo sigeconcursos
+
+
+--- AJUSTE IMPLEMENTADO: LISTAGEM DO CANDIDATO SEM FILTRO AUTOMATICO
+
+Implementado nesta rodada:
+1. remoção do filtro automático que limitava a listagem do candidato apenas a processos com inscrições abertas
+2. listagem do candidato ajustada para exibir todos os processos disponíveis (exceto rascunho)
+3. inclusão de filtro opcional na própria tela para o candidato escolher quando quiser ver somente inscrições abertas
+4. ajuste do texto do botão no dashboard do candidato para refletir o novo comportamento (visualizar todos os processos)
+
+
+--- AJUSTE IMPLEMENTADO: BOTOES DE COMPARTILHAMENTO NA TELA PUBLICA DE DETALHES
+
+Implementado nesta rodada:
+1. inclusão do botão "Compartilhar" no topo da tela pública de detalhes do processo
+2. inclusão do botão "Copiar link" no topo da tela pública de detalhes do processo
+3. uso de compartilhamento nativo do navegador quando disponível (mobile/desktop compatível)
+4. fallback automático para copiar o link quando o compartilhamento nativo não estiver disponível
+5. fallback final com prompt para cópia manual do link em navegadores com bloqueio de clipboard

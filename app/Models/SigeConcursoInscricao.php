@@ -18,6 +18,8 @@ class SigeConcursoInscricao extends Model
         'fk_id_candidato',
         'numero_inscricao',
         'modalidade_concorrencia',
+        'solicitou_nome_social',
+        'nome_social',
         'status_inscricao',
         'aceite_edital',
         'solicitou_condicao_especial',
@@ -36,6 +38,7 @@ class SigeConcursoInscricao extends Model
     protected function casts(): array
     {
         return [
+            'solicitou_nome_social' => 'boolean',
             'aceite_edital' => 'boolean',
             'solicitou_condicao_especial' => 'boolean',
             'solicitou_isencao' => 'boolean',

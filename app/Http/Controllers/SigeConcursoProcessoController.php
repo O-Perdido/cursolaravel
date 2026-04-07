@@ -14,7 +14,9 @@ use App\Models\SigeConcursoProcessoDocumentoExigido;
 use App\Models\SigeConcursoProcessoLocal;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 
@@ -350,6 +352,55 @@ class SigeConcursoProcessoController extends Controller
         $this->sincronizarFluxoProcesso($processo);
 
         return back()->with('success', 'Status da isenção atualizado com sucesso.');
+    }
+
+    public function destroyInscricao(Request $request, $id, $inscricao)
+    {
+        $processo = SigeConcursoProcesso::findOrFail($id);
+
+        $validated = $request->validate([
+            'password_confirm' => ['required', 'string'],
+        ]);
+
+        if (!Hash::check($validated['password_confirm'], Auth::user()->password)) {
+            return back()->with('error', 'A senha informada não confere com o usuário logado.');
+        }
+
+        $inscricaoModel = SigeConcursoInscricao::with([
+            'documentos',
+            'documentosIsencao',
+            'localAtribuido',
+            'salaAtribuida',
+        ])
+            ->where('id_inscricao', $inscricao)
+            ->where('fk_id_processo', $processo->id_processo)
+            ->firstOrFail();
+
+        try {
+            DB::transaction(function () use ($inscricaoModel) {
+                foreach ($inscricaoModel->documentos as $documento) {
+                    Storage::disk('public')->delete($documento->caminho_arquivo);
+                }
+
+                foreach ($inscricaoModel->documentosIsencao as $documentoIsencao) {
+                    Storage::disk('public')->delete($documentoIsencao->caminho_arquivo);
+                }
+
+                if ($inscricaoModel->caminho_documento_condicao_especial) {
+                    Storage::disk('public')->delete($inscricaoModel->caminho_documento_condicao_especial);
+                }
+
+                $inscricaoModel->salaAtribuida()?->delete();
+                $inscricaoModel->localAtribuido()?->delete();
+                $inscricaoModel->delete();
+            });
+
+            $this->sincronizarFluxoProcesso($processo);
+
+            return back()->with('success', 'Inscrição excluída com sucesso.');
+        } catch (QueryException $exception) {
+            return back()->with('error', 'Não foi possível excluir a inscrição por causa de vínculos existentes no sistema.');
+        }
     }
 
     public function isencoes(Request $request, $id)

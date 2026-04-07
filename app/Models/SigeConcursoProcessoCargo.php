@@ -45,4 +45,21 @@ class SigeConcursoProcessoCargo extends Model
     {
         return $this->belongsTo(SigeConcursoCargo::class, 'fk_id_cargo', 'id_cargo');
     }
+
+    public function possuiCadastroReserva(): bool
+    {
+        return (int) ($this->quantidade_cadastro_reserva ?? 0) > 0;
+    }
+
+    public function descricaoVagas(): string
+    {
+        $quantidadeVagas = (int) ($this->quantidade_vagas ?? 0);
+        $descricaoVagas = $quantidadeVagas === 1 ? '1 vaga' : $quantidadeVagas . ' vagas';
+
+        if ($this->possuiCadastroReserva()) {
+            return $quantidadeVagas > 0 ? $descricaoVagas . ' + CR' : 'CR';
+        }
+
+        return $descricaoVagas;
+    }
 }

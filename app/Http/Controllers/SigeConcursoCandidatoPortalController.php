@@ -204,17 +204,23 @@ class SigeConcursoCandidatoPortalController extends Controller
         $candidato = $this->getCandidatoAutenticado();
 
         $query = SigeConcursoProcesso::with(['empresa', 'processoCargos.cargo'])
-            ->where('status', 'inscricoes_abertas')
-            ->where(function ($builder) {
-                $builder->whereNull('data_inicio_inscricoes')
-                    ->orWhere('data_inicio_inscricoes', '<=', now());
-            })
-            ->where(function ($builder) {
-                $builder->whereNull('data_fim_inscricoes')
-                    ->orWhere('data_fim_inscricoes', '>=', now());
-            })
+            ->where('status', '!=', 'rascunho')
             ->orderByDesc('data_publicacao')
             ->orderByDesc('id_processo');
+
+        $filtroInscricao = (string) request('filtro_inscricao', 'todos');
+
+        if ($filtroInscricao === 'abertas') {
+            $query->where('status', 'inscricoes_abertas')
+                ->where(function ($builder) {
+                    $builder->whereNull('data_inicio_inscricoes')
+                        ->orWhere('data_inicio_inscricoes', '<=', now());
+                })
+                ->where(function ($builder) {
+                    $builder->whereNull('data_fim_inscricoes')
+                        ->orWhere('data_fim_inscricoes', '>=', now());
+                });
+        }
 
         if (request()->filled('busca')) {
             $termo = trim((string) request('busca'));
@@ -232,7 +238,7 @@ class SigeConcursoCandidatoPortalController extends Controller
             ->pluck('id_inscricao', 'fk_id_processo')
             ->toArray();
 
-        return view('sigeconcursos.candidato.processos.index', compact('processos', 'inscricoesDoCandidato'));
+        return view('sigeconcursos.candidato.processos.index', compact('processos', 'inscricoesDoCandidato', 'filtroInscricao'));
     }
 
     public function processoDetalhes(int $id)
@@ -288,6 +294,8 @@ class SigeConcursoCandidatoPortalController extends Controller
 
         $rules = [
             'modalidade_concorrencia' => ['required', Rule::in($modalidadesPermitidas)],
+            'solicitou_nome_social' => ['nullable'],
+            'nome_social' => ['nullable', 'string', 'max:255'],
             'solicitou_condicao_especial' => ['nullable'],
             'descricao_condicao_especial' => ['nullable', 'string', 'max:5000'],
             'documento_condicao_especial' => ['nullable', 'file', 'max:5120'],
@@ -311,6 +319,15 @@ class SigeConcursoCandidatoPortalController extends Controller
         $validated = $request->validate($rules, [
             'aceite_edital.accepted' => 'Você precisa confirmar a leitura do edital para concluir a inscrição.',
         ]);
+
+        $solicitouNomeSocial = $request->boolean('solicitou_nome_social');
+        $nomeSocial = trim((string) ($validated['nome_social'] ?? ''));
+
+        if ($solicitouNomeSocial && $nomeSocial === '') {
+            throw ValidationException::withMessages([
+                'nome_social' => 'Informe o nome social a ser utilizado nesta inscrição.',
+            ]);
+        }
 
         $solicitouCondicaoEspecial = $request->boolean('solicitou_condicao_especial');
         $descricaoCondicaoEspecial = trim((string) ($validated['descricao_condicao_especial'] ?? ''));
@@ -388,6 +405,8 @@ class SigeConcursoCandidatoPortalController extends Controller
                 $processo,
                 $candidato,
                 $validated,
+                $solicitouNomeSocial,
+                $nomeSocial,
                 $solicitouCondicaoEspecial,
                 $descricaoCondicaoEspecial,
                 $caminhoDocumentoCondicaoEspecial,
@@ -419,6 +438,8 @@ class SigeConcursoCandidatoPortalController extends Controller
                     'fk_id_candidato' => $candidato->id_candidato,
                     'numero_inscricao' => SigeConcursoInscricao::gerarNumeroInscricao($processo->id_processo),
                     'modalidade_concorrencia' => $validated['modalidade_concorrencia'],
+                    'solicitou_nome_social' => $solicitouNomeSocial,
+                    'nome_social' => $solicitouNomeSocial ? $nomeSocial : null,
                     'status_inscricao' => 'inscrito',
                     'aceite_edital' => $request->boolean('aceite_edital'),
                     'solicitou_condicao_especial' => $solicitouCondicaoEspecial,

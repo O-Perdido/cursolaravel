@@ -525,12 +525,12 @@
                     </div>
                     <div class="col-md-2 mb-2">
                         <label class="form-label small">Vagas</label>
-                        <input type="number" min="0" class="form-control form-control-sm vagas-input" name="cargos[${index}][quantidade_vagas]" value="${data.is_cadastro_reserva ? 0 : (data.quantidade_vagas ?? '')}" ${data.is_cadastro_reserva ? 'disabled' : ''}>
+                        <input type="number" min="0" class="form-control form-control-sm vagas-input" name="cargos[${index}][quantidade_vagas]" value="${data.quantidade_vagas ?? ''}">
                     </div>
                     <div class="col-md-2 mb-2 d-flex align-items-end">
                         <div class="form-check mb-1">
                             <input class="form-check-input cadastro-reserva-check" type="checkbox" name="cargos[${index}][is_cadastro_reserva]" value="1" id="cr_${index}" ${data.is_cadastro_reserva ? 'checked' : ''}>
-                            <label class="form-check-label small" for="cr_${index}">Cadastro Reserva</label>
+                            <label class="form-check-label small" for="cr_${index}">Cadastro Reserva (opcional)</label>
                         </div>
                     </div>
                     <div class="col-md-2 mb-2">
@@ -554,18 +554,6 @@
             bindRemove(item, cargosContainer, 'cargos', '.cargo-item');
             cargosContainer.appendChild(item);
             item.querySelectorAll('.money-field').forEach(bindMoneyMask);
-
-            const checkboxCR = item.querySelector('.cadastro-reserva-check');
-            const vagasInput = item.querySelector('.vagas-input');
-            checkboxCR.addEventListener('change', function () {
-                if (this.checked) {
-                    vagasInput.value = 0;
-                    vagasInput.disabled = true;
-                } else {
-                    vagasInput.disabled = false;
-                    vagasInput.value = '';
-                }
-            });
         }
 
         function renderLocal(data = {}) {

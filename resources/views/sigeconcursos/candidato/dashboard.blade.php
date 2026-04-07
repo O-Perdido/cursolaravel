@@ -83,7 +83,7 @@
 
                     <div class="d-grid gap-2">
                         <a href="{{ route('sigeconcursos.candidato.processos.index') }}" class="btn btn-success">Ver
-                            Processos com Inscrições Abertas</a>
+                            Todos os Processos</a>
                         <a href="{{ route('sigeconcursos.candidato.minhas-inscricoes') }}"
                             class="btn btn-outline-success">Minhas Inscrições</a>
                         <a href="{{ route('sigeconcursos.candidato.minhas-isencoes') }}"

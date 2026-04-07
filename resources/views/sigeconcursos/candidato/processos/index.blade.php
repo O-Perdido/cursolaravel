@@ -1,6 +1,6 @@
 @extends('layouts.main')
 
-@section('title', 'SIGE Concursos | Processos com Inscrições Abertas')
+@section('title', 'SIGE Concursos | Processos e Concursos')
 
 @section('content')
     @once
@@ -105,8 +105,8 @@
     <div class="sc-candidato-list-shell">
         <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-4">
             <div>
-                <h2 class="mb-1" style="color: #16303a;">Processos com inscricoes abertas</h2>
-                <p class="text-muted mb-0">Selecione um edital para ver os detalhes e concluir sua inscricao.</p>
+                <h2 class="mb-1" style="color: #16303a;">Processos e concursos</h2>
+                <p class="text-muted mb-0">Visualize todos os editais e aplique filtros quando quiser.</p>
             </div>
             <div class="d-flex flex-wrap gap-2">
                 <a href="{{ route('sigeconcursos.candidato.minhas-inscricoes') }}" class="btn btn-outline-primary btn-sm">
@@ -139,6 +139,13 @@
                                     </button>
                                 </div>
                                 <div class="d-flex justify-content-end mt-2">
+                                    <div class="me-2" style="min-width: 210px;">
+                                        <select id="filtro_inscricao" name="filtro_inscricao"
+                                            class="form-select form-select-sm">
+                                            <option value="todos" {{ ($filtroInscricao ?? 'todos') === 'todos' ? 'selected' : '' }}>Todos os processos</option>
+                                            <option value="abertas" {{ ($filtroInscricao ?? 'todos') === 'abertas' ? 'selected' : '' }}>Somente inscricoes abertas</option>
+                                        </select>
+                                    </div>
                                     <a href="{{ route('sigeconcursos.candidato.processos.index') }}"
                                         class="btn btn-sm btn-outline-secondary">Limpar filtro</a>
                                 </div>
@@ -227,7 +234,13 @@
             <div class="card sc-candidato-list-card">
                 <div class="card-body text-center py-5">
                     <i class="fa-solid fa-folder-open fa-2x text-muted mb-2"></i>
-                    <div class="text-muted">Nenhum processo com inscricoes abertas foi encontrado no momento.</div>
+                    <div class="text-muted">
+                        @if(($filtroInscricao ?? 'todos') === 'abertas')
+                            Nenhum processo com inscricoes abertas foi encontrado no momento.
+                        @else
+                            Nenhum processo foi encontrado com os filtros informados.
+                        @endif
+                    </div>
                 </div>
             </div>
         @endif
