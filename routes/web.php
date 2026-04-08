@@ -71,6 +71,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/processos/{id}/encerrar', [SigeConcursoProcessoController::class, 'encerrarProcesso'])->name('processos.encerrar');
         Route::post('/processos/{id}/publicar-local-prova', [SigeConcursoProcessoController::class, 'publicarLocalProva'])->name('processos.local-prova.publicar');
         Route::post('/processos/{id}/inscricoes/atualizar-status', [SigeConcursoProcessoController::class, 'atualizarStatusInscricao'])->name('processos.inscricoes.atualizar-status');
+        Route::post('/processos/{id}/inscricoes/atualizar-status-lote', [SigeConcursoProcessoController::class, 'atualizarStatusInscricaoLote'])->name('processos.inscricoes.atualizar-status-lote');
         Route::post('/processos/{id}/inscricoes/atualizar-isencao', [SigeConcursoProcessoController::class, 'atualizarStatusIsencao'])->name('processos.inscricoes.atualizar-isencao');
         Route::delete('/processos/{id}/inscricoes/{inscricao}', [SigeConcursoProcessoController::class, 'destroyInscricao'])->name('processos.inscricoes.destroy');
         Route::delete('/processos/arquivos/{id}', [SigeConcursoProcessoController::class, 'removerArquivo'])->name('processos.arquivos.destroy');
@@ -119,6 +120,8 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/minhas-inscricoes', [SigeConcursoCandidatoPortalController::class, 'minhasInscricoes'])->name('minhas-inscricoes');
         Route::get('/minhas-isencoes', [SigeConcursoCandidatoPortalController::class, 'minhasIsencoes'])->name('minhas-isencoes');
         Route::get('/minhas-inscricoes/{id}/local-prova', [SigeConcursoCandidatoPortalController::class, 'meuLocalProva'])->name('local-prova');
+        Route::get('/minhas-inscricoes/{id}/comprovante-pdf', [SigeConcursoCandidatoPortalController::class, 'comprovanteInscricaoPdf'])->name('comprovante-inscricao.pdf');
+        Route::get('/minhas-inscricoes/{id}/local-prova-pdf', [SigeConcursoCandidatoPortalController::class, 'comprovanteLocalProvaPdf'])->name('comprovante-local-prova.pdf');
     });
 
     // Rotas para o estagiário gerenciar seu próprio perfil

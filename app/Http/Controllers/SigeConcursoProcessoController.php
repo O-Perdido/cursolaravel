@@ -310,7 +310,63 @@ class SigeConcursoProcessoController extends Controller
 
         $this->sincronizarFluxoProcesso($processo);
 
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => 'Status da inscrição atualizado com sucesso.',
+                'inscricao' => [
+                    'id_inscricao' => $inscricao->id_inscricao,
+                    'status_inscricao' => $inscricao->status_inscricao,
+                    'observacoes' => $inscricao->observacoes,
+                ],
+            ]);
+        }
+
         return back()->with('success', 'Status da inscrição atualizado com sucesso.');
+    }
+
+    public function atualizarStatusInscricaoLote(Request $request, $id)
+    {
+        $processo = SigeConcursoProcesso::findOrFail($id);
+
+        $validated = $request->validate([
+            'updates' => ['required', 'array', 'min:1'],
+            'updates.*.inscricao_id' => ['required', 'integer', 'exists:sigeconcursos_tb_inscricoes,id_inscricao'],
+            'updates.*.novo_status' => ['required', 'in:inscrito,deferido,indeferido'],
+            'updates.*.observacoes' => ['nullable', 'string'],
+        ]);
+
+        $atualizadas = [];
+
+        DB::transaction(function () use ($validated, $processo, &$atualizadas) {
+            foreach ($validated['updates'] as $update) {
+                $inscricao = SigeConcursoInscricao::where('id_inscricao', $update['inscricao_id'])
+                    ->where('fk_id_processo', $processo->id_processo)
+                    ->firstOrFail();
+
+                $inscricao->update([
+                    'status_inscricao' => $update['novo_status'],
+                    'observacoes' => trim((string) ($update['observacoes'] ?? '')) ?: null,
+                ]);
+
+                $atualizadas[] = [
+                    'id_inscricao' => $inscricao->id_inscricao,
+                    'status_inscricao' => $inscricao->status_inscricao,
+                    'observacoes' => $inscricao->observacoes,
+                ];
+            }
+        });
+
+        $this->sincronizarFluxoProcesso($processo);
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => 'Alterações em lote salvas com sucesso.',
+                'total' => count($atualizadas),
+                'inscricoes' => $atualizadas,
+            ]);
+        }
+
+        return back()->with('success', 'Alterações em lote salvas com sucesso.');
     }
     
     public function atualizarStatusIsencao(Request $request, $id)

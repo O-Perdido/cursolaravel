@@ -48,6 +48,22 @@
             .sc-doc-list .item:last-child {
                 margin-bottom: 0;
             }
+
+            .sc-insc-list-card.has-pending-changes {
+                border-color: rgba(255, 193, 7, 0.6);
+                box-shadow: 0 0 0 2px rgba(255, 193, 7, 0.14), 0 8px 20px rgba(17, 49, 58, 0.08);
+            }
+
+            .sc-save-indicator {
+                font-size: 0.78rem;
+                min-height: 1rem;
+            }
+
+            .sc-bulk-bar {
+                position: sticky;
+                bottom: 12px;
+                z-index: 50;
+            }
         </style>
     @endonce
 
@@ -274,6 +290,22 @@
         </span>
     </div>
 
+    <div id="sc-bulk-bar" class="sc-bulk-bar d-none">
+        <div class="alert alert-warning border-0 shadow-sm d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-2 mb-3 py-2">
+            <div class="small mb-0">
+                <strong id="sc-bulk-count">0</strong> inscrição(ões) com alteração pendente.
+            </div>
+            <div class="d-flex gap-2">
+                <button type="button" id="btn-salvar-tudo" class="btn btn-sm btn-warning">
+                    <i class="fa-solid fa-floppy-disk me-1"></i> Salvar alterações
+                </button>
+                <button type="button" id="btn-limpar-pendencias" class="btn btn-sm btn-outline-secondary">
+                    Descartar alterações locais
+                </button>
+            </div>
+        </div>
+    </div>
+
     {{-- Lista operacional de homologação --}}
     <div class="d-grid gap-3">
         @forelse($inscricoes as $inscricao)
@@ -307,7 +339,7 @@
                 };
             @endphp
 
-            <div class="card sc-insc-list-card {{ $aptaParaDecisao ? 'apta' : '' }}">
+            <div class="card sc-insc-list-card {{ $aptaParaDecisao ? 'apta' : '' }}" data-card-inscricao="{{ $inscricao->id_inscricao }}">
                 <div class="card-body">
                     <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-2 mb-3">
                         <div>
@@ -392,17 +424,20 @@
                                 <div class="col-12 col-xl-6">
                                     <div class="sc-insc-section-title">Análise da inscrição</div>
                                     <form action="{{ route('sigeconcursos.processos.inscricoes.atualizar-status', $processo->id_processo) }}"
-                                        method="POST">
+                                        method="POST" class="js-inscricao-form" data-inscricao-id="{{ $inscricao->id_inscricao }}"
+                                        data-original-status="{{ $inscricao->status_inscricao }}"
+                                        data-original-observacoes="{{ e((string) ($inscricao->observacoes ?? '')) }}">
                                         @csrf
                                         <input type="hidden" name="inscricao_id" value="{{ $inscricao->id_inscricao }}">
-                                        <select name="novo_status" class="form-select form-select-sm mb-2" required>
+                                        <select name="novo_status" class="form-select form-select-sm mb-2 js-inscricao-status" required>
                                             <option value="inscrito" {{ $inscricao->status_inscricao === 'inscrito' ? 'selected' : '' }}>Inscrito</option>
                                             <option value="deferido" {{ $inscricao->status_inscricao === 'deferido' ? 'selected' : '' }}>Deferido</option>
                                             <option value="indeferido" {{ $inscricao->status_inscricao === 'indeferido' ? 'selected' : '' }}>Indeferido</option>
                                         </select>
-                                        <textarea name="observacoes" rows="2" class="form-control form-control-sm mb-2"
+                                        <textarea name="observacoes" rows="2" class="form-control form-control-sm mb-2 js-inscricao-observacoes"
                                             placeholder="Observações">{{ $inscricao->observacoes }}</textarea>
-                                        <button type="submit" class="btn btn-sm btn-primary w-100">Salvar inscrição</button>
+                                        <button type="submit" class="btn btn-sm btn-primary w-100 js-btn-salvar-inscricao">Salvar inscrição</button>
+                                        <div class="sc-save-indicator text-muted mt-1 js-save-feedback">Sem alterações pendentes.</div>
                                     </form>
                                 </div>
 
@@ -444,13 +479,22 @@
 
                                 <div class="col-12">
                                     <div class="pt-1 border-top">
-                                        <button type="button"
-                                            class="btn btn-sm btn-outline-danger btn-excluir-inscricao"
-                                            data-url="{{ route('sigeconcursos.processos.inscricoes.destroy', [$processo->id_processo, $inscricao->id_inscricao]) }}"
-                                            data-candidato="{{ $inscricao->candidato?->nome_completo }}"
-                                            data-numero="{{ $inscricao->numero_inscricao ?: 'sem número' }}">
-                                            <i class="fa-solid fa-trash me-1"></i> Excluir inscrição
-                                        </button>
+                                        <div class="dropdown">
+                                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                <i class="fa-solid fa-shield-halved me-1"></i> Ações avançadas
+                                            </button>
+                                            <ul class="dropdown-menu">
+                                                <li>
+                                                    <button type="button"
+                                                        class="dropdown-item text-danger btn-excluir-inscricao"
+                                                        data-url="{{ route('sigeconcursos.processos.inscricoes.destroy', [$processo->id_processo, $inscricao->id_inscricao]) }}"
+                                                        data-candidato="{{ $inscricao->candidato?->nome_completo }}"
+                                                        data-numero="{{ $inscricao->numero_inscricao ?: 'sem número' }}">
+                                                        <i class="fa-solid fa-trash me-1"></i> Excluir inscrição permanentemente
+                                                    </button>
+                                                </li>
+                                            </ul>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -505,15 +549,211 @@
             const deleteForm = document.getElementById('form-excluir-inscricao');
             const deleteText = document.getElementById('texto-excluir-inscricao');
             const passwordField = document.getElementById('password_confirm_inscricao');
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+            const bulkBar = document.getElementById('sc-bulk-bar');
+            const bulkCount = document.getElementById('sc-bulk-count');
+            const btnSalvarTudo = document.getElementById('btn-salvar-tudo');
+            const btnLimparPendencias = document.getElementById('btn-limpar-pendencias');
+            const pendingChanges = new Map();
+            const routeSalvarLote = @json(route('sigeconcursos.processos.inscricoes.atualizar-status-lote', $processo->id_processo));
 
-            if (!modalElement || !deleteForm || !deleteText || !passwordField) {
-                return;
+            function normalizarTexto(valor) {
+                return (valor || '').trim();
             }
 
-            const modal = new bootstrap.Modal(modalElement);
+            function setFeedback(form, texto, tipo = 'muted') {
+                const feedback = form.querySelector('.js-save-feedback');
+                if (!feedback) return;
+
+                feedback.className = 'sc-save-indicator mt-1 js-save-feedback';
+                feedback.classList.add(`text-${tipo}`);
+                feedback.textContent = texto;
+            }
+
+            function getCard(form) {
+                const id = form.dataset.inscricaoId;
+                return document.querySelector(`[data-card-inscricao="${id}"]`);
+            }
+
+            function formState(form) {
+                const status = form.querySelector('.js-inscricao-status')?.value || '';
+                const observacoes = normalizarTexto(form.querySelector('.js-inscricao-observacoes')?.value || '');
+                const originalStatus = form.dataset.originalStatus || '';
+                const originalObservacoes = normalizarTexto(form.dataset.originalObservacoes || '');
+
+                return {
+                    changed: status !== originalStatus || observacoes !== originalObservacoes,
+                    status,
+                    observacoes,
+                    originalStatus,
+                    originalObservacoes,
+                };
+            }
+
+            function updateBulkBar() {
+                const total = pendingChanges.size;
+                if (bulkCount) {
+                    bulkCount.textContent = total;
+                }
+                if (bulkBar) {
+                    bulkBar.classList.toggle('d-none', total === 0);
+                }
+            }
+
+            function markFormChange(form) {
+                const state = formState(form);
+                const card = getCard(form);
+                const id = Number(form.dataset.inscricaoId);
+
+                if (state.changed) {
+                    pendingChanges.set(id, {
+                        inscricao_id: id,
+                        novo_status: state.status,
+                        observacoes: state.observacoes,
+                    });
+                    setFeedback(form, 'Alteração pendente. Clique em Salvar inscrição ou Salvar alterações.', 'warning');
+                    card?.classList.add('has-pending-changes');
+                } else {
+                    pendingChanges.delete(id);
+                    setFeedback(form, 'Sem alterações pendentes.', 'muted');
+                    card?.classList.remove('has-pending-changes');
+                }
+
+                updateBulkBar();
+            }
+
+            async function salvarFormAjax(form) {
+                const button = form.querySelector('.js-btn-salvar-inscricao');
+                const formData = new FormData(form);
+
+                try {
+                    if (button) {
+                        button.disabled = true;
+                        button.textContent = 'Salvando...';
+                    }
+                    setFeedback(form, 'Salvando alteração...', 'info');
+
+                    const response = await fetch(form.action, {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-CSRF-TOKEN': csrfToken,
+                        },
+                        body: formData,
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Falha ao salvar a inscrição.');
+                    }
+
+                    const data = await response.json();
+                    form.dataset.originalStatus = data.inscricao?.status_inscricao || form.querySelector('.js-inscricao-status')?.value || '';
+                    form.dataset.originalObservacoes = data.inscricao?.observacoes || '';
+                    markFormChange(form);
+                    setFeedback(form, 'Inscrição salva sem recarregar a página.', 'success');
+                } catch (error) {
+                    setFeedback(form, 'Não foi possível salvar agora. Tente novamente.', 'danger');
+                } finally {
+                    if (button) {
+                        button.disabled = false;
+                        button.textContent = 'Salvar inscrição';
+                    }
+                }
+            }
+
+            if (!modalElement || !deleteForm || !deleteText || !passwordField) {
+                // Continua mesmo sem o modal para manter o salvamento assíncrono.
+            }
+
+            const modal = modalElement ? new bootstrap.Modal(modalElement) : null;
+
+            document.querySelectorAll('.js-inscricao-form').forEach(function (form) {
+                const statusField = form.querySelector('.js-inscricao-status');
+                const obsField = form.querySelector('.js-inscricao-observacoes');
+
+                if (statusField) {
+                    statusField.addEventListener('change', function () {
+                        markFormChange(form);
+                    });
+                }
+
+                if (obsField) {
+                    obsField.addEventListener('input', function () {
+                        markFormChange(form);
+                    });
+                }
+
+                form.addEventListener('submit', function (event) {
+                    event.preventDefault();
+                    salvarFormAjax(form);
+                });
+            });
+
+            btnSalvarTudo?.addEventListener('click', async function () {
+                if (pendingChanges.size === 0) {
+                    return;
+                }
+
+                const payload = { updates: Array.from(pendingChanges.values()) };
+                const originalText = this.innerHTML;
+                this.disabled = true;
+                this.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Salvando...';
+
+                try {
+                    const response = await fetch(routeSalvarLote, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-CSRF-TOKEN': csrfToken,
+                        },
+                        body: JSON.stringify(payload),
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Falha ao salvar as alterações em lote.');
+                    }
+
+                    const data = await response.json();
+
+                    (data.inscricoes || []).forEach(function (item) {
+                        const form = document.querySelector(`.js-inscricao-form[data-inscricao-id="${item.id_inscricao}"]`);
+                        if (!form) return;
+                        form.dataset.originalStatus = item.status_inscricao || '';
+                        form.dataset.originalObservacoes = item.observacoes || '';
+                        markFormChange(form);
+                        setFeedback(form, 'Alteração incluída no salvamento em lote.', 'success');
+                    });
+
+                    pendingChanges.clear();
+                    updateBulkBar();
+                } catch (error) {
+                    alert('Não foi possível salvar todas as alterações. Tente novamente.');
+                } finally {
+                    this.disabled = false;
+                    this.innerHTML = originalText;
+                }
+            });
+
+            btnLimparPendencias?.addEventListener('click', function () {
+                document.querySelectorAll('.js-inscricao-form').forEach(function (form) {
+                    const statusField = form.querySelector('.js-inscricao-status');
+                    const obsField = form.querySelector('.js-inscricao-observacoes');
+                    if (statusField) statusField.value = form.dataset.originalStatus || 'inscrito';
+                    if (obsField) obsField.value = form.dataset.originalObservacoes || '';
+                    markFormChange(form);
+                });
+                pendingChanges.clear();
+                updateBulkBar();
+            });
 
             document.querySelectorAll('.btn-excluir-inscricao').forEach(function (button) {
                 button.addEventListener('click', function () {
+                    if (!modal) {
+                        return;
+                    }
                     const url = this.dataset.url;
                     const candidato = this.dataset.candidato;
                     const numero = this.dataset.numero;

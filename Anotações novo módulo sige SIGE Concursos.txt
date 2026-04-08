@@ -1154,3 +1154,65 @@ Implementado nesta rodada:
 3. uso de compartilhamento nativo do navegador quando disponível (mobile/desktop compatível)
 4. fallback automático para copiar o link quando o compartilhamento nativo não estiver disponível
 5. fallback final com prompt para cópia manual do link em navegadores com bloqueio de clipboard
+
+
+--- AJUSTE IMPLEMENTADO: DATA DE NASCIMENTO COM SELECTS NO CADASTRO DE CANDIDATO
+
+Implementado nesta rodada:
+1. substituição do campo único de data por três seletores separados no formulário de candidato:
+- dia
+- mês
+- ano
+2. manutenção do preenchimento automático ao editar os dados do candidato
+3. backend ajustado para montar a data final no formato padrão do banco (Y-m-d) antes de salvar
+4. validações adicionadas para:
+- obrigatoriedade dos três campos
+- faixa válida de dia, mês e ano
+- validação de data real (evita combinações inválidas como 31/02)
+
+Resultado esperado:
+1. melhor usabilidade em dispositivos móveis no preenchimento da data de nascimento
+2. persistência da data continua normal no campo data_nascimento
+
+
+--- AJUSTE IMPLEMENTADO: PDF DE COMPROVANTE DE INSCRICAO E LOCAL/SALA
+
+Implementado nesta rodada:
+1. rotas autenticadas do candidato para gerar PDF de:
+- comprovante de inscricao
+- comprovante de local/sala de prova
+2. backend no portal do candidato para montar e baixar os dois documentos em PDF
+3. validacoes de seguranca mantidas:
+- candidato so acessa as proprias inscricoes
+- PDF de local/sala exige inscricao deferida e etapa de local de prova liberada
+4. criadas views PDF dedicadas no modulo sigeconcursos para cada tipo de comprovante
+5. tela "Minhas inscricoes" atualizada com botoes para baixar:
+- comprovante de inscricao
+- comprovante de local/sala (quando disponivel)
+6. tela "Meu local de prova" atualizada com atalho para baixar o PDF de local/sala
+
+Resultado esperado:
+1. candidato consegue emitir seus documentos de comprovacao diretamente na area logada
+2. fluxo fica preparado para uso pratico no dia da prova e para comprovacao de inscricao
+
+
+--- AJUSTE IMPLEMENTADO: HOMOLOGACAO MAIS PRATICA (SALVAR SEM RELOAD + SALVAR EM LOTE)
+
+Implementado nesta rodada:
+1. na tela administrativa de inscricoes, o botao "Salvar inscricao" agora salva via AJAX sem recarregar a pagina
+2. inclusao de barra de pendencias com contador de alteracoes locais
+3. inclusao do botao "Salvar alteracoes" para envio em lote dos status/observacoes alterados
+4. inclusao do botao "Descartar alteracoes locais" para voltar rapidamente ao estado salvo
+5. backend com novo endpoint de atualizacao em lote das inscricoes por processo
+6. endpoint individual mantido e ajustado para retornar JSON quando chamado via AJAX
+
+Seguranca e UX na exclusao:
+1. botao de excluir removido da area de destaque principal do card
+2. acao movida para menu "Acoes avancadas"
+3. texto alterado para "Excluir inscricao permanentemente" para reduzir clique acidental
+4. modal com confirmacao e senha do operador/admin permanece obrigatorio
+
+Resultado esperado:
+1. operador/admin consegue homologar varias inscricoes sem perder a posicao da tela
+2. produtividade maior no fluxo de deferir/indeferir em sequencia
+3. menor risco de exclusao acidental

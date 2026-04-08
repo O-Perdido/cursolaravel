@@ -223,10 +223,18 @@
                                     @endif
                                 </td>
                                 <td>
+                                    <a href="{{ route('sigeconcursos.candidato.comprovante-inscricao.pdf', $inscricao->id_inscricao) }}"
+                                        class="btn btn-sm btn-outline-primary mb-1">
+                                        <i class="fa-solid fa-file-pdf me-1"></i> Comprovante
+                                    </a>
                                     @if($inscricao->status_inscricao === 'deferido' && $inscricao->processo?->localProvaPublicado())
                                         <a href="{{ route('sigeconcursos.candidato.local-prova', $inscricao->id_inscricao) }}"
                                             class="btn btn-sm btn-success">
                                             <i class="fa-solid fa-location-dot me-1"></i> Ver local
+                                        </a>
+                                        <a href="{{ route('sigeconcursos.candidato.comprovante-local-prova.pdf', $inscricao->id_inscricao) }}"
+                                            class="btn btn-sm btn-outline-success mt-1">
+                                            <i class="fa-solid fa-file-pdf me-1"></i> PDF local/sala
                                         </a>
                                     @endif
                                 </td>
@@ -309,6 +317,18 @@
                         <a href="{{ route('sigeconcursos.candidato.local-prova', $inscricao->id_inscricao) }}"
                             class="btn btn-success btn-sm w-100 mt-3">
                             <i class="fa-solid fa-location-dot me-1"></i> Ver local de prova
+                        </a>
+                    @endif
+
+                    <a href="{{ route('sigeconcursos.candidato.comprovante-inscricao.pdf', $inscricao->id_inscricao) }}"
+                        class="btn btn-outline-primary btn-sm w-100 mt-2">
+                        <i class="fa-solid fa-file-pdf me-1"></i> Baixar comprovante de inscricao
+                    </a>
+
+                    @if($inscricao->status_inscricao === 'deferido' && $inscricao->processo?->localProvaPublicado())
+                        <a href="{{ route('sigeconcursos.candidato.comprovante-local-prova.pdf', $inscricao->id_inscricao) }}"
+                            class="btn btn-outline-success btn-sm w-100 mt-2">
+                            <i class="fa-solid fa-file-pdf me-1"></i> Baixar PDF local/sala
                         </a>
                     @endif
                 </div>

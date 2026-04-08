@@ -8,9 +8,15 @@
             <h2 class="mb-1">Meu Local de Prova</h2>
             <p class="text-muted mb-0">{{ $inscricao->processo->titulo }}</p>
         </div>
-        <a href="{{ route('sigeconcursos.candidato.minhas-inscricoes') }}" class="btn btn-outline-secondary btn-sm">
-            <i class="fa-solid fa-arrow-left me-1"></i> Minhas Inscrições
-        </a>
+        <div class="d-flex flex-wrap gap-2 justify-content-md-end">
+            <a href="{{ route('sigeconcursos.candidato.comprovante-local-prova.pdf', $inscricao->id_inscricao) }}"
+                class="btn btn-outline-success btn-sm">
+                <i class="fa-solid fa-file-pdf me-1"></i> PDF local/sala
+            </a>
+            <a href="{{ route('sigeconcursos.candidato.minhas-inscricoes') }}" class="btn btn-outline-secondary btn-sm">
+                <i class="fa-solid fa-arrow-left me-1"></i> Minhas Inscrições
+            </a>
+        </div>
     </div>
 
     {{-- Dados da inscrição --}}

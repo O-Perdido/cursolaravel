@@ -7,6 +7,34 @@
     $formId = $formId ?? 'candidato-form';
     $orgaosExpedidores = $orgaosExpedidores ?? [];
     $ufs = $ufs ?? [];
+    $dataNascimentoValor = old('data_nascimento', optional($candidato?->data_nascimento)->format('Y-m-d'));
+    $dataNascimentoObj = null;
+
+    if (!empty($dataNascimentoValor)) {
+        try {
+            $dataNascimentoObj = \Carbon\Carbon::parse($dataNascimentoValor);
+        } catch (\Throwable $exception) {
+            $dataNascimentoObj = null;
+        }
+    }
+
+    $diaSelecionado = (int) old('data_nascimento_dia', $dataNascimentoObj?->day);
+    $mesSelecionado = (int) old('data_nascimento_mes', $dataNascimentoObj?->month);
+    $anoSelecionado = (int) old('data_nascimento_ano', $dataNascimentoObj?->year);
+    $meses = [
+        1 => 'Janeiro',
+        2 => 'Fevereiro',
+        3 => 'Março',
+        4 => 'Abril',
+        5 => 'Maio',
+        6 => 'Junho',
+        7 => 'Julho',
+        8 => 'Agosto',
+        9 => 'Setembro',
+        10 => 'Outubro',
+        11 => 'Novembro',
+        12 => 'Dezembro',
+    ];
 @endphp
 
 <style>
@@ -109,10 +137,42 @@
                     </div>
 
                     <div class="col-md-6">
-                        <label for="data_nascimento" class="form-label">Data de nascimento <span class="text-danger">*</span></label>
-                        <input type="date" class="form-control @error('data_nascimento') is-invalid @enderror"
-                            id="data_nascimento" name="data_nascimento"
-                            value="{{ old('data_nascimento', optional($candidato?->data_nascimento)->format('Y-m-d')) }}" required>
+                        <label class="form-label">Data de nascimento <span class="text-danger">*</span></label>
+                        <div class="row g-2">
+                            <div class="col-4">
+                                <select class="form-select @error('data_nascimento_dia') is-invalid @enderror @error('data_nascimento') is-invalid @enderror"
+                                    id="data_nascimento_dia" name="data_nascimento_dia" required>
+                                    <option value="">Dia</option>
+                                    @for ($dia = 1; $dia <= 31; $dia++)
+                                        <option value="{{ $dia }}" {{ $diaSelecionado === $dia ? 'selected' : '' }}>
+                                            {{ str_pad((string) $dia, 2, '0', STR_PAD_LEFT) }}
+                                        </option>
+                                    @endfor
+                                </select>
+                            </div>
+                            <div class="col-4">
+                                <select class="form-select @error('data_nascimento_mes') is-invalid @enderror @error('data_nascimento') is-invalid @enderror"
+                                    id="data_nascimento_mes" name="data_nascimento_mes" required>
+                                    <option value="">Mês</option>
+                                    @foreach ($meses as $numeroMes => $nomeMes)
+                                        <option value="{{ $numeroMes }}" {{ $mesSelecionado === $numeroMes ? 'selected' : '' }}>
+                                            {{ $nomeMes }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-4">
+                                <select class="form-select @error('data_nascimento_ano') is-invalid @enderror @error('data_nascimento') is-invalid @enderror"
+                                    id="data_nascimento_ano" name="data_nascimento_ano" required>
+                                    <option value="">Ano</option>
+                                    @for ($ano = now()->year; $ano >= 1900; $ano--)
+                                        <option value="{{ $ano }}" {{ $anoSelecionado === $ano ? 'selected' : '' }}>
+                                            {{ $ano }}
+                                        </option>
+                                    @endfor
+                                </select>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="col-md-6">

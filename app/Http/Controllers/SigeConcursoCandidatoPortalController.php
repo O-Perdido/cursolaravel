@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Barryvdh\DomPDF\Facade\Pdf;
 use App\Mail\EmailVerificationCode;
 use App\Models\Cidade;
 use App\Models\Estado;
@@ -549,6 +550,74 @@ class SigeConcursoCandidatoPortalController extends Controller
         return view('sigeconcursos.candidato.local-prova', compact('inscricao'));
     }
 
+    public function comprovanteInscricaoPdf(int $idInscricao)
+    {
+        $candidato = $this->getCandidatoAutenticado();
+
+        $inscricao = SigeConcursoInscricao::with([
+            'processo.empresa',
+            'isencao',
+        ])->where('id_inscricao', $idInscricao)
+            ->where('fk_id_candidato', $candidato->id_candidato)
+            ->firstOrFail();
+
+        $pdf = Pdf::loadView('sigeconcursos.candidato.pdf.comprovante-inscricao', [
+            'inscricao' => $inscricao,
+            'candidato' => $candidato,
+            'emitidoEm' => now(),
+        ])->setPaper('a4', 'portrait');
+
+        $nomeArquivo = sprintf(
+            'comprovante-inscricao-%s-%s.pdf',
+            $inscricao->numero_inscricao ?: $inscricao->id_inscricao,
+            now()->format('YmdHis')
+        );
+
+        return $pdf->download($nomeArquivo);
+    }
+
+    public function comprovanteLocalProvaPdf(int $idInscricao)
+    {
+        $candidato = $this->getCandidatoAutenticado();
+
+        $inscricao = SigeConcursoInscricao::with([
+            'processo.empresa',
+            'localAtribuido.processoLocal.localProva',
+            'salaAtribuida.sala.localProva',
+        ])->where('id_inscricao', $idInscricao)
+            ->where('fk_id_candidato', $candidato->id_candidato)
+            ->firstOrFail();
+
+        if ($inscricao->processo->etapa_fluxo_atual !== 'local_prova_liberado') {
+            return back()->with('error', 'As informações de local de prova ainda não foram divulgadas para este processo.');
+        }
+
+        if ($inscricao->status_inscricao !== 'deferido') {
+            return back()->with('error', 'Apenas inscrições deferidas possuem local de prova atribuído.');
+        }
+
+        $localAtribuido = $inscricao->localAtribuido?->processoLocal?->localProva;
+        $salaAtribuida = $inscricao->salaAtribuida?->sala;
+
+        if (!$localAtribuido && !$salaAtribuida) {
+            return back()->with('error', 'Seu local/sala de prova ainda não foi atribuído.');
+        }
+
+        $pdf = Pdf::loadView('sigeconcursos.candidato.pdf.comprovante-local-prova', [
+            'inscricao' => $inscricao,
+            'candidato' => $candidato,
+            'emitidoEm' => now(),
+        ])->setPaper('a4', 'portrait');
+
+        $nomeArquivo = sprintf(
+            'comprovante-local-prova-%s-%s.pdf',
+            $inscricao->numero_inscricao ?: $inscricao->id_inscricao,
+            now()->format('YmdHis')
+        );
+
+        return $pdf->download($nomeArquivo);
+    }
+
     public function perfil()
     {
         $candidato = $this->getCandidatoAutenticado();
@@ -601,6 +670,23 @@ class SigeConcursoCandidatoPortalController extends Controller
 
     private function validateCandidato(Request $request, bool $creating = true, ?SigeConcursoCandidato $candidato = null): array
     {
+        $diaNascimento = $request->input('data_nascimento_dia');
+        $mesNascimento = $request->input('data_nascimento_mes');
+        $anoNascimento = $request->input('data_nascimento_ano');
+
+        if ($diaNascimento !== null || $mesNascimento !== null || $anoNascimento !== null) {
+            if (is_numeric($diaNascimento) && is_numeric($mesNascimento) && is_numeric($anoNascimento)) {
+                $request->merge([
+                    'data_nascimento' => sprintf(
+                        '%04d-%02d-%02d',
+                        (int) $anoNascimento,
+                        (int) $mesNascimento,
+                        (int) $diaNascimento
+                    ),
+                ]);
+            }
+        }
+
         $request->merge([
             'numero_cpf' => $this->onlyDigits($request->input('numero_cpf')),
             'numero_cep' => $this->onlyDigits($request->input('numero_cep')),
@@ -620,6 +706,9 @@ class SigeConcursoCandidatoPortalController extends Controller
 
         $rules = [
             'nome_completo' => ['required', 'string', 'max:255'],
+            'data_nascimento_dia' => ['required', 'integer', 'between:1,31'],
+            'data_nascimento_mes' => ['required', 'integer', 'between:1,12'],
+            'data_nascimento_ano' => ['required', 'integer', 'between:1900,' . now()->year],
             'data_nascimento' => ['required', 'date'],
             'sexo' => ['required', Rule::in(['Masculino', 'Feminino', 'Não declarar'])],
             'email' => ['required', 'email', 'max:255', Rule::unique('sigeconcursos_tb_candidatos', 'email')->ignore($candidateId, 'id_candidato')],
@@ -650,6 +739,19 @@ class SigeConcursoCandidatoPortalController extends Controller
             'numero_cpf.unique' => 'Já existe um candidato cadastrado com este CPF.',
             'email.unique' => 'Já existe um candidato cadastrado com este e-mail.',
         ]);
+
+        if (!checkdate((int) $validated['data_nascimento_mes'], (int) $validated['data_nascimento_dia'], (int) $validated['data_nascimento_ano'])) {
+            throw ValidationException::withMessages([
+                'data_nascimento' => 'Informe uma data de nascimento válida.',
+            ]);
+        }
+
+        $validated['data_nascimento'] = sprintf(
+            '%04d-%02d-%02d',
+            (int) $validated['data_nascimento_ano'],
+            (int) $validated['data_nascimento_mes'],
+            (int) $validated['data_nascimento_dia']
+        );
 
         if ($creating && !$this->validarCpf($validated['numero_cpf'])) {
             throw ValidationException::withMessages([
