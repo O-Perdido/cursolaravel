@@ -349,10 +349,10 @@
                             </div>
                         </div>
                         <div class="d-flex flex-wrap gap-1">
-                            <span class="badge {{ $badgeInscricao }}">{{ ucfirst($inscricao->status_inscricao) }}</span>
-                            <span class="badge {{ $badgePagamento }}">{{ ucfirst(str_replace('_', ' ', $inscricao->status_pagamento)) }}</span>
+                            <span class="badge {{ $badgeInscricao }} js-badge-inscricao" data-badge-inscricao="{{ $inscricao->id_inscricao }}">{{ ucfirst($inscricao->status_inscricao) }}</span>
+                            <span class="badge {{ $badgePagamento }} js-badge-pagamento" data-badge-pagamento="{{ $inscricao->id_inscricao }}">{{ ucfirst(str_replace('_', ' ', $inscricao->status_pagamento)) }}</span>
                             @if($temIsencao)
-                                <span class="badge {{ $badgeIsencao }}">Isenção: {{ ucfirst($inscricao->status_isencao) }}</span>
+                                <span class="badge {{ $badgeIsencao }} js-badge-isencao" data-badge-isencao="{{ $inscricao->id_inscricao }}">Isenção: {{ ucfirst($inscricao->status_isencao) }}</span>
                             @endif
                             @if($aptaParaDecisao)
                                 <span class="badge text-dark" style="background: #ffe69c;">Apto para decidir</span>
@@ -450,7 +450,9 @@
                                             Análise da isenção
                                         </div>
                                         <form action="{{ route('sigeconcursos.processos.inscricoes.atualizar-isencao', $processo->id_processo) }}"
-                                            method="POST">
+                                            method="POST" class="js-isencao-form" data-inscricao-id="{{ $inscricao->id_inscricao }}"
+                                            data-original-status-isencao="{{ $inscricao->status_isencao }}"
+                                            data-original-parecer-isencao="{{ e((string) ($inscricao->parecer_isencao ?? '')) }}">
                                             @csrf
                                             <input type="hidden" name="inscricao_id" value="{{ $inscricao->id_inscricao }}">
 
@@ -461,15 +463,16 @@
                                                 <div class="small text-muted mb-2"><em>{{ Str::limit($inscricao->justificativa_isencao, 90) }}</em></div>
                                             @endif
 
-                                            <select name="novo_status_isencao" class="form-select form-select-sm mb-2" required>
+                                            <select name="novo_status_isencao" class="form-select form-select-sm mb-2 js-isencao-status" required>
                                                 <option value="nao_solicitada" {{ $inscricao->status_isencao === 'nao_solicitada' ? 'selected' : '' }}>Não solicitada</option>
                                                 <option value="pendente" {{ $inscricao->status_isencao === 'pendente' ? 'selected' : '' }}>Pendente</option>
                                                 <option value="deferida" {{ $inscricao->status_isencao === 'deferida' ? 'selected' : '' }}>Deferida</option>
                                                 <option value="indeferida" {{ $inscricao->status_isencao === 'indeferida' ? 'selected' : '' }}>Indeferida</option>
                                             </select>
-                                            <textarea name="parecer_isencao" rows="2" class="form-control form-control-sm mb-2"
+                                            <textarea name="parecer_isencao" rows="2" class="form-control form-control-sm mb-2 js-isencao-parecer"
                                                 placeholder="Parecer">{{ $inscricao->parecer_isencao }}</textarea>
-                                            <button type="submit" class="btn btn-sm btn-outline-primary w-100">Salvar isenção</button>
+                                            <button type="submit" class="btn btn-sm btn-outline-primary w-100 js-btn-salvar-isencao">Salvar isenção</button>
+                                            <div class="sc-save-indicator text-muted mt-1 js-isencao-save-feedback">Sem alterações pendentes.</div>
                                         </form>
                                     @else
                                         <div class="sc-insc-section-title">Análise da isenção</div>
@@ -554,8 +557,10 @@
             const bulkCount = document.getElementById('sc-bulk-count');
             const btnSalvarTudo = document.getElementById('btn-salvar-tudo');
             const btnLimparPendencias = document.getElementById('btn-limpar-pendencias');
-            const pendingChanges = new Map();
+            const pendingInscricaoChanges = new Map();
+            const pendingIsencaoChanges = new Map();
             const routeSalvarLote = @json(route('sigeconcursos.processos.inscricoes.atualizar-status-lote', $processo->id_processo));
+            const routeSalvarIsencaoLote = @json(route('sigeconcursos.processos.inscricoes.atualizar-isencao-lote', $processo->id_processo));
 
             function normalizarTexto(valor) {
                 return (valor || '').trim();
@@ -566,6 +571,15 @@
                 if (!feedback) return;
 
                 feedback.className = 'sc-save-indicator mt-1 js-save-feedback';
+                feedback.classList.add(`text-${tipo}`);
+                feedback.textContent = texto;
+            }
+
+            function setIsencaoFeedback(form, texto, tipo = 'muted') {
+                const feedback = form.querySelector('.js-isencao-save-feedback');
+                if (!feedback) return;
+
+                feedback.className = 'sc-save-indicator mt-1 js-isencao-save-feedback';
                 feedback.classList.add(`text-${tipo}`);
                 feedback.textContent = texto;
             }
@@ -591,7 +605,7 @@
             }
 
             function updateBulkBar() {
-                const total = pendingChanges.size;
+                const total = pendingInscricaoChanges.size + pendingIsencaoChanges.size;
                 if (bulkCount) {
                     bulkCount.textContent = total;
                 }
@@ -606,7 +620,7 @@
                 const id = Number(form.dataset.inscricaoId);
 
                 if (state.changed) {
-                    pendingChanges.set(id, {
+                    pendingInscricaoChanges.set(id, {
                         inscricao_id: id,
                         novo_status: state.status,
                         observacoes: state.observacoes,
@@ -614,12 +628,109 @@
                     setFeedback(form, 'Alteração pendente. Clique em Salvar inscrição ou Salvar alterações.', 'warning');
                     card?.classList.add('has-pending-changes');
                 } else {
-                    pendingChanges.delete(id);
+                    pendingInscricaoChanges.delete(id);
                     setFeedback(form, 'Sem alterações pendentes.', 'muted');
-                    card?.classList.remove('has-pending-changes');
+                    if (!pendingIsencaoChanges.has(id)) {
+                        card?.classList.remove('has-pending-changes');
+                    }
                 }
 
                 updateBulkBar();
+            }
+
+            function isencaoFormState(form) {
+                const status = form.querySelector('.js-isencao-status')?.value || '';
+                const parecer = normalizarTexto(form.querySelector('.js-isencao-parecer')?.value || '');
+                const originalStatus = form.dataset.originalStatusIsencao || '';
+                const originalParecer = normalizarTexto(form.dataset.originalParecerIsencao || '');
+
+                return {
+                    changed: status !== originalStatus || parecer !== originalParecer,
+                    status,
+                    parecer,
+                };
+            }
+
+            function markIsencaoFormChange(form) {
+                const state = isencaoFormState(form);
+                const card = getCard(form);
+                const id = Number(form.dataset.inscricaoId);
+
+                if (state.changed) {
+                    pendingIsencaoChanges.set(id, {
+                        inscricao_id: id,
+                        novo_status_isencao: state.status,
+                        parecer_isencao: state.parecer,
+                    });
+                    setIsencaoFeedback(form, 'Alteração pendente. Clique em Salvar isenção ou Salvar alterações.', 'warning');
+                    card?.classList.add('has-pending-changes');
+                } else {
+                    pendingIsencaoChanges.delete(id);
+                    setIsencaoFeedback(form, 'Sem alterações pendentes.', 'muted');
+                    if (!pendingInscricaoChanges.has(id)) {
+                        card?.classList.remove('has-pending-changes');
+                    }
+                }
+
+                updateBulkBar();
+            }
+
+            function badgeClassInscricao(status) {
+                return {
+                    inscrito: 'bg-info',
+                    deferido: 'bg-success',
+                    indeferido: 'bg-danger',
+                }[status] || 'bg-secondary';
+            }
+
+            function badgeClassPagamento(status) {
+                return {
+                    pago: 'bg-success',
+                    isento: 'bg-success',
+                    nao_aplicavel: 'bg-secondary',
+                    pendente: 'bg-warning text-dark',
+                    aguardando_isencao: 'bg-warning text-dark',
+                }[status] || 'bg-secondary';
+            }
+
+            function badgeClassIsencao(status) {
+                return {
+                    pendente: 'bg-warning text-dark',
+                    deferida: 'bg-success',
+                    indeferida: 'bg-danger',
+                    nao_solicitada: 'bg-secondary',
+                }[status] || 'bg-secondary';
+            }
+
+            function ucfirst(text) {
+                return text ? text.charAt(0).toUpperCase() + text.slice(1) : '';
+            }
+
+            function humanizeStatus(text) {
+                return ucfirst(String(text || '').replaceAll('_', ' '));
+            }
+
+            function atualizarBadgesInscricao(id, status) {
+                const badge = document.querySelector(`[data-badge-inscricao="${id}"]`);
+                if (!badge) return;
+                badge.className = `badge js-badge-inscricao ${badgeClassInscricao(status)}`;
+                badge.textContent = ucfirst(status);
+            }
+
+            function atualizarBadgesIsencao(id, statusIsencao, statusPagamento) {
+                const badgeIsencao = document.querySelector(`[data-badge-isencao="${id}"]`);
+                const badgePagamento = document.querySelector(`[data-badge-pagamento="${id}"]`);
+
+                if (badgeIsencao) {
+                    badgeIsencao.className = `badge js-badge-isencao ${badgeClassIsencao(statusIsencao)}`;
+                    badgeIsencao.textContent = `Isenção: ${humanizeStatus(statusIsencao)}`;
+                }
+
+                if (badgePagamento) {
+                    const pagamentoTexto = humanizeStatus(statusPagamento);
+                    badgePagamento.className = `badge js-badge-pagamento ${badgeClassPagamento(statusPagamento)}`;
+                    badgePagamento.textContent = pagamentoTexto;
+                }
             }
 
             async function salvarFormAjax(form) {
@@ -650,6 +761,7 @@
                     const data = await response.json();
                     form.dataset.originalStatus = data.inscricao?.status_inscricao || form.querySelector('.js-inscricao-status')?.value || '';
                     form.dataset.originalObservacoes = data.inscricao?.observacoes || '';
+                    atualizarBadgesInscricao(form.dataset.inscricaoId, data.inscricao?.status_inscricao || form.querySelector('.js-inscricao-status')?.value || '');
                     markFormChange(form);
                     setFeedback(form, 'Inscrição salva sem recarregar a página.', 'success');
                 } catch (error) {
@@ -658,6 +770,47 @@
                     if (button) {
                         button.disabled = false;
                         button.textContent = 'Salvar inscrição';
+                    }
+                }
+            }
+
+            async function salvarIsencaoAjax(form) {
+                const button = form.querySelector('.js-btn-salvar-isencao');
+                const formData = new FormData(form);
+
+                try {
+                    if (button) {
+                        button.disabled = true;
+                        button.textContent = 'Salvando...';
+                    }
+                    setIsencaoFeedback(form, 'Salvando alteração...', 'info');
+
+                    const response = await fetch(form.action, {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-CSRF-TOKEN': csrfToken,
+                        },
+                        body: formData,
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Falha ao salvar a isenção.');
+                    }
+
+                    const data = await response.json();
+                    form.dataset.originalStatusIsencao = data.inscricao?.status_isencao || form.querySelector('.js-isencao-status')?.value || '';
+                    form.dataset.originalParecerIsencao = data.inscricao?.parecer_isencao || '';
+                    atualizarBadgesIsencao(form.dataset.inscricaoId, data.inscricao?.status_isencao || '', data.inscricao?.status_pagamento || '');
+                    markIsencaoFormChange(form);
+                    setIsencaoFeedback(form, 'Isenção salva sem recarregar a página.', 'success');
+                } catch (error) {
+                    setIsencaoFeedback(form, 'Não foi possível salvar agora. Tente novamente.', 'danger');
+                } finally {
+                    if (button) {
+                        button.disabled = false;
+                        button.textContent = 'Salvar isenção';
                     }
                 }
             }
@@ -690,44 +843,99 @@
                 });
             });
 
-            btnSalvarTudo?.addEventListener('click', async function () {
-                if (pendingChanges.size === 0) {
-                    return;
+            document.querySelectorAll('.js-isencao-form').forEach(function (form) {
+                const statusField = form.querySelector('.js-isencao-status');
+                const parecerField = form.querySelector('.js-isencao-parecer');
+
+                if (statusField) {
+                    statusField.addEventListener('change', function () {
+                        markIsencaoFormChange(form);
+                    });
                 }
 
-                const payload = { updates: Array.from(pendingChanges.values()) };
+                if (parecerField) {
+                    parecerField.addEventListener('input', function () {
+                        markIsencaoFormChange(form);
+                    });
+                }
+
+                form.addEventListener('submit', function (event) {
+                    event.preventDefault();
+                    salvarIsencaoAjax(form);
+                });
+            });
+
+            btnSalvarTudo?.addEventListener('click', async function () {
+                if (pendingInscricaoChanges.size === 0 && pendingIsencaoChanges.size === 0) {
+                    return;
+                }
                 const originalText = this.innerHTML;
                 this.disabled = true;
                 this.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Salvando...';
 
                 try {
-                    const response = await fetch(routeSalvarLote, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Accept': 'application/json',
-                            'X-Requested-With': 'XMLHttpRequest',
-                            'X-CSRF-TOKEN': csrfToken,
-                        },
-                        body: JSON.stringify(payload),
-                    });
+                    if (pendingInscricaoChanges.size > 0) {
+                        const responseInscricao = await fetch(routeSalvarLote, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'X-CSRF-TOKEN': csrfToken,
+                            },
+                            body: JSON.stringify({ updates: Array.from(pendingInscricaoChanges.values()) }),
+                        });
 
-                    if (!response.ok) {
-                        throw new Error('Falha ao salvar as alterações em lote.');
+                        if (!responseInscricao.ok) {
+                            throw new Error('Falha ao salvar as inscrições em lote.');
+                        }
+
+                        const dataInscricao = await responseInscricao.json();
+
+                        (dataInscricao.inscricoes || []).forEach(function (item) {
+                            const form = document.querySelector(`.js-inscricao-form[data-inscricao-id="${item.id_inscricao}"]`);
+                            if (!form) return;
+                            form.dataset.originalStatus = item.status_inscricao || '';
+                            form.dataset.originalObservacoes = item.observacoes || '';
+                            atualizarBadgesInscricao(item.id_inscricao, item.status_inscricao || '');
+                            markFormChange(form);
+                            setFeedback(form, 'Alteração incluída no salvamento em lote.', 'success');
+                        });
+
+                        pendingInscricaoChanges.clear();
                     }
 
-                    const data = await response.json();
+                    if (pendingIsencaoChanges.size > 0) {
+                        const responseIsencao = await fetch(routeSalvarIsencaoLote, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'X-CSRF-TOKEN': csrfToken,
+                            },
+                            body: JSON.stringify({ updates: Array.from(pendingIsencaoChanges.values()) }),
+                        });
 
-                    (data.inscricoes || []).forEach(function (item) {
-                        const form = document.querySelector(`.js-inscricao-form[data-inscricao-id="${item.id_inscricao}"]`);
-                        if (!form) return;
-                        form.dataset.originalStatus = item.status_inscricao || '';
-                        form.dataset.originalObservacoes = item.observacoes || '';
-                        markFormChange(form);
-                        setFeedback(form, 'Alteração incluída no salvamento em lote.', 'success');
-                    });
+                        if (!responseIsencao.ok) {
+                            throw new Error('Falha ao salvar as isenções em lote.');
+                        }
 
-                    pendingChanges.clear();
+                        const dataIsencao = await responseIsencao.json();
+
+                        (dataIsencao.inscricoes || []).forEach(function (item) {
+                            const form = document.querySelector(`.js-isencao-form[data-inscricao-id="${item.id_inscricao}"]`);
+                            if (!form) return;
+                            form.dataset.originalStatusIsencao = item.status_isencao || '';
+                            form.dataset.originalParecerIsencao = item.parecer_isencao || '';
+                            atualizarBadgesIsencao(item.id_inscricao, item.status_isencao || '', item.status_pagamento || '');
+                            markIsencaoFormChange(form);
+                            setIsencaoFeedback(form, 'Alteração incluída no salvamento em lote.', 'success');
+                        });
+
+                        pendingIsencaoChanges.clear();
+                    }
+
                     updateBulkBar();
                 } catch (error) {
                     alert('Não foi possível salvar todas as alterações. Tente novamente.');
@@ -745,7 +953,17 @@
                     if (obsField) obsField.value = form.dataset.originalObservacoes || '';
                     markFormChange(form);
                 });
-                pendingChanges.clear();
+
+                document.querySelectorAll('.js-isencao-form').forEach(function (form) {
+                    const statusField = form.querySelector('.js-isencao-status');
+                    const parecerField = form.querySelector('.js-isencao-parecer');
+                    if (statusField) statusField.value = form.dataset.originalStatusIsencao || 'nao_solicitada';
+                    if (parecerField) parecerField.value = form.dataset.originalParecerIsencao || '';
+                    markIsencaoFormChange(form);
+                });
+
+                pendingInscricaoChanges.clear();
+                pendingIsencaoChanges.clear();
                 updateBulkBar();
             });
 

@@ -1216,3 +1216,10 @@ Resultado esperado:
 1. operador/admin consegue homologar varias inscricoes sem perder a posicao da tela
 2. produtividade maior no fluxo de deferir/indeferir em sequencia
 3. menor risco de exclusao acidental
+
+Complemento implementado em seguida:
+1. o mesmo padrao de salvamento sem reload foi aplicado tambem para a analise de isencao na mesma tela
+2. o botao "Salvar alteracoes" em lote agora envia junto:
+- alteracoes da inscricao
+- alteracoes da isencao
+3. badges de isencao/pagamento passam a refletir a alteracao salva sem precisar recarregar a pagina

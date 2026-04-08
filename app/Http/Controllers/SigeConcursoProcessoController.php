@@ -407,7 +407,82 @@ class SigeConcursoProcessoController extends Controller
 
         $this->sincronizarFluxoProcesso($processo);
 
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => 'Status da isenção atualizado com sucesso.',
+                'inscricao' => [
+                    'id_inscricao' => $inscricao->id_inscricao,
+                    'status_isencao' => $inscricao->status_isencao,
+                    'parecer_isencao' => $inscricao->parecer_isencao,
+                    'status_pagamento' => $inscricao->status_pagamento,
+                ],
+            ]);
+        }
+
         return back()->with('success', 'Status da isenção atualizado com sucesso.');
+    }
+
+    public function atualizarStatusIsencaoLote(Request $request, $id)
+    {
+        $processo = SigeConcursoProcesso::findOrFail($id);
+
+        $validated = $request->validate([
+            'updates' => ['required', 'array', 'min:1'],
+            'updates.*.inscricao_id' => ['required', 'integer', 'exists:sigeconcursos_tb_inscricoes,id_inscricao'],
+            'updates.*.novo_status_isencao' => ['required', 'in:nao_solicitada,pendente,deferida,indeferida'],
+            'updates.*.parecer_isencao' => ['nullable', 'string'],
+        ]);
+
+        $atualizadas = [];
+
+        DB::transaction(function () use ($validated, $processo, &$atualizadas) {
+            foreach ($validated['updates'] as $update) {
+                $inscricao = SigeConcursoInscricao::where('id_inscricao', $update['inscricao_id'])
+                    ->where('fk_id_processo', $processo->id_processo)
+                    ->firstOrFail();
+
+                $novoStatusIsencao = $update['novo_status_isencao'];
+                $novoStatusPagamento = $inscricao->status_pagamento;
+
+                if ($processo->possui_taxa_inscricao) {
+                    if ($novoStatusIsencao === 'deferida') {
+                        $novoStatusPagamento = 'isento';
+                    } elseif ($novoStatusIsencao === 'indeferida' || $novoStatusIsencao === 'nao_solicitada') {
+                        $novoStatusPagamento = 'pendente';
+                    } elseif ($novoStatusIsencao === 'pendente') {
+                        $novoStatusPagamento = 'aguardando_isencao';
+                    }
+                } else {
+                    $novoStatusPagamento = 'nao_aplicavel';
+                }
+
+                $inscricao->update([
+                    'status_isencao' => $novoStatusIsencao,
+                    'solicitou_isencao' => $novoStatusIsencao !== 'nao_solicitada',
+                    'parecer_isencao' => trim((string) ($update['parecer_isencao'] ?? '')) ?: null,
+                    'status_pagamento' => $novoStatusPagamento,
+                ]);
+
+                $atualizadas[] = [
+                    'id_inscricao' => $inscricao->id_inscricao,
+                    'status_isencao' => $inscricao->status_isencao,
+                    'parecer_isencao' => $inscricao->parecer_isencao,
+                    'status_pagamento' => $inscricao->status_pagamento,
+                ];
+            }
+        });
+
+        $this->sincronizarFluxoProcesso($processo);
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => 'Alterações de isenção salvas com sucesso.',
+                'total' => count($atualizadas),
+                'inscricoes' => $atualizadas,
+            ]);
+        }
+
+        return back()->with('success', 'Alterações de isenção salvas com sucesso.');
     }
 
     public function destroyInscricao(Request $request, $id, $inscricao)

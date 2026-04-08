@@ -73,6 +73,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/processos/{id}/inscricoes/atualizar-status', [SigeConcursoProcessoController::class, 'atualizarStatusInscricao'])->name('processos.inscricoes.atualizar-status');
         Route::post('/processos/{id}/inscricoes/atualizar-status-lote', [SigeConcursoProcessoController::class, 'atualizarStatusInscricaoLote'])->name('processos.inscricoes.atualizar-status-lote');
         Route::post('/processos/{id}/inscricoes/atualizar-isencao', [SigeConcursoProcessoController::class, 'atualizarStatusIsencao'])->name('processos.inscricoes.atualizar-isencao');
+        Route::post('/processos/{id}/inscricoes/atualizar-isencao-lote', [SigeConcursoProcessoController::class, 'atualizarStatusIsencaoLote'])->name('processos.inscricoes.atualizar-isencao-lote');
         Route::delete('/processos/{id}/inscricoes/{inscricao}', [SigeConcursoProcessoController::class, 'destroyInscricao'])->name('processos.inscricoes.destroy');
         Route::delete('/processos/arquivos/{id}', [SigeConcursoProcessoController::class, 'removerArquivo'])->name('processos.arquivos.destroy');
         Route::delete('/processos/documentos-exigidos/{id}', [SigeConcursoProcessoController::class, 'removerDocumentoExigido'])->name('processos.documentos-exigidos.destroy');
