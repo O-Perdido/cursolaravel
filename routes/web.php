@@ -23,6 +23,7 @@ use App\Http\Controllers\SigeConcursoCargoController;
 use App\Http\Controllers\SigeConcursoEmpresaController;
 use App\Http\Controllers\SigeConcursoCandidatoController;
 use App\Http\Controllers\SigeConcursoCandidatoPortalController;
+use App\Http\Controllers\SigeConcursoInterCobrancaController;
 use App\Http\Controllers\SigeConcursoLocalProvaController;
 use App\Http\Controllers\SigeConcursoProcessoController;
 use App\Http\Controllers\SigeConcursoPublicoController;
@@ -77,6 +78,9 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/processos/{id}/inscricoes/{inscricao}', [SigeConcursoProcessoController::class, 'destroyInscricao'])->name('processos.inscricoes.destroy');
         Route::delete('/processos/arquivos/{id}', [SigeConcursoProcessoController::class, 'removerArquivo'])->name('processos.arquivos.destroy');
         Route::delete('/processos/documentos-exigidos/{id}', [SigeConcursoProcessoController::class, 'removerDocumentoExigido'])->name('processos.documentos-exigidos.destroy');
+        Route::get('/cobrancas-inter', [SigeConcursoInterCobrancaController::class, 'index'])->name('cobrancas.index');
+        Route::post('/cobrancas-inter/{id}/sincronizar', [SigeConcursoInterCobrancaController::class, 'sincronizar'])->name('cobrancas.sincronizar');
+        Route::post('/cobrancas-inter/reprocessar-lote', [SigeConcursoInterCobrancaController::class, 'reprocessarLote'])->name('cobrancas.reprocessar-lote');
         Route::get('/cargos', [SigeConcursoCargoController::class, 'index'])->name('cargos.index');
         Route::get('/cargos/create', [SigeConcursoCargoController::class, 'create'])->name('cargos.create');
         Route::post('/cargos', [SigeConcursoCargoController::class, 'store'])->name('cargos.store');
@@ -123,6 +127,9 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/minhas-inscricoes/{id}/local-prova', [SigeConcursoCandidatoPortalController::class, 'meuLocalProva'])->name('local-prova');
         Route::get('/minhas-inscricoes/{id}/comprovante-pdf', [SigeConcursoCandidatoPortalController::class, 'comprovanteInscricaoPdf'])->name('comprovante-inscricao.pdf');
         Route::get('/minhas-inscricoes/{id}/local-prova-pdf', [SigeConcursoCandidatoPortalController::class, 'comprovanteLocalProvaPdf'])->name('comprovante-local-prova.pdf');
+        Route::post('/minhas-inscricoes/{id}/boleto/gerar', [SigeConcursoCandidatoPortalController::class, 'gerarBoletoInscricao'])->name('boleto.gerar');
+        Route::post('/minhas-inscricoes/{id}/boleto/sincronizar', [SigeConcursoCandidatoPortalController::class, 'sincronizarBoletoInscricao'])->name('boleto.sincronizar');
+        Route::get('/minhas-inscricoes/{id}/boleto/pdf', [SigeConcursoCandidatoPortalController::class, 'baixarBoletoInscricaoPdf'])->name('boleto.pdf');
     });
 
     // Rotas para o estagiário gerenciar seu próprio perfil
@@ -599,6 +606,8 @@ Route::prefix('sigeconcursos')->name('sigeconcursos.publico.')->group(function (
     Route::get('/processos-publicos', [SigeConcursoPublicoController::class, 'index'])->name('processos.index');
     Route::get('/processos/{id}/detalhes-publico', [SigeConcursoPublicoController::class, 'show'])->name('processos.show');
 });
+
+Route::post('/sigeconcursos/inter/webhook', [SigeConcursoInterCobrancaController::class, 'webhook'])->name('sigeconcursos.inter.webhook');
 
 // Rotas públicas de avaliação (sem autenticação)
 Route::get('/avaliacoes/responder/{token}', [\App\Http\Controllers\AvaliacaoController::class, 'responder'])->name('avaliacoes.responder');

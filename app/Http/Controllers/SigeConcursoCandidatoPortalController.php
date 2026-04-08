@@ -10,7 +10,10 @@ use App\Models\SigeConcursoCandidato;
 use App\Models\SigeConcursoInscricao;
 use App\Models\SigeConcursoInscricaoDocumento;
 use App\Models\SigeConcursoInscricaoIsencaoDocumento;
-use App\Models\SigeConcursoProcessoLocal;use App\Models\SigeConcursoProcesso;
+use App\Models\SigeConcursoProcessoLocal;
+use App\Models\SigeConcursoProcesso;
+use App\Services\InterBolepixService;
+use App\Services\InterBolepixManagerService;
 use App\Models\User;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
@@ -618,6 +621,56 @@ class SigeConcursoCandidatoPortalController extends Controller
         return $pdf->download($nomeArquivo);
     }
 
+    public function gerarBoletoInscricao(int $idInscricao, InterBolepixManagerService $manager)
+    {
+        $candidato = $this->getCandidatoAutenticado();
+        $inscricao = $this->carregarInscricaoCandidato($candidato, $idInscricao);
+
+        $emissao = $manager->emitirParaInscricao($inscricao);
+
+        if (!($emissao['success'] ?? false)) {
+            return back()->with('error', $emissao['message'] ?? 'Não foi possível emitir o boleto no Inter no momento.');
+        }
+
+        return $this->sincronizarBoletoInscricao($idInscricao, $manager);
+    }
+
+    public function sincronizarBoletoInscricao(int $idInscricao, InterBolepixManagerService $manager)
+    {
+        $candidato = $this->getCandidatoAutenticado();
+        $inscricao = $this->carregarInscricaoCandidato($candidato, $idInscricao);
+
+        $resultado = $manager->sincronizarInscricao($inscricao, 'candidato');
+
+        if (!($resultado['success'] ?? false)) {
+            return back()->with('error', $resultado['message'] ?? 'Não foi possível atualizar o status do pagamento no momento.');
+        }
+
+        return back()->with('success', $resultado['message'] ?? 'Situação do boleto atualizada com sucesso.');
+    }
+
+    public function baixarBoletoInscricaoPdf(int $idInscricao, InterBolepixManagerService $manager)
+    {
+        $candidato = $this->getCandidatoAutenticado();
+        $inscricao = $this->carregarInscricaoCandidato($candidato, $idInscricao);
+
+        $resultado = $manager->recuperarPdf($inscricao);
+
+        if (!($resultado['success'] ?? false)) {
+            return back()->with('error', $resultado['message'] ?? 'Não foi possível recuperar o PDF do boleto no momento.');
+        }
+
+        $nomeArquivo = sprintf(
+            'boleto-inscricao-%s.pdf',
+            $inscricao->numero_inscricao ?: $inscricao->id_inscricao
+        );
+
+        return response($resultado['pdf'], 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="' . $nomeArquivo . '"',
+        ]);
+    }
+
     public function perfil()
     {
         $candidato = $this->getCandidatoAutenticado();
@@ -667,6 +720,17 @@ class SigeConcursoCandidatoPortalController extends Controller
         return SigeConcursoCandidato::with(['cidade.estado', 'user'])
             ->findOrFail($user->fk_id_candidato);
     }
+
+    private function carregarInscricaoCandidato(SigeConcursoCandidato $candidato, int $idInscricao): SigeConcursoInscricao
+    {
+        return SigeConcursoInscricao::with([
+            'processo.empresa',
+            'candidato.cidade.estado',
+        ])->where('id_inscricao', $idInscricao)
+            ->where('fk_id_candidato', $candidato->id_candidato)
+            ->firstOrFail();
+    }
+
 
     private function validateCandidato(Request $request, bool $creating = true, ?SigeConcursoCandidato $candidato = null): array
     {

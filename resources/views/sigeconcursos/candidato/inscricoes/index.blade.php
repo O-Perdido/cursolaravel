@@ -227,6 +227,30 @@
                                         class="btn btn-sm btn-outline-primary mb-1">
                                         <i class="fa-solid fa-file-pdf me-1"></i> Comprovante
                                     </a>
+
+                                    @if($inscricao->processo?->possui_taxa_inscricao && !in_array($inscricao->status_pagamento, ['isento', 'nao_aplicavel'], true))
+                                        @if(!$inscricao->inter_codigo_solicitacao)
+                                            <form action="{{ route('sigeconcursos.candidato.boleto.gerar', $inscricao->id_inscricao) }}" method="POST" class="mb-1">
+                                                @csrf
+                                                <button type="submit" class="btn btn-sm btn-outline-dark">
+                                                    <i class="fa-solid fa-file-invoice-dollar me-1"></i> Gerar boleto
+                                                </button>
+                                            </form>
+                                        @else
+                                            <form action="{{ route('sigeconcursos.candidato.boleto.sincronizar', $inscricao->id_inscricao) }}" method="POST" class="mb-1">
+                                                @csrf
+                                                <button type="submit" class="btn btn-sm btn-outline-secondary">
+                                                    <i class="fa-solid fa-rotate me-1"></i> Atualizar pagamento
+                                                </button>
+                                            </form>
+
+                                            <a href="{{ route('sigeconcursos.candidato.boleto.pdf', $inscricao->id_inscricao) }}"
+                                                class="btn btn-sm btn-outline-danger mb-1">
+                                                <i class="fa-solid fa-file-pdf me-1"></i> PDF boleto
+                                            </a>
+                                        @endif
+                                    @endif
+
                                     @if($inscricao->status_inscricao === 'deferido' && $inscricao->processo?->localProvaPublicado())
                                         <a href="{{ route('sigeconcursos.candidato.local-prova', $inscricao->id_inscricao) }}"
                                             class="btn btn-sm btn-success">
@@ -241,6 +265,12 @@
                             </tr>
                         @empty
                             <tr>
+                                            @if($inscricao->inter_situacao)
+                                                <div class="small text-muted">Inter: {{ ucfirst(str_replace('_', ' ', strtolower($inscricao->inter_situacao))) }}</div>
+                                            @endif
+                                            @if($inscricao->inter_linha_digitavel)
+                                                <div class="small text-muted">Linha: {{ $inscricao->inter_linha_digitavel }}</div>
+                                            @endif
                                 <td colspan="8" class="text-center text-muted py-4">Você ainda não realizou inscrições neste
                                     módulo.</td>
                             </tr>
@@ -318,6 +348,36 @@
                             class="btn btn-success btn-sm w-100 mt-3">
                             <i class="fa-solid fa-location-dot me-1"></i> Ver local de prova
                         </a>
+                    @endif
+
+                    @if($inscricao->processo?->possui_taxa_inscricao && !in_array($inscricao->status_pagamento, ['isento', 'nao_aplicavel'], true))
+                        @if(!$inscricao->inter_codigo_solicitacao)
+                            <form action="{{ route('sigeconcursos.candidato.boleto.gerar', $inscricao->id_inscricao) }}" method="POST" class="mt-2">
+                                @csrf
+                                <button type="submit" class="btn btn-outline-dark btn-sm w-100">
+                                    <i class="fa-solid fa-file-invoice-dollar me-1"></i> Gerar boleto
+                                </button>
+                            </form>
+                        @else
+                            <form action="{{ route('sigeconcursos.candidato.boleto.sincronizar', $inscricao->id_inscricao) }}" method="POST" class="mt-2">
+                                @csrf
+                                <button type="submit" class="btn btn-outline-secondary btn-sm w-100">
+                                    <i class="fa-solid fa-rotate me-1"></i> Atualizar pagamento
+                                </button>
+                            </form>
+
+                            <a href="{{ route('sigeconcursos.candidato.boleto.pdf', $inscricao->id_inscricao) }}"
+                                class="btn btn-outline-danger btn-sm w-100 mt-2">
+                                <i class="fa-solid fa-file-pdf me-1"></i> Baixar PDF do boleto
+                            </a>
+                        @endif
+                    @endif
+
+                    @if($inscricao->inter_linha_digitavel)
+                        <div class="small text-muted mt-2">Linha digitável: {{ $inscricao->inter_linha_digitavel }}</div>
+                    @endif
+                    @if($inscricao->inter_pix_copia_cola)
+                        <div class="small text-muted mt-1">PIX copia e cola disponível.</div>
                     @endif
 
                     <a href="{{ route('sigeconcursos.candidato.comprovante-inscricao.pdf', $inscricao->id_inscricao) }}"

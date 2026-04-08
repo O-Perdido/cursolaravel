@@ -1223,3 +1223,36 @@ Complemento implementado em seguida:
 - alteracoes da inscricao
 - alteracoes da isencao
 3. badges de isencao/pagamento passam a refletir a alteracao salva sem precisar recarregar a pagina
+
+
+--- STATUS DA IMPLEMENTACAO: INTEGRACAO BANCO INTER (BOLEPIX) - FASE INICIAL
+
+Implementado nesta rodada:
+1. inicio da integracao com Inter API Cobranca V3 (Boleto com PIX) no modulo sigeconcursos
+2. criacao de servico dedicado para:
+- emissao de cobranca
+- consulta detalhada da cobranca
+- recuperacao de PDF do boleto
+3. criacao de configuracoes da integracao via `.env` e arquivo `config/inter_bolepix.php`
+4. inclusao de novos campos na inscricao para rastrear dados da cobranca Inter
+5. area do candidato (minhas inscricoes) atualizada com acoes para:
+- gerar boleto
+- atualizar status de pagamento
+- baixar PDF do boleto
+6. sincronizacao do status interno de pagamento com a situacao retornada pelo Inter
+
+Observacoes desta fase:
+1. implementacao focada no fluxo ativo (gerar/consultar/pdf) pela area do candidato
+2. documentacao tecnica criada em `INTEGRACAO_INTER_BOLEPIX_README.md`
+
+Complemento implementado em seguida:
+1. criacao da rota publica de webhook do Inter em:
+- https://sigebr.com/sigeconcursos/inter/webhook
+2. callback do Inter agora atualiza automaticamente a inscricao pelo `codigoSolicitacao`
+3. criacao de tabela/model de logs de cobranca Inter para auditoria tecnica
+4. criacao de painel admin de auditoria de cobrancas com:
+- filtros por busca, status de pagamento e situacao Inter
+- visualizacao de cobrancas pendentes/falhas
+- sincronizacao individual
+- reprocessamento em lote das inscricoes selecionadas
+5. dashboard do sigeconcursos atualizado com card para auditoria de cobrancas

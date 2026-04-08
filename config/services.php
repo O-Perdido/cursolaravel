@@ -35,4 +35,12 @@ return [
         ],
     ],
 
+    'inter_bolepix' => [
+        'enabled' => env('INTER_BOLEPIX_ENABLED', false),
+        'sandbox' => env('INTER_BOLEPIX_SANDBOX', true),
+        'base_url' => env('INTER_BOLEPIX_BASE_URL'),
+        'account_number' => env('INTER_BOLEPIX_ACCOUNT_NUMBER'),
+        'webhook_url' => env('INTER_BOLEPIX_WEBHOOK_URL'),
+    ],
+
 ];

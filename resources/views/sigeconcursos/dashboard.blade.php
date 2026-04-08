@@ -98,5 +98,19 @@
                 </div>
             </div>
         </div>
+
+        <div class="col">
+            <div class="card text-center h-100 shadow-sm border-0">
+                <div class="card-body d-flex flex-column">
+                    <div class="mb-3">
+                        <i class="fa-solid fa-money-check-dollar fa-3x" style="color: #102e6c;"></i>
+                    </div>
+                    <h5 class="card-title">Cobranças Inter</h5>
+                    <p class="card-text flex-grow-1">Audite emissões, falhas, callbacks e reprocessamento das cobranças de
+                        taxa de inscrição.</p>
+                    <a href="{{ route('sigeconcursos.cobrancas.index') }}" class="btn btn-primary">Auditar Cobranças</a>
+                </div>
+            </div>
+        </div>
     </div>
 @endsection

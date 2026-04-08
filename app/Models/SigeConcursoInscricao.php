@@ -32,6 +32,16 @@ class SigeConcursoInscricao extends Model
         'parecer_isencao',
         'valor_taxa_aplicada',
         'status_pagamento',
+        'inter_codigo_solicitacao',
+        'inter_seu_numero',
+        'inter_nosso_numero',
+        'inter_situacao',
+        'inter_linha_digitavel',
+        'inter_codigo_barras',
+        'inter_pix_copia_cola',
+        'inter_data_vencimento',
+        'inter_ultima_sincronizacao_em',
+        'inter_payload_cobranca',
         'observacoes',
     ];
 
@@ -44,6 +54,8 @@ class SigeConcursoInscricao extends Model
             'solicitou_isencao' => 'boolean',
             'fk_id_isencao' => 'integer',
             'valor_taxa_aplicada' => 'decimal:2',
+            'inter_data_vencimento' => 'date',
+            'inter_ultima_sincronizacao_em' => 'datetime',
         ];
     }
 
@@ -80,6 +92,11 @@ class SigeConcursoInscricao extends Model
     public function salaAtribuida()
     {
         return $this->hasOne(SigeConcursoInscricaoSala::class, 'fk_id_inscricao', 'id_inscricao');
+    }
+
+    public function logsInter()
+    {
+        return $this->hasMany(SigeConcursoInterCobrancaLog::class, 'fk_id_inscricao', 'id_inscricao');
     }
 
     public static function gerarNumeroInscricao(int $idProcesso): string
