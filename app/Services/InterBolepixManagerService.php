@@ -178,7 +178,15 @@ class InterBolepixManagerService
 
     public function processarCallback(array $callback): array
     {
-        $codigoSolicitacao = (string) ($callback['codigoSolicitacao'] ?? '');
+        $callbackNormalizado = $this->normalizarCallbackInter($callback);
+        $codigoSolicitacao = (string) ($callbackNormalizado['codigoSolicitacao'] ?? '');
+
+        if ($codigoSolicitacao === '') {
+            $this->registrarLog(null, 'webhook', false, null, 'Callback recebido sem codigoSolicitacao.', null, $callback);
+
+            return ['success' => false, 'message' => 'Callback sem código de solicitação.', 'codigo_solicitacao' => null];
+        }
+
         $inscricao = SigeConcursoInscricao::where('inter_codigo_solicitacao', $codigoSolicitacao)->first();
 
         $this->registrarLog($inscricao, 'webhook', !empty($inscricao), null, $inscricao ? 'Callback recebido.' : 'Inscrição não localizada pelo código da cobrança.', null, $callback, $codigoSolicitacao);
@@ -187,7 +195,7 @@ class InterBolepixManagerService
             return ['success' => false, 'message' => 'Inscrição não localizada para o callback.', 'codigo_solicitacao' => $codigoSolicitacao];
         }
 
-        $this->aplicarDadosWebhook($inscricao, $callback);
+        $this->aplicarDadosWebhook($inscricao, $callbackNormalizado);
 
         return ['success' => true, 'message' => 'Callback processado com sucesso.', 'codigo_solicitacao' => $codigoSolicitacao];
     }
@@ -242,6 +250,22 @@ class InterBolepixManagerService
         ]);
     }
 
+    private function normalizarCallbackInter(array $callback): array
+    {
+        $cobranca = is_array($callback['cobranca'] ?? null) ? $callback['cobranca'] : [];
+        $boleto = is_array($callback['boleto'] ?? null) ? $callback['boleto'] : [];
+        $pix = is_array($callback['pix'] ?? null) ? $callback['pix'] : [];
+
+        return [
+            'codigoSolicitacao' => (string) ($callback['codigoSolicitacao'] ?? $cobranca['codigoSolicitacao'] ?? ''),
+            'situacao' => (string) ($callback['situacao'] ?? $cobranca['situacao'] ?? ''),
+            'nossoNumero' => $callback['nossoNumero'] ?? $boleto['nossoNumero'] ?? null,
+            'linhaDigitavel' => $callback['linhaDigitavel'] ?? $boleto['linhaDigitavel'] ?? null,
+            'codigoBarras' => $callback['codigoBarras'] ?? $boleto['codigoBarras'] ?? null,
+            'pixCopiaECola' => $callback['pixCopiaECola'] ?? $pix['pixCopiaECola'] ?? null,
+        ];
+    }
+
     private function definirDataVencimentoBoleto(SigeConcursoInscricao $inscricao): string
     {
         $defaultDays = (int) config('inter_bolepix.default_due_days', 3);
@@ -280,6 +304,9 @@ class InterBolepixManagerService
 
     private function registrarLog(?SigeConcursoInscricao $inscricao, string $tipoEvento, bool $sucesso, ?int $statusHttp = null, ?string $mensagem = null, mixed $payloadRequest = null, mixed $payloadResponse = null, ?string $codigoSolicitacao = null): void
     {
+        $payloadRequestNormalizado = $this->normalizarPayloadLog($payloadRequest);
+        $payloadResponseNormalizado = $this->normalizarPayloadLog($payloadResponse);
+
         SigeConcursoInterCobrancaLog::create([
             'fk_id_inscricao' => $inscricao?->id_inscricao,
             'codigo_solicitacao' => $codigoSolicitacao ?: $inscricao?->inter_codigo_solicitacao,
@@ -287,8 +314,24 @@ class InterBolepixManagerService
             'sucesso' => $sucesso,
             'status_http' => $statusHttp,
             'mensagem' => $mensagem,
-            'payload_request' => $payloadRequest !== null ? json_encode($payloadRequest, JSON_UNESCAPED_UNICODE) : null,
-            'payload_response' => $payloadResponse !== null ? json_encode($payloadResponse, JSON_UNESCAPED_UNICODE) : null,
+            'payload_request' => $payloadRequestNormalizado !== null ? json_encode($payloadRequestNormalizado, JSON_UNESCAPED_UNICODE) : null,
+            'payload_response' => $payloadResponseNormalizado !== null ? json_encode($payloadResponseNormalizado, JSON_UNESCAPED_UNICODE) : null,
         ]);
+    }
+
+    private function normalizarPayloadLog(mixed $payload): mixed
+    {
+        if (!is_string($payload)) {
+            return $payload;
+        }
+
+        $trimmed = trim($payload);
+        if ($trimmed === '') {
+            return $payload;
+        }
+
+        $decoded = json_decode($trimmed, true);
+
+        return json_last_error() === JSON_ERROR_NONE ? $decoded : $payload;
     }
 }

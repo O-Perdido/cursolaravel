@@ -41,6 +41,8 @@ INTER_BOLEPIX_SCOPE_WRITE=boleto-cobranca.write
 INTER_BOLEPIX_SCOPE_READ=boleto-cobranca.read
 INTER_BOLEPIX_CERT_PATH=
 INTER_BOLEPIX_KEY_PATH=
+INTER_BOLEPIX_WEBHOOK_HEADER=Authorization
+INTER_BOLEPIX_WEBHOOK_SECRET=
 INTER_BOLEPIX_TIMEOUT=30
 INTER_BOLEPIX_VERIFY_SSL=true
 INTER_BOLEPIX_DEFAULT_DUE_DAYS=3
@@ -63,10 +65,15 @@ Tabela `sigeconcursos_tb_inscricoes`:
 
 ## Observacoes importantes
 
-1. O token OAuth do Inter e reutilizado por cache por 55 minutos.
+1. O token OAuth do Inter e reutilizado por cache por 55 minutos (a documentacao informa validade de 60 minutos).
 2. A integracao usa mTLS (`cert` + `ssl_key`) via paths configurados no `.env`.
-3. O status interno de pagamento e sincronizado a partir da `situacao` retornada pelo Inter.
+3. O header `x-conta-corrente` deve ser enviado apenas com numeros e sem zeros a esquerda.
+4. O status interno de pagamento e sincronizado a partir da `situacao` retornada pelo Inter.
 4. O PDF retornado pelo Inter vem em base64 e e entregue ao candidato como download.
+5. O webhook publico do Inter e tratado na rota `POST /sigeconcursos/inter/webhook` e deve estar liberado de CSRF no bootstrap da aplicacao.
+6. Se `INTER_BOLEPIX_WEBHOOK_SECRET` estiver preenchido, o endpoint valida o header configurado em `INTER_BOLEPIX_WEBHOOK_HEADER` (aceita valor puro ou `Bearer <segredo>`).
+7. O callback pode chegar como lista de eventos e deve considerar campos de boleto/pix para atualizar linha digitavel e pix copia e cola.
+8. Para evitar duplicidade de emissao, o Inter usa chave de idempotencia por 30min com base em `seuNumero`, `valorNominal`, `dataVencimento` e `cpfCnpj` do pagador.
 
 ## Proximos passos recomendados
 

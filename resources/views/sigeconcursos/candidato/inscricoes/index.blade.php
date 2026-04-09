@@ -215,6 +215,12 @@
                                     <div class="small text-muted">
                                         {{ $inscricao->valor_taxa_aplicada !== null ? 'R$ ' . number_format((float) $inscricao->valor_taxa_aplicada, 2, ',', '.') : 'Sem taxa' }}
                                     </div>
+                                    @if($inscricao->inter_situacao)
+                                        <div class="small text-muted">Inter: {{ ucfirst(str_replace('_', ' ', strtolower($inscricao->inter_situacao))) }}</div>
+                                    @endif
+                                    @if($inscricao->inter_linha_digitavel)
+                                        <div class="small text-muted">Linha: {{ $inscricao->inter_linha_digitavel }}</div>
+                                    @endif
                                 </td>
                                 <td>
                                     <div class="small text-nowrap">{{ $inscricao->created_at?->format('d/m/Y H:i') }}</div>
@@ -265,12 +271,6 @@
                             </tr>
                         @empty
                             <tr>
-                                            @if($inscricao->inter_situacao)
-                                                <div class="small text-muted">Inter: {{ ucfirst(str_replace('_', ' ', strtolower($inscricao->inter_situacao))) }}</div>
-                                            @endif
-                                            @if($inscricao->inter_linha_digitavel)
-                                                <div class="small text-muted">Linha: {{ $inscricao->inter_linha_digitavel }}</div>
-                                            @endif
                                 <td colspan="8" class="text-center text-muted py-4">Você ainda não realizou inscrições neste
                                     módulo.</td>
                             </tr>

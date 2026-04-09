@@ -1,8 +1,8 @@
 <?php
 
 return [
-    'enabled' => env('INTER_BOLEPIX_ENABLED', false),
-    'sandbox' => env('INTER_BOLEPIX_SANDBOX', true),
+    'enabled' => filter_var(env('INTER_BOLEPIX_ENABLED', false), FILTER_VALIDATE_BOOLEAN),
+    'sandbox' => filter_var(env('INTER_BOLEPIX_SANDBOX', true), FILTER_VALIDATE_BOOLEAN),
 
     'base_url' => env(
         'INTER_BOLEPIX_BASE_URL',
@@ -18,6 +18,8 @@ return [
     'client_secret' => env('INTER_BOLEPIX_CLIENT_SECRET'),
     'account_number' => env('INTER_BOLEPIX_ACCOUNT_NUMBER'),
     'webhook_url' => env('INTER_BOLEPIX_WEBHOOK_URL'),
+    'webhook_header' => env('INTER_BOLEPIX_WEBHOOK_HEADER', 'Authorization'),
+    'webhook_secret' => env('INTER_BOLEPIX_WEBHOOK_SECRET'),
 
     'scope_write' => env('INTER_BOLEPIX_SCOPE_WRITE', 'boleto-cobranca.write'),
     'scope_read' => env('INTER_BOLEPIX_SCOPE_READ', 'boleto-cobranca.read'),
@@ -26,7 +28,7 @@ return [
     'key_path' => env('INTER_BOLEPIX_KEY_PATH'),
 
     'timeout' => (int) env('INTER_BOLEPIX_TIMEOUT', 30),
-    'verify_ssl' => env('INTER_BOLEPIX_VERIFY_SSL', true),
+    'verify_ssl' => filter_var(env('INTER_BOLEPIX_VERIFY_SSL', true), FILTER_VALIDATE_BOOLEAN),
 
     'default_due_days' => (int) env('INTER_BOLEPIX_DEFAULT_DUE_DAYS', 3),
 ];

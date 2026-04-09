@@ -24,9 +24,7 @@ class InterBolepixService
 
             if (!$response->successful()) {
                 $bodyResponse = $response->json() ?: $response->body();
-                $technicalMessage = is_array($bodyResponse) 
-                    ? (($bodyResponse['mensagem'] ?? null) ?: ($bodyResponse['message'] ?? null))
-                    : (string) $bodyResponse;
+                $technicalMessage = $this->extractTechnicalMessage($bodyResponse);
 
                 return [
                     'success' => false,
@@ -64,9 +62,7 @@ class InterBolepixService
 
             if (!$response->successful()) {
                 $bodyResponse = $response->json() ?: $response->body();
-                $technicalMessage = is_array($bodyResponse) 
-                    ? (($bodyResponse['mensagem'] ?? null) ?: ($bodyResponse['message'] ?? null))
-                    : (string) $bodyResponse;
+                $technicalMessage = $this->extractTechnicalMessage($bodyResponse);
 
                 return [
                     'success' => false,
@@ -105,9 +101,7 @@ class InterBolepixService
 
             if (!$response->successful()) {
                 $bodyResponse = $response->json() ?: $response->body();
-                $technicalMessage = is_array($bodyResponse) 
-                    ? (($bodyResponse['mensagem'] ?? null) ?: ($bodyResponse['message'] ?? null))
-                    : (string) $bodyResponse;
+                $technicalMessage = $this->extractTechnicalMessage($bodyResponse);
 
                 return [
                     'success' => false,
@@ -170,9 +164,16 @@ class InterBolepixService
 
     private function baseRequest(string $token): PendingRequest
     {
+        $accountNumber = preg_replace('/\D/', '', (string) config('inter_bolepix.account_number'));
+        $accountNumber = ltrim((string) $accountNumber, '0');
+
+        if ($accountNumber === '') {
+            throw new \RuntimeException('INTER_BOLEPIX_ACCOUNT_NUMBER não configurado ou inválido. Informe a conta sem zeros à esquerda.');
+        }
+
         return $this->baseRequestWithoutAuth()
             ->withToken($token)
-            ->withHeader('x-conta-corrente', (string) config('inter_bolepix.account_number'));
+            ->withHeader('x-conta-corrente', $accountNumber);
     }
 
     private function baseRequestWithoutAuth(): PendingRequest
@@ -225,5 +226,43 @@ class InterBolepixService
         }
 
         return base_path(str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $trimmed));
+    }
+
+    private function extractTechnicalMessage(mixed $bodyResponse): string
+    {
+        if (!is_array($bodyResponse)) {
+            return (string) $bodyResponse;
+        }
+
+        $messages = [];
+
+        foreach (['mensagem', 'message', 'detail', 'title'] as $key) {
+            $value = $bodyResponse[$key] ?? null;
+            if (is_string($value) && trim($value) !== '') {
+                $messages[] = trim($value);
+            }
+        }
+
+        $violacoes = $bodyResponse['violacoes'] ?? null;
+        if (is_array($violacoes)) {
+            foreach ($violacoes as $violacao) {
+                if (!is_array($violacao)) {
+                    continue;
+                }
+
+                $razao = $violacao['razao'] ?? $violacao['mensagem'] ?? $violacao['message'] ?? null;
+                if (is_string($razao) && trim($razao) !== '') {
+                    $messages[] = trim($razao);
+                }
+            }
+        }
+
+        $messages = array_values(array_unique($messages));
+
+        if (!empty($messages)) {
+            return implode(' | ', $messages);
+        }
+
+        return json_encode($bodyResponse, JSON_UNESCAPED_UNICODE) ?: 'Erro desconhecido na resposta do Inter.';
     }
 }

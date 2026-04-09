@@ -187,8 +187,16 @@
                 <tbody>
                     @forelse($logsRecentes as $log)
                         @php
-                            $technicalMessage = is_array($log->payload_response)
-                                ? ($log->payload_response['technical_message'] ?? null)
+                            $payloadResponse = $log->payload_response;
+                            if (is_string($payloadResponse)) {
+                                $decoded = json_decode($payloadResponse, true);
+                                if (json_last_error() === JSON_ERROR_NONE) {
+                                    $payloadResponse = $decoded;
+                                }
+                            }
+
+                            $technicalMessage = is_array($payloadResponse)
+                                ? ($payloadResponse['technical_message'] ?? null)
                                 : null;
                         @endphp
                         <tr>

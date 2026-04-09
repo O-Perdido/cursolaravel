@@ -101,6 +101,18 @@ class SigeConcursoInterCobrancaController extends Controller
 
     public function webhook(Request $request, InterBolepixManagerService $manager)
     {
+        $expectedHeader = (string) config('inter_bolepix.webhook_header', 'Authorization');
+        $expectedSecret = (string) config('inter_bolepix.webhook_secret', '');
+
+        if ($expectedSecret !== '') {
+            $received = (string) $request->header($expectedHeader, '');
+            $isValid = $received === $expectedSecret || $received === ('Bearer ' . $expectedSecret);
+
+            if (!$isValid) {
+                return response()->json(['ok' => false, 'message' => 'Unauthorized webhook'], 401);
+            }
+        }
+
         $payload = $request->all();
         $callbacks = array_is_list($payload) ? $payload : [$payload];
 
