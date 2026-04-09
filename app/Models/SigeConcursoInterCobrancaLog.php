@@ -28,6 +28,8 @@ class SigeConcursoInterCobrancaLog extends Model
     {
         return [
             'sucesso' => 'boolean',
+            'payload_request' => 'array',
+            'payload_response' => 'array',
         ];
     }
 

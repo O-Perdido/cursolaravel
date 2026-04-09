@@ -70,7 +70,8 @@
                         <option value="">Todos</option>
                         @foreach(['pendente', 'pago', 'isento', 'nao_aplicavel'] as $status)
                             <option value="{{ $status }}" {{ request('status_pagamento') === $status ? 'selected' : '' }}>
-                                {{ ucfirst(str_replace('_', ' ', $status)) }}</option>
+                                {{ ucfirst(str_replace('_', ' ', $status)) }}
+                            </option>
                         @endforeach
                     </select>
                 </div>
@@ -80,7 +81,8 @@
                         <option value="">Todas</option>
                         @foreach(['A_RECEBER', 'RECEBIDO', 'ATRASADO', 'CANCELADO', 'EXPIRADO', 'FALHA_EMISSAO', 'EM_PROCESSAMENTO'] as $situacao)
                             <option value="{{ $situacao }}" {{ request('inter_situacao') === $situacao ? 'selected' : '' }}>
-                                {{ ucfirst(strtolower(str_replace('_', ' ', $situacao))) }}</option>
+                                {{ ucfirst(strtolower(str_replace('_', ' ', $situacao))) }}
+                            </option>
                         @endforeach
                     </select>
                 </div>
@@ -126,7 +128,8 @@
                             <td>
                                 <div class="fw-semibold">{{ $inscricao->numero_inscricao ?: '-' }}</div>
                                 <div class="small text-muted">
-                                    {{ $inscricao->inter_codigo_solicitacao ?: 'Sem cobranca emitida' }}</div>
+                                    {{ $inscricao->inter_codigo_solicitacao ?: 'Sem cobranca emitida' }}
+                                </div>
                             </td>
                             <td>{{ $inscricao->candidato?->nome_completo }}</td>
                             <td>{{ $inscricao->processo?->titulo }}</td>
@@ -176,11 +179,18 @@
                         <th>Codigo</th>
                         <th>Inscricao</th>
                         <th>Status</th>
+                        <th>HTTP</th>
                         <th>Mensagem</th>
+                        <th>Detalhe tecnico</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse($logsRecentes as $log)
+                        @php
+                            $technicalMessage = is_array($log->payload_response)
+                                ? ($log->payload_response['technical_message'] ?? null)
+                                : null;
+                        @endphp
                         <tr>
                             <td>{{ $log->created_at?->format('d/m/Y H:i:s') }}</td>
                             <td>{{ $log->tipo_evento }}</td>
@@ -190,11 +200,15 @@
                                 <span
                                     class="badge {{ $log->sucesso ? 'bg-success' : 'bg-danger' }}">{{ $log->sucesso ? 'Sucesso' : 'Falha' }}</span>
                             </td>
+                            <td>{{ $log->status_http ?: '-' }}</td>
                             <td>{{ $log->mensagem ?: '-' }}</td>
+                            <td class="small text-muted" style="max-width: 360px; white-space: normal;">
+                                {{ $technicalMessage ?: '-' }}
+                            </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="text-center text-muted py-4">Sem logs recentes.</td>
+                            <td colspan="8" class="text-center text-muted py-4">Sem logs recentes.</td>
                         </tr>
                     @endforelse
                 </tbody>

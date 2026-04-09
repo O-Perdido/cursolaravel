@@ -1256,3 +1256,19 @@ Complemento implementado em seguida:
 - sincronizacao individual
 - reprocessamento em lote das inscricoes selecionadas
 5. dashboard do sigeconcursos atualizado com card para auditoria de cobrancas
+
+--- STATUS DA IMPLEMENTACAO: INTEGRACAO BANCO INTER (BOLEPIX) - DEBUG CONEXAO
+
+Implementado nesta rodada de correcao:
+1. correcao no `InterBolepixService::resolvePath` para aceitar caminho absoluto Windows com `C:/...` e `C:\...`
+2. ajuste de normalizacao de separador de diretorio para evitar composicao incorreta de path em ambiente Windows
+3. forcar tentativa de TLS 1.2 na requisicao HTTP para compatibilidade com endpoint do Inter
+4. logs de cobranca passaram a salvar tambem `technical_message` em `payload_response` quando houver falha de comunicacao
+5. em ambiente local (Laragon), `INTER_BOLEPIX_VERIFY_SSL` foi ajustado para `false` por causa de erro de CA bundle local
+
+Diagnostico atual apos os ajustes:
+1. erro de path/certificado nao encontrado foi resolvido
+2. erro atual retornado pela API esta em handshake TLS mTLS:
+- `tlsv1 alert unknown ca`
+3. indica necessidade de validar certificado/chave cliente usados na integracao (cadeia/autoridade homologada no Inter)
+4. painel de auditoria passou a exibir `status_http` e `technical_message` dos logs recentes para facilitar suporte em producao

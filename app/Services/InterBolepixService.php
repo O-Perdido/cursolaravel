@@ -23,11 +23,17 @@ class InterBolepixService
                 ->post($this->chargeUrl(), $payload);
 
             if (!$response->successful()) {
+                $bodyResponse = $response->json() ?: $response->body();
+                $technicalMessage = is_array($bodyResponse) 
+                    ? (($bodyResponse['mensagem'] ?? null) ?: ($bodyResponse['message'] ?? null))
+                    : (string) $bodyResponse;
+
                 return [
                     'success' => false,
                     'status' => $response->status(),
                     'message' => 'Falha ao emitir cobrança no Inter.',
-                    'body' => $response->json() ?: $response->body(),
+                    'body' => $bodyResponse,
+                    'technical_message' => $technicalMessage ?: 'Erro desconhecido na resposta do Inter.',
                 ];
             }
 
@@ -43,6 +49,7 @@ class InterBolepixService
             return [
                 'success' => false,
                 'message' => 'Erro de comunicação ao emitir cobrança no Banco Inter.',
+                'technical_message' => $exception->getMessage(),
             ];
         }
     }
@@ -56,11 +63,17 @@ class InterBolepixService
                 ->get($this->chargeUrl() . '/' . $codigoSolicitacao);
 
             if (!$response->successful()) {
+                $bodyResponse = $response->json() ?: $response->body();
+                $technicalMessage = is_array($bodyResponse) 
+                    ? (($bodyResponse['mensagem'] ?? null) ?: ($bodyResponse['message'] ?? null))
+                    : (string) $bodyResponse;
+
                 return [
                     'success' => false,
                     'status' => $response->status(),
                     'message' => 'Falha ao consultar cobrança no Inter.',
-                    'body' => $response->json() ?: $response->body(),
+                    'body' => $bodyResponse,
+                    'technical_message' => $technicalMessage ?: 'Erro desconhecido na resposta do Inter.',
                 ];
             }
 
@@ -77,6 +90,7 @@ class InterBolepixService
             return [
                 'success' => false,
                 'message' => 'Erro de comunicação ao consultar cobrança no Banco Inter.',
+                'technical_message' => $exception->getMessage(),
             ];
         }
     }
@@ -90,11 +104,17 @@ class InterBolepixService
                 ->get($this->chargeUrl() . '/' . $codigoSolicitacao . '/pdf');
 
             if (!$response->successful()) {
+                $bodyResponse = $response->json() ?: $response->body();
+                $technicalMessage = is_array($bodyResponse) 
+                    ? (($bodyResponse['mensagem'] ?? null) ?: ($bodyResponse['message'] ?? null))
+                    : (string) $bodyResponse;
+
                 return [
                     'success' => false,
                     'status' => $response->status(),
                     'message' => 'Falha ao recuperar PDF da cobrança no Inter.',
-                    'body' => $response->json() ?: $response->body(),
+                    'body' => $bodyResponse,
+                    'technical_message' => $technicalMessage ?: 'Erro desconhecido na resposta do Inter.',
                 ];
             }
 
@@ -111,6 +131,7 @@ class InterBolepixService
             return [
                 'success' => false,
                 'message' => 'Erro de comunicação ao recuperar PDF da cobrança no Banco Inter.',
+                'technical_message' => $exception->getMessage(),
             ];
         }
     }
@@ -166,6 +187,12 @@ class InterBolepixService
             'verify' => (bool) config('inter_bolepix.verify_ssl', true),
         ];
 
+        if (defined('CURLOPT_SSLVERSION') && defined('CURL_SSLVERSION_TLSv1_2')) {
+            $options['curl'] = [
+                CURLOPT_SSLVERSION => CURL_SSLVERSION_TLSv1_2,
+            ];
+        }
+
         if ($certPath !== null) {
             $options['cert'] = $certPath;
         }
@@ -193,10 +220,10 @@ class InterBolepixService
             return null;
         }
 
-        if (str_starts_with($trimmed, '/') || preg_match('/^[A-Za-z]:\\\\/', $trimmed)) {
-            return $trimmed;
+        if (str_starts_with($trimmed, '/') || preg_match('~^[A-Za-z]:[\\/]~', $trimmed)) {
+            return str_replace('/', DIRECTORY_SEPARATOR, $trimmed);
         }
 
-        return base_path($trimmed);
+        return base_path(str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $trimmed));
     }
 }

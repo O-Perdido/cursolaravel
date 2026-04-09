@@ -62,7 +62,19 @@ class InterBolepixManagerService
         ];
 
         $resultado = $this->interBolepixService->emitirCobranca($payload);
-        $this->registrarLog($inscricao, 'emissao', $resultado['success'] ?? false, $resultado['status'] ?? null, $resultado['message'] ?? null, $payload, $resultado['data'] ?? ($resultado['body'] ?? null));
+        $payloadResposta = $resultado['data'] ?? ($resultado['body'] ?? []);
+        
+        // Garantir que payloadResposta é um array
+        if (!is_array($payloadResposta)) {
+            $payloadResposta = ['resposta_raw' => (string) $payloadResposta];
+        }
+        
+        // Sempre adicionar technical_message quando disponível
+        if (!empty($resultado['technical_message'])) {
+            $payloadResposta['technical_message'] = (string) $resultado['technical_message'];
+        }
+
+        $this->registrarLog($inscricao, 'emissao', $resultado['success'] ?? false, $resultado['status'] ?? null, $resultado['message'] ?? null, $payload, $payloadResposta);
 
         if (!($resultado['success'] ?? false)) {
             return ['success' => false, 'message' => 'Não foi possível emitir o boleto no Inter no momento.'];
@@ -97,7 +109,19 @@ class InterBolepixManagerService
         }
 
         $resultado = $this->interBolepixService->recuperarCobranca((string) $inscricao->inter_codigo_solicitacao);
-        $this->registrarLog($inscricao, 'consulta_' . $origem, $resultado['success'] ?? false, $resultado['status'] ?? null, $resultado['message'] ?? null, ['codigoSolicitacao' => $inscricao->inter_codigo_solicitacao], $resultado['data'] ?? ($resultado['body'] ?? null));
+        $payloadResposta = $resultado['data'] ?? ($resultado['body'] ?? []);
+        
+        // Garantir que payloadResposta é um array
+        if (!is_array($payloadResposta)) {
+            $payloadResposta = ['resposta_raw' => (string) $payloadResposta];
+        }
+        
+        // Sempre adicionar technical_message quando disponível
+        if (!empty($resultado['technical_message'])) {
+            $payloadResposta['technical_message'] = (string) $resultado['technical_message'];
+        }
+
+        $this->registrarLog($inscricao, 'consulta_' . $origem, $resultado['success'] ?? false, $resultado['status'] ?? null, $resultado['message'] ?? null, ['codigoSolicitacao' => $inscricao->inter_codigo_solicitacao], $payloadResposta);
 
         if (!($resultado['success'] ?? false)) {
             return ['success' => false, 'message' => 'Não foi possível atualizar o status do pagamento no momento.'];
@@ -119,7 +143,19 @@ class InterBolepixManagerService
         }
 
         $resultado = $this->interBolepixService->recuperarPdfCobranca((string) $inscricao->inter_codigo_solicitacao);
-        $this->registrarLog($inscricao, 'pdf', $resultado['success'] ?? false, $resultado['status'] ?? null, $resultado['message'] ?? null, ['codigoSolicitacao' => $inscricao->inter_codigo_solicitacao], $resultado['data'] ?? ($resultado['body'] ?? null));
+        $payloadResposta = $resultado['data'] ?? ($resultado['body'] ?? []);
+        
+        // Garantir que payloadResposta é um array
+        if (!is_array($payloadResposta)) {
+            $payloadResposta = ['resposta_raw' => (string) $payloadResposta];
+        }
+        
+        // Sempre adicionar technical_message quando disponível
+        if (!empty($resultado['technical_message'])) {
+            $payloadResposta['technical_message'] = (string) $resultado['technical_message'];
+        }
+
+        $this->registrarLog($inscricao, 'pdf', $resultado['success'] ?? false, $resultado['status'] ?? null, $resultado['message'] ?? null, ['codigoSolicitacao' => $inscricao->inter_codigo_solicitacao], $payloadResposta);
 
         if (!($resultado['success'] ?? false)) {
             return ['success' => false, 'message' => 'Não foi possível recuperar o PDF do boleto no momento.'];
