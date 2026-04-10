@@ -69,7 +69,6 @@
         @forelse($processos as $processo)
             @php
                 $statusFluxo = $processo->statusApresentacaoDefinicao();
-                $etapaAtual = $processo->etapaFluxoAtualDefinicao();
                 $cor = $statusFluxo['color'] ?? '#6c757d';
                 $badgeClass = $statusFluxo['badge_class'] ?? 'bg-secondary';
                 $label = $statusFluxo['titulo'] ?? 'Status';
@@ -109,11 +108,6 @@
                             <div class="text-muted small mb-2">
                                 <i class="fa-solid fa-file-lines me-1"></i>
                                 Edital nº <strong>{{ $processo->numero_edital }}</strong>
-                            </div>
-
-                            <div class="small text-muted mb-2">
-                                <i class="fa-solid {{ $etapaAtual['icone'] ?? 'fa-circle' }} me-1"></i>
-                                Etapa atual: <strong>{{ $etapaAtual['titulo'] }}</strong>
                             </div>
 
                             {{-- Datas de inscrição --}}

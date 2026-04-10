@@ -11,6 +11,7 @@
                 --sc-line: rgba(22, 48, 58, 0.12);
                 --sc-surface: #ffffff;
                 --sc-soft: #f5f8f9;
+                --sc-accent: #0f766e;
             }
 
             .sc-candidato-list-hero {
@@ -28,6 +29,116 @@
                 border-radius: 18px;
                 background: var(--sc-surface);
                 box-shadow: 0 10px 22px rgba(17, 49, 58, 0.08);
+            }
+
+            .sc-candidato-list-filter-card {
+                border: 1px solid rgba(22, 48, 58, 0.08);
+                border-radius: 18px;
+                background: rgba(255, 255, 255, 0.88);
+                box-shadow: 0 12px 28px rgba(17, 49, 58, 0.08);
+            }
+
+            .sc-candidato-list-filter-actions {
+                display: grid;
+                grid-template-columns: minmax(0, 1fr) auto;
+                gap: 0.75rem;
+                align-items: end;
+            }
+
+            .sc-candidato-list-card-stack {
+                display: flex;
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .sc-candidato-process-card {
+                border: 1px solid var(--sc-line);
+                border-radius: 22px;
+                background: var(--sc-surface);
+                box-shadow: 0 12px 28px rgba(17, 49, 58, 0.09);
+                overflow: hidden;
+            }
+
+            .sc-candidato-process-card .card-body {
+                padding: 1.1rem 1.1rem 1rem;
+            }
+
+            .sc-candidato-process-card .topline {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 0.45rem;
+                margin-bottom: 0.9rem;
+            }
+
+            .sc-candidato-process-card .tipo-badge {
+                display: inline-flex;
+                align-items: center;
+                padding: 0.32rem 0.7rem;
+                border-radius: 999px;
+                border: 1px solid rgba(22, 48, 58, 0.14);
+                background: rgba(22, 48, 58, 0.06);
+                color: var(--sc-ink);
+                font-size: 0.77rem;
+                font-weight: 700;
+            }
+
+            .sc-candidato-process-card .inscricao-badge {
+                display: inline-flex;
+                align-items: center;
+                padding: 0.32rem 0.7rem;
+                border-radius: 999px;
+                font-size: 0.77rem;
+                font-weight: 700;
+                background: rgba(25, 135, 84, 0.12);
+                color: #146c43;
+                border: 1px solid rgba(25, 135, 84, 0.16);
+            }
+
+            .sc-candidato-process-card .orgao {
+                color: var(--sc-muted);
+                font-size: 0.83rem;
+                margin-bottom: 0.25rem;
+            }
+
+            .sc-candidato-process-card .titulo {
+                color: var(--sc-ink);
+                font-size: 1.12rem;
+                font-weight: 800;
+                line-height: 1.3;
+                margin-bottom: 0.45rem;
+            }
+
+            .sc-candidato-process-card .edital {
+                color: var(--sc-muted);
+                font-size: 0.9rem;
+                margin-bottom: 0.9rem;
+            }
+
+            .sc-candidato-process-card .content-grid {
+                display: grid;
+                grid-template-columns: minmax(0, 1.5fr) minmax(260px, 1fr);
+                gap: 1rem;
+                align-items: start;
+            }
+
+            .sc-candidato-process-card .summary {
+                display: flex;
+                flex-direction: column;
+                gap: 0.8rem;
+            }
+
+            .sc-candidato-process-card .etapa {
+                display: flex;
+                align-items: flex-start;
+                gap: 0.6rem;
+                color: var(--sc-muted);
+                font-size: 0.9rem;
+            }
+
+            .sc-candidato-process-card .meta-grid {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 0.75rem;
             }
 
             .sc-candidato-list-meta {
@@ -58,38 +169,61 @@
                 margin-bottom: 0.8rem;
             }
 
-            .sc-candidato-list-table-wrap {
-                border: 1px solid var(--sc-line);
-                border-radius: 18px;
-                overflow: hidden;
-                background: var(--sc-surface);
-                box-shadow: 0 10px 22px rgba(17, 49, 58, 0.08);
+            .sc-candidato-process-card .actions {
+                display: flex;
+                flex-direction: column;
+                gap: 0.65rem;
             }
 
-            .sc-candidato-list-table thead th {
-                background: var(--sc-soft);
+            .sc-candidato-process-card .actions .btn {
+                width: 100%;
+            }
+
+            .sc-candidato-result-info {
+                display: flex;
+                justify-content: space-between;
+                gap: 1rem;
+                align-items: center;
+                margin-bottom: 1rem;
                 color: var(--sc-muted);
-                font-size: 0.78rem;
-                text-transform: uppercase;
-                letter-spacing: 0.04em;
-                border-bottom: 1px solid var(--sc-line);
-                white-space: nowrap;
+                font-size: 0.9rem;
             }
 
-            .sc-candidato-list-table td {
-                vertical-align: middle;
-                border-color: var(--sc-line);
+            @media (max-width: 991.98px) {
+                .sc-candidato-list-hero .card-body {
+                    padding: 1.2rem;
+                }
+
+                .sc-candidato-list-filter-actions {
+                    grid-template-columns: 1fr;
+                }
+
+                .sc-candidato-process-card .content-grid {
+                    grid-template-columns: 1fr;
+                }
+
+                .sc-candidato-process-card .meta-grid {
+                    grid-template-columns: 1fr;
+                }
+
+                .sc-candidato-result-info {
+                    flex-direction: column;
+                    align-items: flex-start;
+                }
             }
 
-            .sc-candidato-list-table .titulo {
-                color: var(--sc-ink);
-                font-weight: 700;
-                margin-bottom: 0.2rem;
-            }
+            @media (max-width: 575.98px) {
+                .sc-candidato-list-shell .btn-sm {
+                    width: 100%;
+                }
 
-            .sc-candidato-list-table .subinfo {
-                color: var(--sc-muted);
-                font-size: 0.82rem;
+                .sc-candidato-process-card .card-body {
+                    padding: 1rem 0.9rem 0.95rem;
+                }
+
+                .sc-candidato-process-card .titulo {
+                    font-size: 1rem;
+                }
             }
         </style>
     @endonce
@@ -127,7 +261,7 @@
                             processo desejado.</p>
                     </div>
                     <div class="col-lg-5">
-                        <form method="GET" class="card sc-candidato-list-card">
+                        <form method="GET" class="card sc-candidato-list-filter-card">
                             <div class="card-body">
                                 <label for="busca" class="form-label small text-muted mb-2">Buscar edital</label>
                                 <div class="input-group">
@@ -138,8 +272,10 @@
                                         <i class="fa-solid fa-magnifying-glass"></i>
                                     </button>
                                 </div>
-                                <div class="d-flex justify-content-end mt-2">
-                                    <div class="me-2" style="min-width: 210px;">
+                                <div class="sc-candidato-list-filter-actions mt-3">
+                                    <div>
+                                        <label for="filtro_inscricao"
+                                            class="form-label small text-muted mb-2">Exibição</label>
                                         <select id="filtro_inscricao" name="filtro_inscricao"
                                             class="form-select form-select-sm">
                                             <option value="todos" {{ ($filtroInscricao ?? 'todos') === 'todos' ? 'selected' : '' }}>Todos os processos</option>
@@ -157,78 +293,99 @@
         </div>
 
         @if($processos->count() > 0)
-            <div class="sc-candidato-list-table-wrap mb-3">
-                <div class="table-responsive">
-                    <table class="table sc-candidato-list-table mb-0 align-middle">
-                        <thead>
-                            <tr>
-                                <th>Processo</th>
-                                <th>Orgao</th>
-                                <th>Status</th>
-                                <th>Periodo de inscricao</th>
-                                <th class="text-center">Acoes</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($processos as $processo)
-                                @php
-                                    $inscricaoId = $inscricoesDoCandidato[$processo->id_processo] ?? null;
-                                    $statusFluxo = $processo->statusApresentacaoDefinicao();
-                                    $etapaAtual = $processo->etapaFluxoAtualDefinicao();
-                                    $tipoLabel = $processo->tipo_processo === 'concurso_publico' ? 'Concurso Publico' : 'Processo Seletivo';
-                                @endphp
-                                <tr>
-                                    <td style="min-width: 280px;">
-                                        <div class="titulo">{{ $processo->titulo }}</div>
-                                        <div class="subinfo">Edital {{ $processo->numero_edital ?: 'Nao informado' }}</div>
-                                        <div class="d-flex flex-wrap gap-1 mt-2">
-                                            <span class="badge text-dark"
-                                                style="background: rgba(22, 48, 58, 0.1);">{{ $tipoLabel }}</span>
-                                            @if($inscricaoId)
-                                                <span
-                                                    class="badge bg-success-subtle text-success-emphasis border border-success-subtle">Ja
-                                                    inscrito</span>
-                                            @endif
+            <div class="sc-candidato-result-info">
+                <span>
+                    {{ $processos->total() }} {{ $processos->total() === 1 ? 'processo encontrado' : 'processos encontrados' }}
+                </span>
+                @if(($filtroInscricao ?? 'todos') === 'abertas')
+                    <span>Mostrando apenas processos com inscricoes abertas.</span>
+                @endif
+            </div>
+
+            <div class="sc-candidato-list-card-stack mb-3">
+                @foreach($processos as $processo)
+                    @php
+                        $inscricaoId = $inscricoesDoCandidato[$processo->id_processo] ?? null;
+                        $statusFluxo = $processo->statusApresentacaoDefinicao();
+                        $tipoLabel = $processo->tipo_processo === 'concurso_publico' ? 'Concurso Público' : 'Processo Seletivo';
+                        $primeiraIsencao = $processo->isencoes->first();
+                        $cor = $statusFluxo['color'] ?? '#6c757d';
+                        $badgeClass = $statusFluxo['badge_class'] ?? 'bg-secondary';
+                    @endphp
+
+                    <div class="sc-candidato-process-card" style="border-left: 5px solid {{ $cor }};">
+                        <div class="card-body">
+                            <div class="topline">
+                                <span class="tipo-badge">{{ $tipoLabel }}</span>
+                                <span class="badge {{ $badgeClass }}">{{ $statusFluxo['titulo'] }}</span>
+                                @if($inscricaoId)
+                                    <span class="inscricao-badge">
+                                        <i class="fa-solid fa-circle-check me-1"></i> Já inscrito
+                                    </span>
+                                @endif
+                            </div>
+
+                            <div class="orgao">{{ $processo->empresa?->nome_razao_social ?? 'Órgão não informado' }}</div>
+                            <div class="titulo">{{ $processo->titulo }}</div>
+                            <div class="edital">
+                                <i class="fa-solid fa-file-lines me-1"></i>
+                                Edital {{ $processo->numero_edital ?: 'Não informado' }}
+                            </div>
+
+                            <div class="content-grid">
+                                <div class="summary">
+                                    <div class="meta-grid">
+                                        <div class="sc-candidato-list-meta">
+                                            <div class="label">Início das inscrições</div>
+                                            <div class="value">
+                                                {{ $processo->data_inicio_inscricoes?->format('d/m/Y H:i') ?: 'Não definido' }}
+                                            </div>
                                         </div>
-                                    </td>
-                                    <td style="min-width: 200px;">
-                                        {{ $processo->empresa?->nome_razao_social ?? 'Nao informado' }}
-                                    </td>
-                                    <td style="min-width: 230px;">
-                                        <div class="mb-1">
-                                            <span
-                                                class="badge {{ $statusFluxo['badge_class'] }}">{{ $statusFluxo['titulo'] }}</span>
+                                        <div class="sc-candidato-list-meta">
+                                            <div class="label">Fim das inscrições</div>
+                                            <div class="value">
+                                                {{ $processo->data_fim_inscricoes?->format('d/m/Y H:i') ?: 'Não definido' }}</div>
                                         </div>
-                                        <div class="subinfo d-flex align-items-center gap-2">
-                                            <i class="fa-solid {{ $etapaAtual['icone'] ?? 'fa-circle' }}"></i>
-                                            <span>{{ $etapaAtual['titulo'] }}</span>
+                                        <div class="sc-candidato-list-meta">
+                                            <div class="label">Data da prova</div>
+                                            <div class="value">{{ $processo->data_prova?->format('d/m/Y H:i') ?: 'Não definida' }}
+                                            </div>
                                         </div>
-                                    </td>
-                                    <td style="min-width: 220px;">
-                                        <div><strong>Inicio:</strong>
-                                            {{ $processo->data_inicio_inscricoes?->format('d/m/Y H:i') ?: 'Nao definido' }}</div>
-                                        <div><strong>Fim:</strong>
-                                            {{ $processo->data_fim_inscricoes?->format('d/m/Y H:i') ?: 'Nao definido' }}</div>
-                                    </td>
-                                    <td class="text-center" style="min-width: 220px;">
-                                        <div class="d-grid gap-2">
-                                            <a href="{{ route('sigeconcursos.candidato.processos.show', $processo->id_processo) }}"
-                                                class="btn btn-sm btn-primary">
-                                                <i class="fa-solid fa-circle-info me-1"></i> Ver detalhes
-                                            </a>
-                                            @if($inscricaoId)
-                                                <a href="{{ route('sigeconcursos.candidato.minhas-inscricoes') }}"
-                                                    class="btn btn-sm btn-outline-success">
-                                                    <i class="fa-solid fa-check me-1"></i> Acompanhar inscricao
-                                                </a>
-                                            @endif
+                                        <div class="sc-candidato-list-meta">
+                                            <div class="label">Isenção</div>
+                                            <div class="value">
+                                                @if($primeiraIsencao && ($primeiraIsencao->data_inicio || $primeiraIsencao->data_fim))
+                                                    {{ $primeiraIsencao->data_inicio?->format('d/m/Y') ?? '?' }} até
+                                                    {{ $primeiraIsencao->data_fim?->format('d/m/Y') ?? '?' }}
+                                                @else
+                                                    Não configurada
+                                                @endif
+                                            </div>
                                         </div>
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
+                                    </div>
+                                </div>
+
+                                <div class="actions">
+                                    <a href="{{ route('sigeconcursos.candidato.processos.show', $processo->id_processo) }}"
+                                        class="btn btn-primary">
+                                        <i class="fa-solid fa-circle-info me-1"></i> Ver detalhes
+                                    </a>
+                                    @if($inscricaoId)
+                                        <a href="{{ route('sigeconcursos.candidato.minhas-inscricoes') }}"
+                                            class="btn btn-outline-success">
+                                            <i class="fa-solid fa-check me-1"></i> Acompanhar inscrição
+                                        </a>
+                                    @else
+                                        <a href="{{ route('sigeconcursos.candidato.processos.show', $processo->id_processo) }}"
+                                            class="btn btn-outline-secondary">
+                                            <i class="fa-solid fa-file-signature me-1"></i> Ver regras e cronograma
+                                        </a>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @endforeach
             </div>
         @else
             <div class="card sc-candidato-list-card">

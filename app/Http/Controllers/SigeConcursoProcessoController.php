@@ -12,13 +12,18 @@ use App\Models\SigeConcursoProcesso;
 use App\Models\SigeConcursoProcessoArquivo;
 use App\Models\SigeConcursoProcessoDocumentoExigido;
 use App\Models\SigeConcursoProcessoLocal;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
+use Maatwebsite\Excel\Facades\Excel;
 
 class SigeConcursoProcessoController extends Controller
 {
@@ -236,46 +241,111 @@ class SigeConcursoProcessoController extends Controller
     {
         $processo = SigeConcursoProcesso::with(['empresa'])->findOrFail($id);
 
-        $query = SigeConcursoInscricao::with([
+        $query = $this->aplicarFiltrosInscricoes($request, $this->montarConsultaInscricoes($processo));
+
+        $inscricoes = $query->orderByDesc('created_at')->paginate(25)->appends($request->query());
+        $resumo = $this->montarResumoInscricoes(clone $query);
+
+        return view('sigeconcursos.processos.inscricoes', compact('processo', 'inscricoes', 'resumo'));
+    }
+
+    public function exportarInscricoes(Request $request, $id)
+    {
+        $processo = SigeConcursoProcesso::with(['empresa'])->findOrFail($id);
+
+        $validated = $request->validate([
+            'formato' => ['nullable', 'in:pdf,excel'],
+            'cpf_censurado' => ['nullable', 'boolean'],
+            'nome' => ['nullable', 'string', 'max:255'],
+            'cpf' => ['nullable', 'string', 'max:20'],
+            'modalidade_concorrencia' => ['nullable', 'in:ampla_concorrencia,pcd'],
+            'status_inscricao' => ['nullable', 'in:inscrito,deferido,indeferido'],
+            'status_isencao' => ['nullable', 'in:nao_solicitada,pendente,deferida,indeferida'],
+            'status_pagamento' => ['nullable', 'in:nao_aplicavel,pendente,aguardando_isencao,isento,pago'],
+        ]);
+
+        $formato = $validated['formato'] ?? 'pdf';
+        $cpfCensurado = $request->boolean('cpf_censurado', true);
+        $query = $this->aplicarFiltrosInscricoes($request, $this->montarConsultaInscricoes($processo));
+        $inscricoes = $query->orderByDesc('created_at')->get();
+
+        if ($inscricoes->isEmpty()) {
+            return back()->with('error', 'Nenhuma inscrição encontrada para exportar com os filtros atuais.');
+        }
+
+    $linhas = $this->montarLinhasExportacaoInscricoes($inscricoes, $cpfCensurado);
+        $filtrosAplicados = $this->montarFiltrosAplicadosInscricoes($validated);
+        $sufixoFiltro = $validated['status_inscricao'] ?? 'filtrado';
+        $nomeArquivo = 'inscricoes_' . Str::slug($processo->titulo ?: 'processo') . '_' . Str::slug($sufixoFiltro) . '_' . now()->format('Ymd_His');
+
+        if ($formato === 'excel') {
+            return Excel::download(
+                new \App\Exports\SigeConcursoInscricoesExport($linhas),
+                $nomeArquivo . '.xlsx'
+            );
+        }
+
+        $pdf = Pdf::loadView('sigeconcursos.processos.exports.inscricoes-pdf', [
+            'processo' => $processo,
+            'linhas' => $linhas,
+            'cpfCensurado' => $cpfCensurado,
+            'filtrosAplicados' => $filtrosAplicados,
+            'dataExportacao' => now()->format('d/m/Y H:i:s'),
+        ])->setPaper('a4', 'landscape');
+
+        return $pdf->download($nomeArquivo . '.pdf');
+    }
+
+    private function montarConsultaInscricoes(SigeConcursoProcesso $processo): Builder
+    {
+        return SigeConcursoInscricao::with([
             'candidato',
             'documentos.documentoExigido',
             'isencao',
             'documentosIsencao',
+            'localAtribuido.processoLocal.localProva',
+            'salaAtribuida.sala.localProva',
         ])->where('fk_id_processo', $processo->id_processo);
+    }
 
+    private function aplicarFiltrosInscricoes(Request $request, Builder $query): Builder
+    {
         if ($request->filled('nome')) {
-            $nome = trim((string) $request->nome);
+            $nome = trim((string) $request->input('nome'));
             $query->whereHas('candidato', function ($candidatoQuery) use ($nome) {
                 $candidatoQuery->where('nome_completo', 'like', '%' . $nome . '%');
             });
         }
 
         if ($request->filled('cpf')) {
-            $cpf = preg_replace('/\D/', '', (string) $request->cpf);
+            $cpf = preg_replace('/\D/', '', (string) $request->input('cpf'));
             $query->whereHas('candidato', function ($candidatoQuery) use ($cpf) {
                 $candidatoQuery->where('numero_cpf', 'like', '%' . $cpf . '%');
             });
         }
 
         if ($request->filled('modalidade_concorrencia')) {
-            $query->where('modalidade_concorrencia', $request->modalidade_concorrencia);
+            $query->where('modalidade_concorrencia', $request->input('modalidade_concorrencia'));
         }
 
         if ($request->filled('status_inscricao')) {
-            $query->where('status_inscricao', $request->status_inscricao);
+            $query->where('status_inscricao', $request->input('status_inscricao'));
         }
 
         if ($request->filled('status_isencao')) {
-            $query->where('status_isencao', $request->status_isencao);
+            $query->where('status_isencao', $request->input('status_isencao'));
         }
 
         if ($request->filled('status_pagamento')) {
-            $query->where('status_pagamento', $request->status_pagamento);
+            $query->where('status_pagamento', $request->input('status_pagamento'));
         }
 
-        $inscricoes = $query->orderByDesc('created_at')->paginate(25)->appends($request->query());
+        return $query;
+    }
 
-        $resumo = [
+    private function montarResumoInscricoes(Builder $query): array
+    {
+        return [
             'total' => (clone $query)->count(),
             'deferidas' => (clone $query)->where('status_inscricao', 'deferido')->count(),
             'indeferidas' => (clone $query)->where('status_inscricao', 'indeferido')->count(),
@@ -285,8 +355,160 @@ class SigeConcursoProcessoController extends Controller
                 ->whereIn('status_pagamento', ['pago', 'isento', 'nao_aplicavel'])
                 ->count(),
         ];
+    }
 
-        return view('sigeconcursos.processos.inscricoes', compact('processo', 'inscricoes', 'resumo'));
+    private function montarLinhasExportacaoInscricoes(Collection $inscricoes, bool $cpfCensurado = true): Collection
+    {
+        return $inscricoes->map(function (SigeConcursoInscricao $inscricao) use ($cpfCensurado) {
+            $candidato = $inscricao->candidato;
+            $sala = $inscricao->salaAtribuida?->sala;
+            $local = $sala?->localProva ?: $inscricao->localAtribuido?->processoLocal?->localProva;
+
+            $partesLocalProva = array_values(array_filter([
+                $local?->nome_local,
+                $sala?->nome_sala ? 'Sala ' . $sala->nome_sala : null,
+                $sala?->bloco ? 'Bloco ' . $sala->bloco : null,
+            ]));
+
+            $localProva = !empty($partesLocalProva)
+                ? implode(' - ', $partesLocalProva)
+                : '-';
+
+            return [
+                'numero_inscricao' => $inscricao->numero_inscricao ?: '-',
+                'nome' => $candidato?->nome_completo ?: '-',
+                'cpf' => $cpfCensurado
+                    ? $this->mascararCpf($candidato?->numero_cpf)
+                    : $this->formatarCpf($candidato?->numero_cpf),
+                'modalidade' => $inscricao->modalidadeLabel(),
+                'local_prova' => $localProva,
+                'status_inscricao' => $this->humanizarStatus($inscricao->status_inscricao),
+                'status_isencao' => $this->humanizarStatus($inscricao->status_isencao),
+            ];
+        })->values();
+    }
+
+    private function montarFiltrosAplicadosInscricoes(array $validated): array
+    {
+        $filtros = [];
+
+        if (!empty($validated['nome'])) {
+            $filtros['Nome'] = trim((string) $validated['nome']);
+        }
+
+        if (!empty($validated['cpf'])) {
+            $filtros['CPF'] = preg_replace('/\D/', '', (string) $validated['cpf']);
+        }
+
+        if (!empty($validated['modalidade_concorrencia'])) {
+            $filtros['Modalidade'] = $validated['modalidade_concorrencia'] === 'pcd' ? 'PCD' : 'Ampla Concorrência';
+        }
+
+        if (!empty($validated['status_inscricao'])) {
+            $filtros['Status da inscrição'] = $this->humanizarStatus($validated['status_inscricao']);
+        }
+
+        if (!empty($validated['status_isencao'])) {
+            $filtros['Status da isenção'] = $this->humanizarStatus($validated['status_isencao']);
+        }
+
+        if (!empty($validated['status_pagamento'])) {
+            $filtros['Status do pagamento'] = $this->humanizarStatus($validated['status_pagamento']);
+        }
+
+        return $filtros;
+    }
+
+    private function humanizarStatus(?string $valor): string
+    {
+        if (!$valor) {
+            return '-';
+        }
+
+        return Str::of($valor)
+            ->replace('_', ' ')
+            ->title()
+            ->toString();
+    }
+
+    private function mascararCpf(?string $cpf): string
+    {
+        $digitos = preg_replace('/\D/', '', (string) $cpf);
+
+        if (strlen($digitos) !== 11) {
+            return $cpf ?: '-';
+        }
+
+        return substr($digitos, 0, 3) . '.***.***-' . substr($digitos, -2);
+    }
+
+    private function formatarCpf(?string $cpf): string
+    {
+        $digitos = preg_replace('/\D/', '', (string) $cpf);
+
+        if (strlen($digitos) !== 11) {
+            return $cpf ?: '-';
+        }
+
+        return substr($digitos, 0, 3) . '.' . substr($digitos, 3, 3) . '.' . substr($digitos, 6, 3) . '-' . substr($digitos, 9, 2);
+    }
+
+    private function formatarTelefone(?string $telefone): string
+    {
+        $digitos = preg_replace('/\D/', '', (string) $telefone);
+
+        if (strlen($digitos) === 11) {
+            return sprintf('(%s) %s-%s', substr($digitos, 0, 2), substr($digitos, 2, 5), substr($digitos, 7, 4));
+        }
+
+        if (strlen($digitos) === 10) {
+            return sprintf('(%s) %s-%s', substr($digitos, 0, 2), substr($digitos, 2, 4), substr($digitos, 6, 4));
+        }
+
+        return $telefone ?: '-';
+    }
+
+    public function listaPresencaSalasPdf($id)
+    {
+        $processo = SigeConcursoProcesso::with(['empresa'])->findOrFail($id);
+
+        $salas = SigeConcursoInscricaoSala::with([
+            'inscricao.candidato',
+            'sala.localProva',
+        ])
+            ->whereHas('inscricao', function ($query) use ($processo) {
+                $query->where('fk_id_processo', $processo->id_processo);
+            })
+            ->get()
+            ->groupBy('fk_id_sala')
+            ->map(function (Collection $atribuicoes) {
+                $sala = $atribuicoes->first()?->sala;
+
+                return [
+                    'sala' => $sala,
+                    'local' => $sala?->localProva,
+                    'atribuicoes' => $atribuicoes->sortBy('numero_assento')->values(),
+                ];
+            })
+            ->sortBy([
+                fn(array $item) => Str::lower((string) ($item['local']?->nome_local ?? '')),
+                fn(array $item) => Str::lower((string) ($item['sala']?->nome_sala ?? '')),
+            ])
+            ->values();
+
+        if ($salas->isEmpty()) {
+            return back()->with('error', 'Nenhuma sala com candidatos distribuídos foi encontrada para gerar a lista de presença.');
+        }
+
+        $pdf = Pdf::loadView('sigeconcursos.processos.exports.lista-presenca-salas-pdf', [
+            'processo' => $processo,
+            'salas' => $salas,
+            'dataGeracao' => now()->format('d/m/Y H:i:s'),
+        ])->setPaper('a4', 'landscape');
+
+        $nomeArquivo = 'lista_presenca_salas_' . Str::slug($processo->titulo ?: 'processo') . '_' . now()->format('Ymd_His') . '.pdf';
+
+        return $pdf->download($nomeArquivo);
     }
 
     public function atualizarStatusInscricao(Request $request, $id)
@@ -740,37 +962,41 @@ class SigeConcursoProcessoController extends Controller
                     ->values();
 
                 $totalCandidatos = $candidatosLocal->count();
-                $offset = 0;
-                $assento = 1;
+                [$salasSelecionadas, $metasPorSala] = $this->montarPlanoDistribuicaoSalas($salas, $totalCandidatos);
+
+                if ($salasSelecionadas->isEmpty()) {
+                    continue;
+                }
+
                 $salaIndex = 0;
-                $salaAtual = $salas->get(0);
-                $ocupacaoAtual = 0;
+                $salaAtual = $salasSelecionadas->get(0);
+                $ocupacaoPorSala = [];
+                $assentoPorSala = [];
 
                 foreach ($candidatosLocal as $atribuicao) {
-                    // Avança para próxima sala se lotou
+                    // Avança para a próxima sala quando a meta balanceada da sala atual for atingida.
                     while (
                         $salaAtual !== null &&
-                        $salaAtual->capacidade_maxima > 0 &&
-                        $ocupacaoAtual >= $salaAtual->capacidade_maxima
+                        ($ocupacaoPorSala[$salaAtual->id_sala] ?? 0) >= ($metasPorSala[$salaAtual->id_sala] ?? 0)
                     ) {
                         $salaIndex++;
-                        $salaAtual = $salas->get($salaIndex);
-                        $ocupacaoAtual = 0;
-                        $assento = 1;
+                        $salaAtual = $salasSelecionadas->get($salaIndex);
                     }
 
                     if ($salaAtual === null) {
                         break; // sem mais salas disponíveis
                     }
 
+                    $proximoAssento = ($assentoPorSala[$salaAtual->id_sala] ?? 0) + 1;
+
                     SigeConcursoInscricaoSala::create([
                         'fk_id_inscricao' => $atribuicao->fk_id_inscricao,
                         'fk_id_sala' => $salaAtual->id_sala,
-                        'numero_assento' => $assento,
+                        'numero_assento' => $proximoAssento,
                     ]);
 
-                    $ocupacaoAtual++;
-                    $assento++;
+                    $ocupacaoPorSala[$salaAtual->id_sala] = ($ocupacaoPorSala[$salaAtual->id_sala] ?? 0) + 1;
+                    $assentoPorSala[$salaAtual->id_sala] = $proximoAssento;
                 }
             }
         });
@@ -778,6 +1004,83 @@ class SigeConcursoProcessoController extends Controller
         $this->sincronizarFluxoProcesso($processo);
 
         return back()->with('success', 'Distribuição por salas realizada com sucesso.');
+    }
+
+    private function montarPlanoDistribuicaoSalas($salas, int $totalCandidatos): array
+    {
+        if ($totalCandidatos <= 0) {
+            return [collect(), []];
+        }
+
+        $salasSelecionadas = collect();
+        $capacidadeAcumulada = 0;
+        $possuiSalaSemLimite = false;
+
+        foreach ($salas as $sala) {
+            $salasSelecionadas->push($sala);
+
+            $capacidadeSala = (int) $sala->capacidade_maxima;
+
+            if ($capacidadeSala <= 0) {
+                $possuiSalaSemLimite = true;
+                break;
+            }
+
+            $capacidadeAcumulada += $capacidadeSala;
+
+            if ($capacidadeAcumulada >= $totalCandidatos) {
+                break;
+            }
+        }
+
+        if ($salasSelecionadas->isEmpty()) {
+            return [collect(), []];
+        }
+
+        $totalParaDistribuir = $possuiSalaSemLimite
+            ? $totalCandidatos
+            : min($totalCandidatos, $capacidadeAcumulada);
+
+        $metasPorSala = [];
+        $restanteCandidatos = $totalParaDistribuir;
+        $salasRestantes = $salasSelecionadas->count();
+
+        foreach ($salasSelecionadas as $sala) {
+            $metaIdeal = (int) ceil($restanteCandidatos / max($salasRestantes, 1));
+            $capacidadeSala = (int) $sala->capacidade_maxima;
+
+            $metaSala = $capacidadeSala > 0
+                ? min($metaIdeal, $capacidadeSala)
+                : $metaIdeal;
+
+            $metasPorSala[$sala->id_sala] = $metaSala;
+            $restanteCandidatos -= $metaSala;
+            $salasRestantes--;
+        }
+
+        if ($restanteCandidatos > 0) {
+            foreach ($salasSelecionadas as $sala) {
+                if ($restanteCandidatos <= 0) {
+                    break;
+                }
+
+                $capacidadeSala = (int) $sala->capacidade_maxima;
+                $ocupacaoPlanejada = $metasPorSala[$sala->id_sala] ?? 0;
+                $folga = $capacidadeSala > 0
+                    ? max(0, $capacidadeSala - $ocupacaoPlanejada)
+                    : $restanteCandidatos;
+
+                if ($folga <= 0) {
+                    continue;
+                }
+
+                $incremento = min($folga, $restanteCandidatos);
+                $metasPorSala[$sala->id_sala] += $incremento;
+                $restanteCandidatos -= $incremento;
+            }
+        }
+
+        return [$salasSelecionadas, $metasPorSala];
     }
 
     public function limparDistribuicaoSalas($id)

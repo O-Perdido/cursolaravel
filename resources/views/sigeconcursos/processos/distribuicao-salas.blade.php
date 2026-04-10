@@ -36,7 +36,8 @@
                 <div class="card-body">
                     <div class="text-muted small">Distribuídos em locais</div>
                     <div class="h4 mb-0 {{ $totalDistribuidosLocal > 0 ? 'text-success' : 'text-warning' }}">
-                        {{ $totalDistribuidosLocal }}</div>
+                        {{ $totalDistribuidosLocal }}
+                    </div>
                 </div>
             </div>
         </div>
@@ -45,7 +46,8 @@
                 <div class="card-body">
                     <div class="text-muted small">Distribuídos em salas</div>
                     <div class="h4 mb-0 {{ $totalDistribuidosSala > 0 ? 'text-success' : 'text-muted' }}">
-                        {{ $totalDistribuidosSala }}</div>
+                        {{ $totalDistribuidosSala }}
+                    </div>
                 </div>
             </div>
         </div>
@@ -84,6 +86,11 @@
                 </form>
 
                 @if($totalDistribuidosSala > 0)
+                    <a href="{{ route('sigeconcursos.processos.distribuicao-salas.lista-presenca.pdf', $processo->id_processo) }}"
+                        class="btn btn-outline-primary btn-sm" target="_blank">
+                        <i class="fa-solid fa-file-lines me-1"></i> Lista de presença por sala
+                    </a>
+
                     <form action="{{ route('sigeconcursos.processos.distribuicao-salas.limpar', $processo->id_processo) }}"
                         method="POST">
                         @csrf
@@ -108,7 +115,8 @@
 
                 <div class="text-muted small">
                     <i class="fa-solid fa-circle-info me-1"></i>
-                    Candidatos são distribuídos em ordem alfabética dentro de cada local, respeitando a capacidade de cada sala.
+                    Candidatos são distribuídos em ordem alfabética dentro de cada local, usando apenas a quantidade necessária
+                    de salas e balanceando a ocupação entre elas, respeitando a capacidade de cada sala.
                 </div>
             @endif
         </div>

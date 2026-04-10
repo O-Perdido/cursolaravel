@@ -288,10 +288,42 @@
             de <strong>{{ $resumo['total'] }}</strong>
             inscri{{ $resumo['total'] === 1 ? 'ção' : 'ções' }}{{ $temFiltroAtivo ? ' (com filtros ativos)' : '' }}
         </span>
+        <form method="GET" action="{{ route('sigeconcursos.processos.inscricoes.exportar', $processo->id_processo) }}"
+            class="d-flex flex-wrap gap-2 align-items-center justify-content-end">
+            @foreach(request()->except(['page', 'formato', 'cpf_censurado']) as $chave => $valor)
+                @if(is_array($valor))
+                    @foreach($valor as $item)
+                        <input type="hidden" name="{{ $chave }}[]" value="{{ $item }}">
+                    @endforeach
+                @else
+                    <input type="hidden" name="{{ $chave }}" value="{{ $valor }}">
+                @endif
+            @endforeach
+
+            <input type="hidden" name="cpf_censurado" value="0">
+            <div class="form-check form-switch m-0">
+                <input class="form-check-input" type="checkbox" role="switch" id="cpf_censurado" name="cpf_censurado"
+                    value="1" {{ request()->boolean('cpf_censurado', true) ? 'checked' : '' }}>
+                <label class="form-check-label small" for="cpf_censurado">Censurar CPF</label>
+            </div>
+
+            <button type="submit" name="formato" value="pdf" class="btn btn-outline-danger btn-sm">
+                <i class="fa-solid fa-file-pdf me-1"></i> PDF
+            </button>
+            <button type="submit" name="formato" value="excel" class="btn btn-outline-success btn-sm">
+                <i class="fa-solid fa-file-excel me-1"></i> Excel
+            </button>
+        </form>
+    </div>
+
+    <div class="text-muted small mb-3">
+        <i class="fa-solid fa-circle-info me-1"></i>
+        As exportações usam exatamente os filtros ativos da listagem atual, com opção de CPF censurado ou completo.
     </div>
 
     <div id="sc-bulk-bar" class="sc-bulk-bar d-none">
-        <div class="alert alert-warning border-0 shadow-sm d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-2 mb-3 py-2">
+        <div
+            class="alert alert-warning border-0 shadow-sm d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-2 mb-3 py-2">
             <div class="small mb-0">
                 <strong id="sc-bulk-count">0</strong> inscrição(ões) com alteração pendente.
             </div>
@@ -339,20 +371,26 @@
                 };
             @endphp
 
-            <div class="card sc-insc-list-card {{ $aptaParaDecisao ? 'apta' : '' }}" data-card-inscricao="{{ $inscricao->id_inscricao }}">
+            <div class="card sc-insc-list-card {{ $aptaParaDecisao ? 'apta' : '' }}"
+                data-card-inscricao="{{ $inscricao->id_inscricao }}">
                 <div class="card-body">
                     <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-2 mb-3">
                         <div>
                             <h5 class="sc-insc-list-title">{{ $inscricao->candidato?->nome_completo }}</h5>
                             <div class="small text-muted">
-                                Nº {{ $inscricao->numero_inscricao ?: '—' }} • {{ $inscricao->candidato?->numero_cpf }} • {{ $inscricao->candidato?->email }}
+                                Nº {{ $inscricao->numero_inscricao ?: '—' }} • {{ $inscricao->candidato?->numero_cpf }} •
+                                {{ $inscricao->candidato?->email }}
                             </div>
                         </div>
                         <div class="d-flex flex-wrap gap-1">
-                            <span class="badge {{ $badgeInscricao }} js-badge-inscricao" data-badge-inscricao="{{ $inscricao->id_inscricao }}">{{ ucfirst($inscricao->status_inscricao) }}</span>
-                            <span class="badge {{ $badgePagamento }} js-badge-pagamento" data-badge-pagamento="{{ $inscricao->id_inscricao }}">{{ ucfirst(str_replace('_', ' ', $inscricao->status_pagamento)) }}</span>
+                            <span class="badge {{ $badgeInscricao }} js-badge-inscricao"
+                                data-badge-inscricao="{{ $inscricao->id_inscricao }}">{{ ucfirst($inscricao->status_inscricao) }}</span>
+                            <span class="badge {{ $badgePagamento }} js-badge-pagamento"
+                                data-badge-pagamento="{{ $inscricao->id_inscricao }}">{{ ucfirst(str_replace('_', ' ', $inscricao->status_pagamento)) }}</span>
                             @if($temIsencao)
-                                <span class="badge {{ $badgeIsencao }} js-badge-isencao" data-badge-isencao="{{ $inscricao->id_inscricao }}">Isenção: {{ ucfirst($inscricao->status_isencao) }}</span>
+                                <span class="badge {{ $badgeIsencao }} js-badge-isencao"
+                                    data-badge-isencao="{{ $inscricao->id_inscricao }}">Isenção:
+                                    {{ ucfirst($inscricao->status_isencao) }}</span>
                             @endif
                             @if($aptaParaDecisao)
                                 <span class="badge text-dark" style="background: #ffe69c;">Apto para decidir</span>
@@ -369,10 +407,12 @@
                             @endif
                             <div class="small"><strong>Data:</strong> {{ $inscricao->created_at?->format('d/m/Y H:i') }}</div>
                             @if($inscricao->valor_taxa_aplicada !== null)
-                                <div class="small"><strong>Taxa:</strong> R$ {{ number_format((float) $inscricao->valor_taxa_aplicada, 2, ',', '.') }}</div>
+                                <div class="small"><strong>Taxa:</strong> R$
+                                    {{ number_format((float) $inscricao->valor_taxa_aplicada, 2, ',', '.') }}</div>
                             @endif
                             @if($inscricao->observacoes)
-                                <div class="small text-muted mt-2"><strong>Obs atual:</strong> {{ Str::limit($inscricao->observacoes, 90) }}</div>
+                                <div class="small text-muted mt-2"><strong>Obs atual:</strong>
+                                    {{ Str::limit($inscricao->observacoes, 90) }}</div>
                             @endif
                         </div>
 
@@ -423,21 +463,28 @@
                             <div class="row g-2">
                                 <div class="col-12 col-xl-6">
                                     <div class="sc-insc-section-title">Análise da inscrição</div>
-                                    <form action="{{ route('sigeconcursos.processos.inscricoes.atualizar-status', $processo->id_processo) }}"
-                                        method="POST" class="js-inscricao-form" data-inscricao-id="{{ $inscricao->id_inscricao }}"
+                                    <form
+                                        action="{{ route('sigeconcursos.processos.inscricoes.atualizar-status', $processo->id_processo) }}"
+                                        method="POST" class="js-inscricao-form"
+                                        data-inscricao-id="{{ $inscricao->id_inscricao }}"
                                         data-original-status="{{ $inscricao->status_inscricao }}"
                                         data-original-observacoes="{{ e((string) ($inscricao->observacoes ?? '')) }}">
                                         @csrf
                                         <input type="hidden" name="inscricao_id" value="{{ $inscricao->id_inscricao }}">
-                                        <select name="novo_status" class="form-select form-select-sm mb-2 js-inscricao-status" required>
+                                        <select name="novo_status" class="form-select form-select-sm mb-2 js-inscricao-status"
+                                            required>
                                             <option value="inscrito" {{ $inscricao->status_inscricao === 'inscrito' ? 'selected' : '' }}>Inscrito</option>
                                             <option value="deferido" {{ $inscricao->status_inscricao === 'deferido' ? 'selected' : '' }}>Deferido</option>
                                             <option value="indeferido" {{ $inscricao->status_inscricao === 'indeferido' ? 'selected' : '' }}>Indeferido</option>
                                         </select>
-                                        <textarea name="observacoes" rows="2" class="form-control form-control-sm mb-2 js-inscricao-observacoes"
+                                        <textarea name="observacoes" rows="2"
+                                            class="form-control form-control-sm mb-2 js-inscricao-observacoes"
                                             placeholder="Observações">{{ $inscricao->observacoes }}</textarea>
-                                        <button type="submit" class="btn btn-sm btn-primary w-100 js-btn-salvar-inscricao">Salvar inscrição</button>
-                                        <div class="sc-save-indicator text-muted mt-1 js-save-feedback">Sem alterações pendentes.</div>
+                                        <button type="submit"
+                                            class="btn btn-sm btn-primary w-100 js-btn-salvar-inscricao">Salvar
+                                            inscrição</button>
+                                        <div class="sc-save-indicator text-muted mt-1 js-save-feedback">Sem alterações
+                                            pendentes.</div>
                                     </form>
                                 </div>
 
@@ -449,7 +496,8 @@
                                             @endif
                                             Análise da isenção
                                         </div>
-                                        <form action="{{ route('sigeconcursos.processos.inscricoes.atualizar-isencao', $processo->id_processo) }}"
+                                        <form
+                                            action="{{ route('sigeconcursos.processos.inscricoes.atualizar-isencao', $processo->id_processo) }}"
                                             method="POST" class="js-isencao-form" data-inscricao-id="{{ $inscricao->id_inscricao }}"
                                             data-original-status-isencao="{{ $inscricao->status_isencao }}"
                                             data-original-parecer-isencao="{{ e((string) ($inscricao->parecer_isencao ?? '')) }}">
@@ -460,19 +508,25 @@
                                                 <div class="small text-muted mb-1">Caso: {{ $inscricao->isencao->titulo }}</div>
                                             @endif
                                             @if($inscricao->justificativa_isencao)
-                                                <div class="small text-muted mb-2"><em>{{ Str::limit($inscricao->justificativa_isencao, 90) }}</em></div>
+                                                <div class="small text-muted mb-2">
+                                                    <em>{{ Str::limit($inscricao->justificativa_isencao, 90) }}</em></div>
                                             @endif
 
-                                            <select name="novo_status_isencao" class="form-select form-select-sm mb-2 js-isencao-status" required>
+                                            <select name="novo_status_isencao"
+                                                class="form-select form-select-sm mb-2 js-isencao-status" required>
                                                 <option value="nao_solicitada" {{ $inscricao->status_isencao === 'nao_solicitada' ? 'selected' : '' }}>Não solicitada</option>
                                                 <option value="pendente" {{ $inscricao->status_isencao === 'pendente' ? 'selected' : '' }}>Pendente</option>
                                                 <option value="deferida" {{ $inscricao->status_isencao === 'deferida' ? 'selected' : '' }}>Deferida</option>
                                                 <option value="indeferida" {{ $inscricao->status_isencao === 'indeferida' ? 'selected' : '' }}>Indeferida</option>
                                             </select>
-                                            <textarea name="parecer_isencao" rows="2" class="form-control form-control-sm mb-2 js-isencao-parecer"
+                                            <textarea name="parecer_isencao" rows="2"
+                                                class="form-control form-control-sm mb-2 js-isencao-parecer"
                                                 placeholder="Parecer">{{ $inscricao->parecer_isencao }}</textarea>
-                                            <button type="submit" class="btn btn-sm btn-outline-primary w-100 js-btn-salvar-isencao">Salvar isenção</button>
-                                            <div class="sc-save-indicator text-muted mt-1 js-isencao-save-feedback">Sem alterações pendentes.</div>
+                                            <button type="submit"
+                                                class="btn btn-sm btn-outline-primary w-100 js-btn-salvar-isencao">Salvar
+                                                isenção</button>
+                                            <div class="sc-save-indicator text-muted mt-1 js-isencao-save-feedback">Sem alterações
+                                                pendentes.</div>
                                         </form>
                                     @else
                                         <div class="sc-insc-section-title">Análise da isenção</div>
@@ -483,7 +537,8 @@
                                 <div class="col-12">
                                     <div class="pt-1 border-top">
                                         <div class="dropdown">
-                                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button"
+                                                data-bs-toggle="dropdown" aria-expanded="false">
                                                 <i class="fa-solid fa-shield-halved me-1"></i> Ações avançadas
                                             </button>
                                             <ul class="dropdown-menu">
@@ -534,7 +589,8 @@
                     <div class="modal-body">
                         <p id="texto-excluir-inscricao" class="mb-3"></p>
                         <label for="password_confirm_inscricao" class="form-label">Senha do usuário logado</label>
-                        <input type="password" class="form-control" id="password_confirm_inscricao" name="password_confirm" required>
+                        <input type="password" class="form-control" id="password_confirm_inscricao" name="password_confirm"
+                            required>
                         <small class="text-muted">Informe a senha do operador/admin atual para confirmar a exclusão.</small>
                     </div>
                     <div class="modal-footer">
@@ -547,441 +603,441 @@
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const modalElement = document.getElementById('modal-excluir-inscricao');
-            const deleteForm = document.getElementById('form-excluir-inscricao');
-            const deleteText = document.getElementById('texto-excluir-inscricao');
-            const passwordField = document.getElementById('password_confirm_inscricao');
-            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
-            const bulkBar = document.getElementById('sc-bulk-bar');
-            const bulkCount = document.getElementById('sc-bulk-count');
-            const btnSalvarTudo = document.getElementById('btn-salvar-tudo');
-            const btnLimparPendencias = document.getElementById('btn-limpar-pendencias');
-            const pendingInscricaoChanges = new Map();
-            const pendingIsencaoChanges = new Map();
-            const routeSalvarLote = @json(route('sigeconcursos.processos.inscricoes.atualizar-status-lote', $processo->id_processo));
-            const routeSalvarIsencaoLote = @json(route('sigeconcursos.processos.inscricoes.atualizar-isencao-lote', $processo->id_processo));
+            document.addEventListener('DOMContentLoaded'        , function () {
+                const modalElement = document.getElementById('modal-excluir-inscricao');
+                const deleteForm = document.getElementById('form-excluir-inscricao');
+                const deleteText = document.getElementById('texto-excluir-inscricao');
+                const passwordField = document.getElementById('password_confirm_inscricao');
+                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+                const bulkBar = document.getElementById('sc-bulk-bar');
+                const bulkCount = document.getElementById('sc-bulk-count');
+                const btnSalvarTudo = document.getElementById('btn-salvar-tudo');
+                const btnLimparPendencias = document.getElementById('btn-limpar-pendencias');
+                const pendingInscricaoChanges = new Map();
+                const pendingIsencaoChanges = new Map();
+                const routeSalvarLote = @json(route('sigeconcursos.processos.inscricoes.atualizar-status-lote', $processo->id_processo));
+                const routeSalvarIsencaoLote = @json(route('sigeconcursos.processos.inscricoes.atualizar-isencao-lote', $processo->id_processo));
 
-            function normalizarTexto(valor) {
-                return (valor || '').trim();
-            }
-
-            function setFeedback(form, texto, tipo = 'muted') {
-                const feedback = form.querySelector('.js-save-feedback');
-                if (!feedback) return;
-
-                feedback.className = 'sc-save-indicator mt-1 js-save-feedback';
-                feedback.classList.add(`text-${tipo}`);
-                feedback.textContent = texto;
-            }
-
-            function setIsencaoFeedback(form, texto, tipo = 'muted') {
-                const feedback = form.querySelector('.js-isencao-save-feedback');
-                if (!feedback) return;
-
-                feedback.className = 'sc-save-indicator mt-1 js-isencao-save-feedback';
-                feedback.classList.add(`text-${tipo}`);
-                feedback.textContent = texto;
-            }
-
-            function getCard(form) {
-                const id = form.dataset.inscricaoId;
-                return document.querySelector(`[data-card-inscricao="${id}"]`);
-            }
-
-            function formState(form) {
-                const status = form.querySelector('.js-inscricao-status')?.value || '';
-                const observacoes = normalizarTexto(form.querySelector('.js-inscricao-observacoes')?.value || '');
-                const originalStatus = form.dataset.originalStatus || '';
-                const originalObservacoes = normalizarTexto(form.dataset.originalObservacoes || '');
-
-                return {
-                    changed: status !== originalStatus || observacoes !== originalObservacoes,
-                    status,
-                    observacoes,
-                    originalStatus,
-                    originalObservacoes,
-                };
-            }
-
-            function updateBulkBar() {
-                const total = pendingInscricaoChanges.size + pendingIsencaoChanges.size;
-                if (bulkCount) {
-                    bulkCount.textContent = total;
+                function normalizarTexto(valor) {
+                    return (valor || '').trim();
                 }
-                if (bulkBar) {
-                    bulkBar.classList.toggle('d-none', total === 0);
+
+                function setFeedback(form, texto, tipo = 'muted') {
+                    const feedback = form.querySelector('.js-save-feedback');
+                    if (!feedback) return;
+
+                    feedback.className = 'sc-save-indicator mt-1 js-save-feedback';
+                    feedback.classList.add(`text-${tipo}`);
+                    feedback.textContent = texto;
                 }
-            }
 
-            function markFormChange(form) {
-                const state = formState(form);
-                const card = getCard(form);
-                const id = Number(form.dataset.inscricaoId);
+                function setIsencaoFeedback(form, texto, tipo = 'muted') {
+                    const feedback = form.querySelector('.js-isencao-save-feedback');
+                    if (!feedback) return;
 
-                if (state.changed) {
-                    pendingInscricaoChanges.set(id, {
-                        inscricao_id: id,
-                        novo_status: state.status,
-                        observacoes: state.observacoes,
-                    });
-                    setFeedback(form, 'Alteração pendente. Clique em Salvar inscrição ou Salvar alterações.', 'warning');
-                    card?.classList.add('has-pending-changes');
-                } else {
-                    pendingInscricaoChanges.delete(id);
-                    setFeedback(form, 'Sem alterações pendentes.', 'muted');
-                    if (!pendingIsencaoChanges.has(id)) {
-                        card?.classList.remove('has-pending-changes');
+                    feedback.className = 'sc-save-indicator mt-1 js-isencao-save-feedback';
+                    feedback.classList.add(`text-${tipo}`);
+                    feedback.textContent = texto;
+                }
+
+                function getCard(form) {
+                    const id = form.dataset.inscricaoId;
+                    return document.querySelector(`[data-card-inscricao="${id}"]`);
+                }
+
+                function formState(form) {
+                    const status = form.querySelector('.js-inscricao-status')?.value || '';
+                    const observacoes = normalizarTexto(form.querySelector('.js-inscricao-observacoes')?.value || '');
+                    const originalStatus = form.dataset.originalStatus || '';
+                    const originalObservacoes = normalizarTexto(form.dataset.originalObservacoes || '');
+
+                    return {
+                        changed: status !== originalStatus || observacoes !== originalObservacoes,
+                        status,
+                        observacoes,
+                        originalStatus,
+                        originalObservacoes,
+                    };
+                }
+
+                function updateBulkBar() {
+                    const total = pendingInscricaoChanges.size + pendingIsencaoChanges.size;
+                    if (bulkCount) {
+                        bulkCount.textContent = total;
+                    }
+                    if (bulkBar) {
+                        bulkBar.classList.toggle('d-none', total === 0);
                     }
                 }
 
-                updateBulkBar();
-            }
+                function markFormChange(form) {
+                    const state = formState(form);
+                    const card = getCard(form);
+                    const id = Number(form.dataset.inscricaoId);
 
-            function isencaoFormState(form) {
-                const status = form.querySelector('.js-isencao-status')?.value || '';
-                const parecer = normalizarTexto(form.querySelector('.js-isencao-parecer')?.value || '');
-                const originalStatus = form.dataset.originalStatusIsencao || '';
-                const originalParecer = normalizarTexto(form.dataset.originalParecerIsencao || '');
-
-                return {
-                    changed: status !== originalStatus || parecer !== originalParecer,
-                    status,
-                    parecer,
-                };
-            }
-
-            function markIsencaoFormChange(form) {
-                const state = isencaoFormState(form);
-                const card = getCard(form);
-                const id = Number(form.dataset.inscricaoId);
-
-                if (state.changed) {
-                    pendingIsencaoChanges.set(id, {
-                        inscricao_id: id,
-                        novo_status_isencao: state.status,
-                        parecer_isencao: state.parecer,
-                    });
-                    setIsencaoFeedback(form, 'Alteração pendente. Clique em Salvar isenção ou Salvar alterações.', 'warning');
-                    card?.classList.add('has-pending-changes');
-                } else {
-                    pendingIsencaoChanges.delete(id);
-                    setIsencaoFeedback(form, 'Sem alterações pendentes.', 'muted');
-                    if (!pendingInscricaoChanges.has(id)) {
-                        card?.classList.remove('has-pending-changes');
-                    }
-                }
-
-                updateBulkBar();
-            }
-
-            function badgeClassInscricao(status) {
-                return {
-                    inscrito: 'bg-info',
-                    deferido: 'bg-success',
-                    indeferido: 'bg-danger',
-                }[status] || 'bg-secondary';
-            }
-
-            function badgeClassPagamento(status) {
-                return {
-                    pago: 'bg-success',
-                    isento: 'bg-success',
-                    nao_aplicavel: 'bg-secondary',
-                    pendente: 'bg-warning text-dark',
-                    aguardando_isencao: 'bg-warning text-dark',
-                }[status] || 'bg-secondary';
-            }
-
-            function badgeClassIsencao(status) {
-                return {
-                    pendente: 'bg-warning text-dark',
-                    deferida: 'bg-success',
-                    indeferida: 'bg-danger',
-                    nao_solicitada: 'bg-secondary',
-                }[status] || 'bg-secondary';
-            }
-
-            function ucfirst(text) {
-                return text ? text.charAt(0).toUpperCase() + text.slice(1) : '';
-            }
-
-            function humanizeStatus(text) {
-                return ucfirst(String(text || '').replaceAll('_', ' '));
-            }
-
-            function atualizarBadgesInscricao(id, status) {
-                const badge = document.querySelector(`[data-badge-inscricao="${id}"]`);
-                if (!badge) return;
-                badge.className = `badge js-badge-inscricao ${badgeClassInscricao(status)}`;
-                badge.textContent = ucfirst(status);
-            }
-
-            function atualizarBadgesIsencao(id, statusIsencao, statusPagamento) {
-                const badgeIsencao = document.querySelector(`[data-badge-isencao="${id}"]`);
-                const badgePagamento = document.querySelector(`[data-badge-pagamento="${id}"]`);
-
-                if (badgeIsencao) {
-                    badgeIsencao.className = `badge js-badge-isencao ${badgeClassIsencao(statusIsencao)}`;
-                    badgeIsencao.textContent = `Isenção: ${humanizeStatus(statusIsencao)}`;
-                }
-
-                if (badgePagamento) {
-                    const pagamentoTexto = humanizeStatus(statusPagamento);
-                    badgePagamento.className = `badge js-badge-pagamento ${badgeClassPagamento(statusPagamento)}`;
-                    badgePagamento.textContent = pagamentoTexto;
-                }
-            }
-
-            async function salvarFormAjax(form) {
-                const button = form.querySelector('.js-btn-salvar-inscricao');
-                const formData = new FormData(form);
-
-                try {
-                    if (button) {
-                        button.disabled = true;
-                        button.textContent = 'Salvando...';
-                    }
-                    setFeedback(form, 'Salvando alteração...', 'info');
-
-                    const response = await fetch(form.action, {
-                        method: 'POST',
-                        headers: {
-                            'Accept': 'application/json',
-                            'X-Requested-With': 'XMLHttpRequest',
-                            'X-CSRF-TOKEN': csrfToken,
-                        },
-                        body: formData,
-                    });
-
-                    if (!response.ok) {
-                        throw new Error('Falha ao salvar a inscrição.');
-                    }
-
-                    const data = await response.json();
-                    form.dataset.originalStatus = data.inscricao?.status_inscricao || form.querySelector('.js-inscricao-status')?.value || '';
-                    form.dataset.originalObservacoes = data.inscricao?.observacoes || '';
-                    atualizarBadgesInscricao(form.dataset.inscricaoId, data.inscricao?.status_inscricao || form.querySelector('.js-inscricao-status')?.value || '');
-                    markFormChange(form);
-                    setFeedback(form, 'Inscrição salva sem recarregar a página.', 'success');
-                } catch (error) {
-                    setFeedback(form, 'Não foi possível salvar agora. Tente novamente.', 'danger');
-                } finally {
-                    if (button) {
-                        button.disabled = false;
-                        button.textContent = 'Salvar inscrição';
-                    }
-                }
-            }
-
-            async function salvarIsencaoAjax(form) {
-                const button = form.querySelector('.js-btn-salvar-isencao');
-                const formData = new FormData(form);
-
-                try {
-                    if (button) {
-                        button.disabled = true;
-                        button.textContent = 'Salvando...';
-                    }
-                    setIsencaoFeedback(form, 'Salvando alteração...', 'info');
-
-                    const response = await fetch(form.action, {
-                        method: 'POST',
-                        headers: {
-                            'Accept': 'application/json',
-                            'X-Requested-With': 'XMLHttpRequest',
-                            'X-CSRF-TOKEN': csrfToken,
-                        },
-                        body: formData,
-                    });
-
-                    if (!response.ok) {
-                        throw new Error('Falha ao salvar a isenção.');
-                    }
-
-                    const data = await response.json();
-                    form.dataset.originalStatusIsencao = data.inscricao?.status_isencao || form.querySelector('.js-isencao-status')?.value || '';
-                    form.dataset.originalParecerIsencao = data.inscricao?.parecer_isencao || '';
-                    atualizarBadgesIsencao(form.dataset.inscricaoId, data.inscricao?.status_isencao || '', data.inscricao?.status_pagamento || '');
-                    markIsencaoFormChange(form);
-                    setIsencaoFeedback(form, 'Isenção salva sem recarregar a página.', 'success');
-                } catch (error) {
-                    setIsencaoFeedback(form, 'Não foi possível salvar agora. Tente novamente.', 'danger');
-                } finally {
-                    if (button) {
-                        button.disabled = false;
-                        button.textContent = 'Salvar isenção';
-                    }
-                }
-            }
-
-            if (!modalElement || !deleteForm || !deleteText || !passwordField) {
-                // Continua mesmo sem o modal para manter o salvamento assíncrono.
-            }
-
-            const modal = modalElement ? new bootstrap.Modal(modalElement) : null;
-
-            document.querySelectorAll('.js-inscricao-form').forEach(function (form) {
-                const statusField = form.querySelector('.js-inscricao-status');
-                const obsField = form.querySelector('.js-inscricao-observacoes');
-
-                if (statusField) {
-                    statusField.addEventListener('change', function () {
-                        markFormChange(form);
-                    });
-                }
-
-                if (obsField) {
-                    obsField.addEventListener('input', function () {
-                        markFormChange(form);
-                    });
-                }
-
-                form.addEventListener('submit', function (event) {
-                    event.preventDefault();
-                    salvarFormAjax(form);
-                });
-            });
-
-            document.querySelectorAll('.js-isencao-form').forEach(function (form) {
-                const statusField = form.querySelector('.js-isencao-status');
-                const parecerField = form.querySelector('.js-isencao-parecer');
-
-                if (statusField) {
-                    statusField.addEventListener('change', function () {
-                        markIsencaoFormChange(form);
-                    });
-                }
-
-                if (parecerField) {
-                    parecerField.addEventListener('input', function () {
-                        markIsencaoFormChange(form);
-                    });
-                }
-
-                form.addEventListener('submit', function (event) {
-                    event.preventDefault();
-                    salvarIsencaoAjax(form);
-                });
-            });
-
-            btnSalvarTudo?.addEventListener('click', async function () {
-                if (pendingInscricaoChanges.size === 0 && pendingIsencaoChanges.size === 0) {
-                    return;
-                }
-                const originalText = this.innerHTML;
-                this.disabled = true;
-                this.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Salvando...';
-
-                try {
-                    if (pendingInscricaoChanges.size > 0) {
-                        const responseInscricao = await fetch(routeSalvarLote, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Accept': 'application/json',
-                                'X-Requested-With': 'XMLHttpRequest',
-                                'X-CSRF-TOKEN': csrfToken,
-                            },
-                            body: JSON.stringify({ updates: Array.from(pendingInscricaoChanges.values()) }),
+                    if (state.changed) {
+                        pendingInscricaoChanges.set(id, {
+                            inscricao_id: id,
+                            novo_status: state.status,
+                            observacoes: state.observacoes,
                         });
-
-                        if (!responseInscricao.ok) {
-                            throw new Error('Falha ao salvar as inscrições em lote.');
+                        setFeedback(form, 'Alteração pendente. Clique em Salvar inscrição ou Salvar alterações.', 'warning');
+                        card?.classList.add('has-pending-changes');
+                    } else {
+                        pendingInscricaoChanges.delete(id);
+                        setFeedback(form, 'Sem alterações pendentes.', 'muted');
+                        if (!pendingIsencaoChanges.has(id)) {
+                            card?.classList.remove('has-pending-changes');
                         }
-
-                        const dataInscricao = await responseInscricao.json();
-
-                        (dataInscricao.inscricoes || []).forEach(function (item) {
-                            const form = document.querySelector(`.js-inscricao-form[data-inscricao-id="${item.id_inscricao}"]`);
-                            if (!form) return;
-                            form.dataset.originalStatus = item.status_inscricao || '';
-                            form.dataset.originalObservacoes = item.observacoes || '';
-                            atualizarBadgesInscricao(item.id_inscricao, item.status_inscricao || '');
-                            markFormChange(form);
-                            setFeedback(form, 'Alteração incluída no salvamento em lote.', 'success');
-                        });
-
-                        pendingInscricaoChanges.clear();
-                    }
-
-                    if (pendingIsencaoChanges.size > 0) {
-                        const responseIsencao = await fetch(routeSalvarIsencaoLote, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Accept': 'application/json',
-                                'X-Requested-With': 'XMLHttpRequest',
-                                'X-CSRF-TOKEN': csrfToken,
-                            },
-                            body: JSON.stringify({ updates: Array.from(pendingIsencaoChanges.values()) }),
-                        });
-
-                        if (!responseIsencao.ok) {
-                            throw new Error('Falha ao salvar as isenções em lote.');
-                        }
-
-                        const dataIsencao = await responseIsencao.json();
-
-                        (dataIsencao.inscricoes || []).forEach(function (item) {
-                            const form = document.querySelector(`.js-isencao-form[data-inscricao-id="${item.id_inscricao}"]`);
-                            if (!form) return;
-                            form.dataset.originalStatusIsencao = item.status_isencao || '';
-                            form.dataset.originalParecerIsencao = item.parecer_isencao || '';
-                            atualizarBadgesIsencao(item.id_inscricao, item.status_isencao || '', item.status_pagamento || '');
-                            markIsencaoFormChange(form);
-                            setIsencaoFeedback(form, 'Alteração incluída no salvamento em lote.', 'success');
-                        });
-
-                        pendingIsencaoChanges.clear();
                     }
 
                     updateBulkBar();
-                } catch (error) {
-                    alert('Não foi possível salvar todas as alterações. Tente novamente.');
-                } finally {
-                    this.disabled = false;
-                    this.innerHTML = originalText;
                 }
-            });
 
-            btnLimparPendencias?.addEventListener('click', function () {
+                function isencaoFormState(form) {
+                    const status = form.querySelector('.js-isencao-status')?.value || '';
+                    const parecer = normalizarTexto(form.querySelector('.js-isencao-parecer')?.value || '');
+                    const originalStatus = form.dataset.originalStatusIsencao || '';
+                    const originalParecer = normalizarTexto(form.dataset.originalParecerIsencao || '');
+
+                    return {
+                        changed: status !== originalStatus || parecer !== originalParecer,
+                        status,
+                        parecer,
+                    };
+                }
+
+                function markIsencaoFormChange(form) {
+                    const state = isencaoFormState(form);
+                    const card = getCard(form);
+                    const id = Number(form.dataset.inscricaoId);
+
+                    if (state.changed) {
+                        pendingIsencaoChanges.set(id, {
+                            inscricao_id: id,
+                            novo_status_isencao: state.status,
+                            parecer_isencao: state.parecer,
+                        });
+                        setIsencaoFeedback(form, 'Alteração pendente. Clique em Salvar isenção ou Salvar alterações.', 'warning');
+                        card?.classList.add('has-pending-changes');
+                    } else {
+                        pendingIsencaoChanges.delete(id);
+                        setIsencaoFeedback(form, 'Sem alterações pendentes.', 'muted');
+                        if (!pendingInscricaoChanges.has(id)) {
+                            card?.classList.remove('has-pending-changes');
+                        }
+                    }
+
+                    updateBulkBar();
+                }
+
+                function badgeClassInscricao(status) {
+                    return {
+                        inscrito: 'bg-info',
+                        deferido: 'bg-success',
+                        indeferido: 'bg-danger',
+                    }[status] || 'bg-secondary';
+                }
+
+                function badgeClassPagamento(status) {
+                    return {
+                        pago: 'bg-success',
+                        isento: 'bg-success',
+                        nao_aplicavel: 'bg-secondary',
+                        pendente: 'bg-warning text-dark',
+                        aguardando_isencao: 'bg-warning text-dark',
+                    }[status] || 'bg-secondary';
+                }
+
+                function badgeClassIsencao(status) {
+                    return {
+                        pendente: 'bg-warning text-dark',
+                        deferida: 'bg-success',
+                        indeferida: 'bg-danger',
+                        nao_solicitada: 'bg-secondary',
+                    }[status] || 'bg-secondary';
+                }
+
+                function ucfirst(text) {
+                    return text ? text.charAt(0).toUpperCase() + text.slice(1) : '';
+                }
+
+                function humanizeStatus(text) {
+                    return ucfirst(String(text || '').replaceAll('_', ' '));
+                }
+
+                function atualizarBadgesInscricao(id, status) {
+                    const badge = document.querySelector(`[data-badge-inscricao="${id}"]`);
+                    if (!badge) return;
+                    badge.className = `badge js-badge-inscricao ${badgeClassInscricao(status)}`;
+                    badge.textContent = ucfirst(status);
+                }
+
+                function atualizarBadgesIsencao(id, statusIsencao, statusPagamento) {
+                    const badgeIsencao = document.querySelector(`[data-badge-isencao="${id}"]`);
+                    const badgePagamento = document.querySelector(`[data-badge-pagamento="${id}"]`);
+
+                    if (badgeIsencao) {
+                        badgeIsencao.className = `badge js-badge-isencao ${badgeClassIsencao(statusIsencao)}`;
+                        badgeIsencao.textContent = `Isenção: ${humanizeStatus(statusIsencao)}`;
+                    }
+
+                    if (badgePagamento) {
+                        const pagamentoTexto = humanizeStatus(statusPagamento);
+                        badgePagamento.className = `badge js-badge-pagamento ${badgeClassPagamento(statusPagamento)}`;
+                        badgePagamento.textContent = pagamentoTexto;
+                    }
+                }
+
+                async function salvarFormAjax(form) {
+                    const button = form.querySelector('.js-btn-salvar-inscricao');
+                    const formData = new FormData(form);
+
+                    try {
+                        if (button) {
+                            button.disabled = true;
+                            button.textContent = 'Salvando...';
+                        }
+                        setFeedback(form, 'Salvando alteração...', 'info');
+
+                        const response = await fetch(form.action, {
+                            method: 'POST',
+                            headers: {
+                                'Accept': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'X-CSRF-TOKEN': csrfToken,
+                            },
+                            body: formData,
+                        });
+
+                        if (!response.ok) {
+                            throw new Error('Falha ao salvar a inscrição.');
+                        }
+
+                        const data = await response.json();
+                        form.dataset.originalStatus = data.inscricao?.status_inscricao || form.querySelector('.js-inscricao-status')?.value || '';
+                        form.dataset.originalObservacoes = data.inscricao?.observacoes || '';
+                        atualizarBadgesInscricao(form.dataset.inscricaoId, data.inscricao?.status_inscricao || form.querySelector('.js-inscricao-status')?.value || '');
+                        markFormChange(form);
+                        setFeedback(form, 'Inscrição salva sem recarregar a página.', 'success');
+                    } catch (error) {
+                        setFeedback(form, 'Não foi possível salvar agora. Tente novamente.', 'danger');
+                    } finally {
+                        if (button) {
+                            button.disabled = false;
+                            button.textContent = 'Salvar inscrição';
+                        }
+                    }
+                }
+
+                async function salvarIsencaoAjax(form) {
+                    const button = form.querySelector('.js-btn-salvar-isencao');
+                    const formData = new FormData(form);
+
+                    try {
+                        if (button) {
+                            button.disabled = true;
+                            button.textContent = 'Salvando...';
+                        }
+                        setIsencaoFeedback(form, 'Salvando alteração...', 'info');
+
+                        const response = await fetch(form.action, {
+                            method: 'POST',
+                            headers: {
+                                'Accept': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'X-CSRF-TOKEN': csrfToken,
+                            },
+                            body: formData,
+                        });
+
+                        if (!response.ok) {
+                            throw new Error('Falha ao salvar a isenção.');
+                        }
+
+                        const data = await response.json();
+                        form.dataset.originalStatusIsencao = data.inscricao?.status_isencao || form.querySelector('.js-isencao-status')?.value || '';
+                        form.dataset.originalParecerIsencao = data.inscricao?.parecer_isencao || '';
+                        atualizarBadgesIsencao(form.dataset.inscricaoId, data.inscricao?.status_isencao || '', data.inscricao?.status_pagamento || '');
+                        markIsencaoFormChange(form);
+                        setIsencaoFeedback(form, 'Isenção salva sem recarregar a página.', 'success');
+                    } catch (error) {
+                        setIsencaoFeedback(form, 'Não foi possível salvar agora. Tente novamente.', 'danger');
+                    } finally {
+                        if (button) {
+                            button.disabled = false;
+                            button.textContent = 'Salvar isenção';
+                        }
+                    }
+                }
+
+                if (!modalElement || !deleteForm || !deleteText || !passwordField) {
+                    // Continua mesmo sem o modal para manter o salvamento assíncrono.
+                }
+
+                const modal = modalElement ? new bootstrap.Modal(modalElement) : null;
+
                 document.querySelectorAll('.js-inscricao-form').forEach(function (form) {
                     const statusField = form.querySelector('.js-inscricao-status');
                     const obsField = form.querySelector('.js-inscricao-observacoes');
-                    if (statusField) statusField.value = form.dataset.originalStatus || 'inscrito';
-                    if (obsField) obsField.value = form.dataset.originalObservacoes || '';
-                    markFormChange(form);
+
+                    if (statusField) {
+                        statusField.addEventListener('change', function () {
+                            markFormChange(form);
+                        });
+                    }
+
+                    if (obsField) {
+                        obsField.addEventListener('input', function () {
+                            markFormChange(form);
+                        });
+                    }
+
+                    form.addEventListener('submit', function (event) {
+                        event.preventDefault();
+                        salvarFormAjax(form);
+                    });
                 });
 
                 document.querySelectorAll('.js-isencao-form').forEach(function (form) {
                     const statusField = form.querySelector('.js-isencao-status');
                     const parecerField = form.querySelector('.js-isencao-parecer');
-                    if (statusField) statusField.value = form.dataset.originalStatusIsencao || 'nao_solicitada';
-                    if (parecerField) parecerField.value = form.dataset.originalParecerIsencao || '';
-                    markIsencaoFormChange(form);
+
+                    if (statusField) {
+                        statusField.addEventListener('change', function () {
+                            markIsencaoFormChange(form);
+                        });
+                    }
+
+                    if (parecerField) {
+                        parecerField.addEventListener('input', function () {
+                            markIsencaoFormChange(form);
+                        });
+                    }
+
+                    form.addEventListener('submit', function (event) {
+                        event.preventDefault();
+                        salvarIsencaoAjax(form);
+                    });
                 });
 
-                pendingInscricaoChanges.clear();
-                pendingIsencaoChanges.clear();
-                updateBulkBar();
-            });
-
-            document.querySelectorAll('.btn-excluir-inscricao').forEach(function (button) {
-                button.addEventListener('click', function () {
-                    if (!modal) {
+                btnSalvarTudo?.addEventListener('click', async function () {
+                    if (pendingInscricaoChanges.size === 0 && pendingIsencaoChanges.size === 0) {
                         return;
                     }
-                    const url = this.dataset.url;
-                    const candidato = this.dataset.candidato;
-                    const numero = this.dataset.numero;
+                    const originalText = this.innerHTML;
+                    this.disabled = true;
+                    this.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-1"></i> Salvando...';
 
-                    deleteForm.action = url;
-                    deleteText.textContent = `Você está prestes a excluir a inscrição ${numero} de ${candidato}. Esta ação remove também os documentos e vínculos de distribuição relacionados a ela.`;
-                    passwordField.value = '';
-                    modal.show();
+                    try {
+                        if (pendingInscricaoChanges.size > 0) {
+                            const responseInscricao = await fetch(routeSalvarLote, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Accept': 'application/json',
+                                    'X-Requested-With': 'XMLHttpRequest',
+                                    'X-CSRF-TOKEN': csrfToken,
+                                },
+                                body: JSON.stringify({ updates: Array.from(pendingInscricaoChanges.values()) }),
+                            });
+
+                            if (!responseInscricao.ok) {
+                                throw new Error('Falha ao salvar as inscrições em lote.');
+                            }
+
+                            const dataInscricao = await responseInscricao.json();
+
+                            (dataInscricao.inscricoes || []).forEach(function (item) {
+                                const form = document.querySelector(`.js-inscricao-form[data-inscricao-id="${item.id_inscricao}"]`);
+                                if (!form) return;
+                                form.dataset.originalStatus = item.status_inscricao || '';
+                                form.dataset.originalObservacoes = item.observacoes || '';
+                                atualizarBadgesInscricao(item.id_inscricao, item.status_inscricao || '');
+                                markFormChange(form);
+                                setFeedback(form, 'Alteração incluída no salvamento em lote.', 'success');
+                            });
+
+                            pendingInscricaoChanges.clear();
+                        }
+
+                        if (pendingIsencaoChanges.size > 0) {
+                            const responseIsencao = await fetch(routeSalvarIsencaoLote, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Accept': 'application/json',
+                                    'X-Requested-With': 'XMLHttpRequest',
+                                    'X-CSRF-TOKEN': csrfToken,
+                                },
+                                body: JSON.stringify({ updates: Array.from(pendingIsencaoChanges.values()) }),
+                            });
+
+                            if (!responseIsencao.ok) {
+                                throw new Error('Falha ao salvar as isenções em lote.');
+                            }
+
+                            const dataIsencao = await responseIsencao.json();
+
+                            (dataIsencao.inscricoes || []).forEach(function (item) {
+                                const form = document.querySelector(`.js-isencao-form[data-inscricao-id="${item.id_inscricao}"]`);
+                                if (!form) return;
+                                form.dataset.originalStatusIsencao = item.status_isencao || '';
+                                form.dataset.originalParecerIsencao = item.parecer_isencao || '';
+                                atualizarBadgesIsencao(item.id_inscricao, item.status_isencao || '', item.status_pagamento || '');
+                                markIsencaoFormChange(form);
+                                setIsencaoFeedback(form, 'Alteração incluída no salvamento em lote.', 'success');
+                            });
+
+                            pendingIsencaoChanges.clear();
+                        }
+
+                        updateBulkBar();
+                    } catch (error) {
+                        alert('Não foi possível salvar todas as alterações. Tente novamente.');
+                    } finally {
+                        this.disabled = false;
+                        this.innerHTML = originalText;
+                    }
+                });
+
+                btnLimparPendencias?.addEventListener('click', function () {
+                    document.querySelectorAll('.js-inscricao-form').forEach(function (form) {
+                        const statusField = form.querySelector('.js-inscricao-status');
+                        const obsField = form.querySelector('.js-inscricao-observacoes');
+                        if (statusField) statusField.value = form.dataset.originalStatus || 'inscrito';
+                        if (obsField) obsField.value = form.dataset.originalObservacoes || '';
+                        markFormChange(form);
+                    });
+
+                    document.querySelectorAll('.js-isencao-form').forEach(function (form) {
+                        const statusField = form.querySelector('.js-isencao-status');
+                        const parecerField = form.querySelector('.js-isencao-parecer');
+                        if (statusField) statusField.value = form.dataset.originalStatusIsencao || 'nao_solicitada';
+                        if (parecerField) parecerField.value = form.dataset.originalParecerIsencao || '';
+                        markIsencaoFormChange(form);
+                    });
+
+                    pendingInscricaoChanges.clear();
+                    pendingIsencaoChanges.clear();
+                    updateBulkBar();
+                });
+
+                document.querySelectorAll('.btn-excluir-inscricao').forEach(function (button) {
+                    button.addEventListener('click', function () {
+                        if (!modal) {
+                            return;
+                        }
+                        const url = this.dataset.url;
+                        const candidato = this.dataset.candidato;
+                        const numero = this.dataset.numero;
+
+                        deleteForm.action = url;
+                        deleteText.textContent = `Você está prestes a excluir a inscrição ${numero} de ${candidato}. Esta ação remove também os documentos e vínculos de distribuição relacionados a ela.`;
+                        passwordField.value = '';
+                        modal.show();
+                    });
                 });
             });
-        });
-    </script>
+        </script>
 @endsection

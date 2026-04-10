@@ -58,12 +58,14 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/processos/{id}', [SigeConcursoProcessoController::class, 'update'])->name('processos.update');
         Route::delete('/processos/{id}', [SigeConcursoProcessoController::class, 'destroy'])->name('processos.destroy');
         Route::get('/processos/{id}/inscricoes', [SigeConcursoProcessoController::class, 'inscricoes'])->name('processos.inscricoes');
+        Route::get('/processos/{id}/inscricoes/exportar', [SigeConcursoProcessoController::class, 'exportarInscricoes'])->name('processos.inscricoes.exportar');
         Route::get('/processos/{id}/isencoes', [SigeConcursoProcessoController::class, 'isencoes'])->name('processos.isencoes');
         Route::get('/processos/{id}/distribuicao-locais', [SigeConcursoProcessoController::class, 'distribuicaoLocais'])->name('processos.distribuicao-locais');
         Route::post('/processos/{id}/distribuicao-locais', [SigeConcursoProcessoController::class, 'distribuirPorLocais'])->name('processos.distribuicao-locais.distribuir');
         Route::delete('/processos/{id}/distribuicao-locais', [SigeConcursoProcessoController::class, 'limparDistribuicaoLocais'])->name('processos.distribuicao-locais.limpar');
         Route::get('/processos/{id}/distribuicao-salas', [SigeConcursoProcessoController::class, 'distribuicaoSalas'])->name('processos.distribuicao-salas');
         Route::post('/processos/{id}/distribuicao-salas', [SigeConcursoProcessoController::class, 'distribuirPorSalas'])->name('processos.distribuicao-salas.distribuir');
+        Route::get('/processos/{id}/distribuicao-salas/lista-presenca-pdf', [SigeConcursoProcessoController::class, 'listaPresencaSalasPdf'])->name('processos.distribuicao-salas.lista-presenca.pdf');
         Route::delete('/processos/{id}/distribuicao-salas', [SigeConcursoProcessoController::class, 'limparDistribuicaoSalas'])->name('processos.distribuicao-salas.limpar');
         Route::post('/processos/{id}/publicar-edital', [SigeConcursoProcessoController::class, 'publicarEdital'])->name('processos.publicar-edital');
         Route::post('/processos/{id}/iniciar-inscricoes', [SigeConcursoProcessoController::class, 'iniciarInscricoes'])->name('processos.iniciar-inscricoes');
