@@ -12,12 +12,35 @@ class VagaController extends Controller
     public function index(Request $request)
     {
         $user = Auth::user();
-        $query = Vaga::query();
+        $query = Vaga::query()
+            ->with(['empresa', 'local', 'termo.estagiario', 'estagiarioDefinido'])
+            ->withCount([
+                'candidaturas',
+                'candidaturas as candidaturas_definidas_count' => function ($candidaturasQuery) {
+                    $candidaturasQuery->where('status_candidatura', \App\Models\VagaCandidatura::STATUS_DEFINIDO);
+                },
+            ]);
         if ($user->nivel === 'empresa') {
             $query->where('fk_id_empresa', $user->fk_id_empresa);
         }
         if ($request->filled('status')) {
             $query->where('status', $request->input('status'));
+        }
+        if ($request->filled('com_candidaturas')) {
+            $query->has('candidaturas');
+        }
+        if ($request->filled('com_estagiario_definido')) {
+            $query->where(function ($vagaQuery) {
+                $vagaQuery->where('tem_estagiario_definido', true)
+                    ->orWhereNotNull('fk_id_estagiario_definido');
+            });
+        }
+        if ($request->filled('termo_pendente')) {
+            $query->whereNull('fk_id_termo')
+                ->where(function ($vagaQuery) {
+                    $vagaQuery->where('tem_estagiario_definido', true)
+                        ->orWhereNotNull('fk_id_estagiario_definido');
+                });
         }
         if ($request->filled('empresa') && $user->nivel !== 'empresa') {
             $query->where('fk_id_empresa', $request->input('empresa'));
@@ -95,7 +118,11 @@ class VagaController extends Controller
             'nome_estagiario' => 'nullable|string|max:150',
             'contato_whatsapp' => 'nullable|string|max:20',
             'contato_email' => 'nullable|email',
+            'divulgada_publicamente' => 'nullable|boolean',
         ]);
+
+        $validated['divulgada_publicamente'] = $request->boolean('divulgada_publicamente');
+        $validated['publicada_em'] = $validated['divulgada_publicamente'] ? now()->toDateString() : null;
         
         // Validar se data_termino não está no passado
         if (strtotime($validated['data_termino']) < strtotime(date('Y-m-d'))) {
@@ -158,6 +185,7 @@ class VagaController extends Controller
             'nome_estagiario' => 'nullable|string|max:150',
             'contato_whatsapp' => 'nullable|string|max:20',
             'contato_email' => 'nullable|email',
+            'divulgada_publicamente' => 'nullable|boolean',
         ];
 
         $user = Auth::user();
@@ -166,6 +194,8 @@ class VagaController extends Controller
         }
 
         $validated = $request->validate($rules);
+        $validated['divulgada_publicamente'] = $request->boolean('divulgada_publicamente');
+        $validated['publicada_em'] = $validated['divulgada_publicamente'] ? ($vaga->publicada_em ?? now()->toDateString()) : null;
         
         // Validar se data_termino não está no passado
         if (strtotime($validated['data_termino']) < strtotime(date('Y-m-d'))) {
@@ -228,10 +258,12 @@ class VagaController extends Controller
         return response()->json([
             'id_vaga' => $vaga->id_vaga,
             'nome_estagiario' => $vaga->nome_estagiario,
+            'fk_id_estagiario_definido' => $vaga->fk_id_estagiario_definido,
             'contato_whatsapp' => $vaga->contato_whatsapp,
             'contato_email' => $vaga->contato_email,
             'observacoes' => $vaga->observacoes,
             'tem_estagiario_definido' => $vaga->tem_estagiario_definido,
+            'divulgada_publicamente' => $vaga->divulgada_publicamente,
             'fk_id_supervisor' => $vaga->fk_id_supervisor,
             'data_inicio' => $vaga->data_inicio,
             'data_termino' => $vaga->data_termino,

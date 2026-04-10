@@ -33,6 +33,14 @@ class Vaga extends Model
         'nome_estagiario',
         'contato_whatsapp',
         'contato_email',
+        'divulgada_publicamente',
+        'fk_id_estagiario_definido',
+    ];
+
+    protected $casts = [
+        'tem_estagiario_definido' => 'boolean',
+        'divulgada_publicamente' => 'boolean',
+        'publicada_em' => 'date',
     ];
 
     public function empresa()
@@ -53,6 +61,21 @@ class Vaga extends Model
     public function supervisor()
     {
         return $this->belongsTo(Supervisor::class, 'fk_id_supervisor', 'id_supervisor');
+    }
+
+    public function candidaturas()
+    {
+        return $this->hasMany(VagaCandidatura::class, 'fk_id_vaga', 'id_vaga');
+    }
+
+    public function estagiarioDefinido()
+    {
+        return $this->belongsTo(Estagiario::class, 'fk_id_estagiario_definido', 'id_estagiario');
+    }
+
+    public function getTemTermoPendenteAttribute(): bool
+    {
+        return !$this->fk_id_termo && ((bool) $this->fk_id_estagiario_definido || (bool) $this->tem_estagiario_definido);
     }
 
     // Gera número sequencial por empresa/ano

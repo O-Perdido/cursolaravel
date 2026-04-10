@@ -27,6 +27,8 @@ use App\Http\Controllers\SigeConcursoInterCobrancaController;
 use App\Http\Controllers\SigeConcursoLocalProvaController;
 use App\Http\Controllers\SigeConcursoProcessoController;
 use App\Http\Controllers\SigeConcursoPublicoController;
+use App\Http\Controllers\VagaCandidaturaController;
+use App\Http\Controllers\VagaPublicaController;
 
 $manutencao = false; // Defina como true para ativar a manutenção
 
@@ -148,6 +150,8 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/meus-contratos/avaliacoes/{avaliacao}/pdf', [\App\Http\Controllers\AvaliacaoController::class, 'pdf'])->name('estagiario.avaliacoes.pdf');
         Route::get('/meus-contratos/{id}', [EstagiarioController::class, 'verTermo'])->name('estagiario.termo.detalhes');
         Route::get('/meus-contratos/{id}/recibo', [EstagiarioController::class, 'gerarMeuRecibo'])->name('estagiario.gerar.recibo');
+        Route::post('/vagas-publicas/{id}/candidatar', [VagaCandidaturaController::class, 'candidatar'])->name('vagas.publicas.candidatar');
+        Route::get('/minhas-candidaturas-vagas', [VagaCandidaturaController::class, 'minhasCandidaturas'])->name('vagas.publicas.minhas-candidaturas');
     });
 
     // Rotas de vagas (acessíveis por admin, operador e empresa)
@@ -165,6 +169,10 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/api/supervisores-por-empresa', [App\Http\Controllers\VagaController::class, 'getSupervisoresPorEmpresa'])->name('api.supervisores.por-empresa');
         // AJAX: Informações da vaga (incluindo dados do estagiário)
         Route::get('/api/vagas/{id}/info', [App\Http\Controllers\VagaController::class, 'getVagaInfo'])->name('api.vagas.info');
+        Route::get('/vagas/{id}/candidaturas', [VagaCandidaturaController::class, 'indexInterno'])->name('vagas.candidaturas.index');
+        Route::post('/vagas/{id}/candidaturas/status', [VagaCandidaturaController::class, 'atualizarStatus'])->name('vagas.candidaturas.status');
+        Route::post('/vagas/{id}/candidaturas/{candidatura}/definir', [VagaCandidaturaController::class, 'definir'])->name('vagas.candidaturas.definir');
+        Route::get('/vaga-candidaturas/{id}/curriculo', [VagaCandidaturaController::class, 'downloadCurriculo'])->name('vagas.candidaturas.curriculo');
     });
 
     // Rotas de processos seletivos (admin/operador/empresa - gerenciamento)
@@ -602,6 +610,8 @@ Route::get('/', function () {
 Route::get('/processos-publicos', [App\Http\Controllers\ProcessoSeletivoPublicoController::class, 'listarPublicos'])->name('processos-seletivos.publicos');
 Route::get('/processos-seletivos/{id}/detalhes-publico', [App\Http\Controllers\ProcessoSeletivoPublicoController::class, 'detalhesPublico'])->name('processos-seletivos.detalhes.publico');
 Route::get('/processos-seletivos/arquivos/{id}/download-publico', [App\Http\Controllers\ProcessoSeletivoPublicoController::class, 'downloadArquivoPublico'])->name('processos-seletivos.arquivos.download-publico');
+Route::get('/vagas-publicas', [VagaPublicaController::class, 'index'])->name('vagas.publicas.index');
+Route::get('/vagas-publicas/{id}', [VagaPublicaController::class, 'show'])->name('vagas.publicas.show');
 
 // Rotas publicas do SIGE Concursos
 Route::prefix('sigeconcursos')->name('sigeconcursos.publico.')->group(function () {

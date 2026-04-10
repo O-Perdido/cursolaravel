@@ -91,4 +91,9 @@ class Estagiario extends Model
     {
         return $this->hasMany(InscricaoProcesso::class, 'fk_id_estagiario', 'id_estagiario');
     }
+
+    public function candidaturasVaga()
+    {
+        return $this->hasMany(VagaCandidatura::class, 'fk_id_estagiario', 'id_estagiario');
+    }
 }

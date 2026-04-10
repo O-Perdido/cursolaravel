@@ -196,6 +196,13 @@ class TermoController extends Controller
 
     public function create($id_estagiario = null)
     {
+        if (!$id_estagiario && request()->filled('vaga_id')) {
+            $vagaPrefill = \App\Models\Vaga::find(request('vaga_id'));
+            if ($vagaPrefill && $vagaPrefill->fk_id_estagiario_definido) {
+                $id_estagiario = $vagaPrefill->fk_id_estagiario_definido;
+            }
+        }
+
         $estagiarios = Estagiario::orderBy('nome_estagiario', 'asc')->get();
         $escolas = Escola::orderBy('nome_escola', 'asc')->get();
         $empresas = Empresa::orderBy('nome_empresa', 'asc')->get();
@@ -355,8 +362,26 @@ class TermoController extends Controller
                 $vaga->update([
                     'status' => 'preenchida',
                     'fk_id_termo' => $termo->id_termo,
-                    'vinculo_tipo' => 'vinculado'
+                    'vinculo_tipo' => 'vinculado',
+                    'fk_id_estagiario_definido' => $validatedData['fk_id_estagiario'],
+                    'tem_estagiario_definido' => true,
                 ]);
+
+                $estagiarioTermo = Estagiario::find($validatedData['fk_id_estagiario']);
+                if ($estagiarioTermo) {
+                    $vaga->update([
+                        'nome_estagiario' => $estagiarioTermo->nome_estagiario,
+                        'contato_whatsapp' => $estagiarioTermo->numero_celular ?? $estagiarioTermo->numero_telefone,
+                        'contato_email' => $estagiarioTermo->email,
+                    ]);
+                }
+
+                if (class_exists(\App\Models\VagaCandidatura::class)) {
+                    \App\Models\VagaCandidatura::where('fk_id_vaga', $vaga->id_vaga)
+                        ->where('fk_id_estagiario', $validatedData['fk_id_estagiario'])
+                        ->update(['status_candidatura' => \App\Models\VagaCandidatura::STATUS_DEFINIDO]);
+                }
+
                 $termo->update(['vinculo' => 'vinculado']);
             }
         } else {

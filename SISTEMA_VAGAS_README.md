@@ -3,6 +3,14 @@
 ## Resumo
 Foi implementado um sistema completo de cadastro e gerenciamento de vagas de estágio, permitindo que empresas publiquem oportunidades e que admin/operadores vinculem termos automaticamente às vagas disponíveis.
 
+## Atualização 2026-04 - Divulgação e Candidaturas
+- As vagas agora podem ser marcadas para divulgação pública.
+- Foi criada uma área pública de busca de vagas e uma área autenticada para o estagiário acompanhar suas candidaturas.
+- A candidatura em vaga exige envio de currículo no ato do envio.
+- Empresa, admin e operador podem abrir as candidaturas de cada vaga, alterar status, definir o estagiário escolhido e optar, no momento da alteração, se o sistema deve enviar e-mail ao estagiário.
+- Quando a vaga possui estagiário definido e ainda não possui termo, a listagem interna destaca que há termo pendente.
+- Ao abrir o cadastro do termo por uma vaga com estagiário definido, o estagiário já vem pré-selecionado automaticamente.
+
 ## Funcionalidades Implementadas
 
 ### 1. Cadastro de Vagas (CRUD Completo)

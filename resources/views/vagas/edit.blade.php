@@ -218,6 +218,20 @@
                             @endif
                         </div>
 
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" id="divulgada_publicamente"
+                                    name="divulgada_publicamente" value="1"
+                                    {{ old('divulgada_publicamente', $vaga->divulgada_publicamente) ? 'checked' : '' }}
+                                    {{ $vaga->fk_id_termo ? 'disabled' : '' }}>
+                                <label class="form-check-label" for="divulgada_publicamente">Divulgar esta vaga publicamente</label>
+                            </div>
+                            @if($vaga->fk_id_termo)
+                                <input type="hidden" name="divulgada_publicamente" value="{{ $vaga->divulgada_publicamente ? 1 : 0 }}">
+                            @endif
+                            <small class="form-text text-muted">Controle se a vaga aparece para busca e candidatura dos estagiários.</small>
+                        </div>
+
                         @if($vaga->fk_id_termo)
                             <div class="alert alert-info alert-sm">
                                 <i class="fas fa-link me-1"></i>

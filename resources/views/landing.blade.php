@@ -346,11 +346,7 @@
             <!-- Card 2: Vagas de Estágio -->
             <div class="col">
                 <div class="card h-100 shadow border-0 overflow-hidden hover-lift-card position-relative"
-                    style="border-radius: 12px; transition: all 0.3s ease; opacity: 0.85;">
-                    <span class="badge bg-warning position-absolute top-0 end-0 m-3 px-3 py-2"
-                        style="border-radius: 20px;">
-                        <i class="fas fa-clock me-1"></i>Em Breve
-                    </span>
+                    style="border-radius: 12px; transition: all 0.3s ease;">
                     <div class="card-body p-4">
                         <div class="d-flex align-items-center mb-4">
                             <div class="rounded-circle p-3 me-3"
@@ -360,13 +356,13 @@
                             <h3 class="mb-0 text-dark">Vagas de Estágio</h3>
                         </div>
                         <p class="text-muted mb-4" style="font-size: 0.95rem; line-height: 1.6;">
-                            Em breve você poderá buscar vagas de estágio direto no portal e se candidatar com apenas
-                            alguns cliques.
+                            Busque vagas de estágio divulgadas pelas unidades concedentes, veja os detalhes e envie seu
+                            currículo pelo portal.
                         </p>
-                        <button class="btn fw-bold" disabled
-                            style="background-color: #e0e0e0; color: #666; border: none;">
-                            <i class="fas fa-hourglass-half me-2"></i>Aguarde
-                        </button>
+                        <a href="{{ route('vagas.publicas.index') }}" class="btn fw-bold"
+                            style="background-color: #19B755; color: white; border: none; transition: all 0.3s;">
+                            <i class="fas fa-arrow-right me-2"></i>Explorar
+                        </a>
                     </div>
                 </div>
             </div>
@@ -454,10 +450,7 @@
         </div>
 
         <div class="col">
-            <div class="card h-100 shadow border-0 position-relative" style="opacity: 0.85;">
-                <span class="badge bg-warning position-absolute top-0 end-0 m-3 px-3 py-2">
-                    <i class="fas fa-clock me-1"></i>Em Breve
-                </span>
+            <div class="card h-100 shadow border-0 position-relative">
                 <div class="card-body p-4">
                     <div class="d-flex align-items-center mb-3">
                         <div class="rounded-circle p-3 me-3" style="background-color: rgba(25, 183, 85, 0.1);">
@@ -466,13 +459,13 @@
                         <h3 class="mb-0 text-dark">Vagas de Estágio</h3>
                     </div>
                     <p class="text-muted mb-4">
-                        Em breve você poderá buscar vagas de estágio direto no portal, filtrar por área de interesse,
-                        localização e se candidatar com apenas alguns cliques.
+                        Busque vagas de estágio direto no portal, filtre as oportunidades disponíveis e acompanhe sua
+                        candidatura depois do envio do currículo.
                     </p>
-                    <button class="btn btn-lg w-100" disabled
-                        style="background-color: #e0e0e0; color: #666; border: none;">
-                        <i class="fas fa-hourglass-half me-2"></i>Aguarde Novidades
-                    </button>
+                    <a href="{{ route('vagas.publicas.index') }}" class="btn btn-lg w-100"
+                        style="background-color: #19B755; color: white; border: none;">
+                        <i class="fas fa-search me-2"></i>Ver Vagas
+                    </a>
                 </div>
             </div>
         </div>

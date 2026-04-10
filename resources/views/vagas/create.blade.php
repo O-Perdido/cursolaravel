@@ -127,8 +127,8 @@
                             value="{{ old('horario') }}" placeholder="Ex: Segunda a Sexta, 08:00 às 12:00">
                     </div>
 
-                    @if($nivel === 'empresa')
-                        <!-- Estagiário definido (opcional, só empresa) -->
+                    @if(in_array($nivel, ['empresa', 'admin', 'operador']))
+                        <!-- Estagiário definido (opcional) -->
                         <div class="mb-3">
                             <label class="form-label d-block">Esta vaga já tem estagiário definido?</label>
                             <div class="form-check form-check-inline">
@@ -217,6 +217,17 @@
                             <input type="hidden" name="valor_auxilio_transporte" id="valor_auxilio_transporte"
                                 value="{{ old('valor_auxilio_transporte') }}">
                         </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" role="switch" id="divulgada_publicamente"
+                                name="divulgada_publicamente" value="1" {{ old('divulgada_publicamente') ? 'checked' : '' }}>
+                            <label class="form-check-label" for="divulgada_publicamente">Divulgar esta vaga
+                                publicamente</label>
+                        </div>
+                        <small class="form-text text-muted">Quando ativo, a vaga poderá aparecer na área pública de
+                            busca dos estagiários.</small>
                     </div>
 
                     <!-- Info adicional -->
@@ -481,8 +492,8 @@
             carregarSupervisores(@json($empresaSelecionada));
         @endif
 
-                                                                                                                                        // Filtro do dropdown de Supervisor
-                                                                                                                                if (supervisorSearch) {
+                                                                                                                                            // Filtro do dropdown de Supervisor
+                                                                                                                                    if (supervisorSearch) {
             supervisorSearch.addEventListener('focus', function () {
                 supervisorSelect.style.display = 'block';
             });
@@ -710,14 +721,14 @@
             const icon = tipo === 'success' ? '✓' : '✕';
 
             const toastHTML = `
-                                                                                                    <div id="${toastId}" class="toast" role="alert" aria-live="assertive" aria-atomic="true" style="pointer-events: auto;">
-                                                                                                        <div class="toast-header ${bgColor} text-white">
-                                                                                                            <strong class="me-auto">${icon} ${tipo === 'success' ? 'Sucesso' : 'Erro'}</strong>
-                                                                                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+                                                                                                        <div id="${toastId}" class="toast" role="alert" aria-live="assertive" aria-atomic="true" style="pointer-events: auto;">
+                                                                                                            <div class="toast-header ${bgColor} text-white">
+                                                                                                                <strong class="me-auto">${icon} ${tipo === 'success' ? 'Sucesso' : 'Erro'}</strong>
+                                                                                                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+                                                                                                            </div>
+                                                                                                            <div class="toast-body">${mensagem}</div>
                                                                                                         </div>
-                                                                                                        <div class="toast-body">${mensagem}</div>
-                                                                                                    </div>
-                                                                                                `;
+                                                                                                    `;
 
             container.insertAdjacentHTML('beforeend', toastHTML);
             const toastEl = document.getElementById(toastId);

@@ -82,8 +82,22 @@
                         <input type="date" class="form-control form-control-sm" id="data_termino" name="data_termino"
                             value="{{ request('data_termino') }}">
                     </div>
+                    <div class="col-md-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="1" id="com_candidaturas" name="com_candidaturas" {{ request('com_candidaturas') ? 'checked' : '' }}>
+                            <label class="form-check-label" for="com_candidaturas">Somente vagas com candidaturas</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="1" id="com_estagiario_definido" name="com_estagiario_definido" {{ request('com_estagiario_definido') ? 'checked' : '' }}>
+                            <label class="form-check-label" for="com_estagiario_definido">Somente com estagiário definido</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="1" id="termo_pendente" name="termo_pendente" {{ request('termo_pendente') ? 'checked' : '' }}>
+                            <label class="form-check-label" for="termo_pendente">Somente termo pendente</label>
+                        </div>
+                    </div>
                     <!-- Botões -->
-                    <div class="col-md-4 d-flex gap-2">
+                    <div class="col-md-1 d-flex gap-2">
                         <button type="submit" class="btn btn-primary btn-sm flex-grow-1">
                             <i class="fas fa-search"></i> Filtrar
                         </button>
@@ -159,7 +173,22 @@
                         @if (Auth::user()->nivel == 'empresa')
                             <td>{{ $vaga->local->descricao ?? '-' }}</td>
                         @endif
-                        <td>{{ $vaga->termo->estagiario->nome_estagiario ?? 'Não vinculado' }}
+                        <td>
+                            <div>{{ $vaga->termo->estagiario->nome_estagiario ?? $vaga->estagiarioDefinido->nome_estagiario ?? $vaga->nome_estagiario ?? 'Não vinculado' }}</div>
+                            <div class="d-flex flex-wrap gap-1 mt-1">
+                                @if($vaga->candidaturas_count > 0)
+                                    <span class="badge bg-light text-dark">{{ $vaga->candidaturas_count }} candidatura(s)</span>
+                                @endif
+                                @if($vaga->divulgada_publicamente)
+                                    <span class="badge bg-info text-dark">Divulgada</span>
+                                @endif
+                                @if($vaga->fk_id_estagiario_definido || $vaga->tem_estagiario_definido)
+                                    <span class="badge bg-warning text-dark">Estagiário definido</span>
+                                @endif
+                                @if($vaga->tem_termo_pendente)
+                                    <span class="badge bg-danger">Termo pendente</span>
+                                @endif
+                            </div>
                             @if (Auth::user()->nivel == 'admin' || Auth::user()->nivel == 'operador')
                                 @if($vaga->fk_id_termo)
                                     <a href="{{ route('estagiario.show', $vaga->termo->estagiario->id_estagiario) }}" target="_blank"
@@ -191,6 +220,11 @@
                                 <a href="{{ route('vagas.edit', $vaga->id_vaga) }}" class="btn btn-warning btn-sm"
                                     title="Editar">
                                     <i class="fas fa-edit"></i>
+                                </a>
+
+                                <a href="{{ route('vagas.candidaturas.index', $vaga->id_vaga) }}" class="btn btn-outline-primary btn-sm"
+                                    title="Ver candidaturas">
+                                    <i class="fas fa-users"></i>
                                 </a>
 
                                 <!-- Botão atalho para o termo vinculado -->

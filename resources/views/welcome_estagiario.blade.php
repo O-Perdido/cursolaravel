@@ -120,6 +120,42 @@
             </div>
         </div>
 
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm"
+                style="border-radius: 15px; transition: transform 0.3s ease, box-shadow 0.3s ease;">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="rounded-circle d-flex align-items-center justify-content-center me-3"
+                            style="width: 60px; height: 60px; background: linear-gradient(135deg, #0f4c81 0%, #58a6d9 100%);">
+                            <i class="fas fa-briefcase" style="font-size: 1.5rem; color: white;"></i>
+                        </div>
+                        <div>
+                            <h5 class="card-title mb-0" style="font-weight: 600; color: #2d3748;">Vagas de Estágio</h5>
+                            <small class="text-muted">Busca e candidatura</small>
+                        </div>
+                    </div>
+
+                    <p class="card-text text-muted mb-4" style="font-size: 0.95rem;">
+                        Consulte vagas divulgadas pelas unidades concedentes, envie seu currículo e acompanhe a situação das
+                        suas candidaturas.
+                    </p>
+
+                    <div class="d-grid gap-2">
+                        <a href="{{ route('vagas.publicas.index') }}" class="btn"
+                            style="background: linear-gradient(135deg, #0f4c81 0%, #58a6d9 100%); border: none; border-radius: 8px; padding: 10px; font-weight: 500; color: white;">
+                            <i class="fas fa-search me-2"></i>
+                            Ver Vagas Abertas
+                        </a>
+                        <a href="{{ route('vagas.publicas.minhas-candidaturas') }}" class="btn btn-outline-primary"
+                            style="border-radius: 8px; padding: 8px; font-weight: 500;">
+                            <i class="fas fa-file-signature me-2"></i>
+                            Minhas Candidaturas
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Card: Processos Seletivos -->
         <div class="col-md-4">
             <div class="card h-100 border-0 shadow-sm"
