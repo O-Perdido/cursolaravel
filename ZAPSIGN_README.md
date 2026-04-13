@@ -101,6 +101,13 @@ Certifique-se que o estagiário possui:
 - Botao "Assinaturas" abre um modal com status do TAE
 - Exibe destinatarios, status individual, envio, exclusao e download do PDF assinado
 
+### Remocao manual de destinatarios no envio
+
+- Antes de enviar TCE, TAE ou TRE para assinatura, o modal agora exibe a coluna `Remover?`
+- Marque os destinatarios que nao devem participar daquele envio especifico
+- A remocao e pontual: nao altera cadastro de representantes em empresa/escola
+- Se todos os destinatarios com email forem removidos, o envio e bloqueado com mensagem de erro
+
 ### Instituicao de ensino fora do ZapSign
 
 - No cadastro/edicao da escola, marque a opcao "Esta instituicao de ensino nao assina pelo ZapSign"
@@ -206,3 +213,8 @@ Para dúvidas sobre a API do ZapSign, consulte:
 - ✅ Interface com modal de confirmação
 - ✅ Validação de dados do estagiário
 - ✅ Logging de erros
+
+### Versao 1.1 (13/04/2026)
+- ✅ Remocao manual de destinatarios no envio de TCE, TAE e TRE
+- ✅ Filtro server-side dos destinatarios marcados no modal
+- ✅ Validacao para impedir envio sem destinatarios validos

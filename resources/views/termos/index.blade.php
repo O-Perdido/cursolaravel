@@ -66,8 +66,8 @@
         }
 
         .modal .modal-body {
-            word-break: break-word;
-            overflow-wrap: anywhere;
+            word-break: normal;
+            overflow-wrap: break-word;
         }
 
         .modal-backdrop {
@@ -90,8 +90,18 @@
             vertical-align: middle;
         }
 
+        .table-recipients {
+            table-layout: auto;
+        }
+
+        .table-recipients th {
+            white-space: nowrap;
+            word-break: normal;
+        }
+
         .table-recipients td {
-            word-break: break-word;
+            word-break: normal;
+            overflow-wrap: break-word;
         }
 
         /* Ajustes na paginação - botões um pouco menores */
@@ -419,7 +429,7 @@
                                 <!-- Modal ZapSign -->
                                 <div class="modal fade" id="zapSignModal{{ $termo->id_termo }}" tabindex="-1"
                                     aria-labelledby="zapSignModalLabel{{ $termo->id_termo }}" aria-hidden="true">
-                                    <div class="modal-dialog modal-md">
+                                    <div class="modal-dialog modal-lg">
                                         <div class="modal-content">
                                             <div class="modal-header">
                                                 <h5 class="modal-title" id="zapSignModalLabel{{ $termo->id_termo }}">
@@ -443,6 +453,9 @@
                                                 @endif
 
                                                 <hr class="my-2">
+                                                <form action="{{ route('termos.enviarZapSign', $termo->id_termo) }}" method="POST"
+                                                    style="display:inline-block; width: 100%;">
+                                                    @csrf
                                                 <p class="mb-1">
                                                     <strong>Destinatários</strong>
                                                     <span class="text-muted small">(clique nas setas para reordenar)</span>
@@ -452,6 +465,7 @@
                                                         style="font-size: 9pt " id="tabelaDestinatarios{{ $termo->id_termo }}">
                                                         <thead class="table-light">
                                                             <tr>
+                                                                <th style="width: 90px;">Remover?</th>
                                                                 <th style="width: 50px;">Ordem</th>
                                                                 <th style="width: 120px;">Tipo</th>
                                                                 <th>Nome</th>
@@ -461,6 +475,15 @@
                                                         </thead>
                                                         <tbody id="tbodyDestinatarios{{ $termo->id_termo }}">
                                                             <tr data-ordem="1" data-tipo="estagiario">
+                                                                <td class="text-center">
+                                                                    @if(!empty($termo->estagiario->email))
+                                                                        <input type="checkbox" class="form-check-input"
+                                                                            name="remover_destinatarios[]"
+                                                                            value="{{ $termo->estagiario->email }}">
+                                                                    @else
+                                                                        —
+                                                                    @endif
+                                                                </td>
                                                                 <td class="text-center">
                                                                     <button type="button" class="btn btn-sm btn-link p-0"
                                                                         onclick="moverLinha(this, -1, {{ $termo->id_termo }})"
@@ -479,6 +502,11 @@
                                                                 <td>—</td>
                                                             </tr>
                                                             <tr data-ordem="2" data-tipo="ebcp">
+                                                                <td class="text-center">
+                                                                    <input type="checkbox" class="form-check-input"
+                                                                        name="remover_destinatarios[]"
+                                                                        value="moacirecetista@hotmail.com">
+                                                                </td>
                                                                 <td class="text-center">
                                                                     <button type="button" class="btn btn-sm btn-link p-0"
                                                                         onclick="moverLinha(this, -1, {{ $termo->id_termo }})"
@@ -504,6 +532,15 @@
                                                                 @foreach($termo->empresa->representantes as $rep)
                                                                     <tr data-ordem="{{ $ordem++ }}" data-tipo="empresa_rep">
                                                                         <td class="text-center">
+                                                                            @if(!empty($rep->email))
+                                                                                <input type="checkbox" class="form-check-input"
+                                                                                    name="remover_destinatarios[]"
+                                                                                    value="{{ $rep->email }}">
+                                                                            @else
+                                                                                —
+                                                                            @endif
+                                                                        </td>
+                                                                        <td class="text-center">
                                                                             <button type="button" class="btn btn-sm btn-link p-0"
                                                                                 onclick="moverLinha(this, -1, {{ $termo->id_termo }})"
                                                                                 title="Mover para cima">
@@ -523,6 +560,15 @@
                                                                 @endforeach
                                                             @elseif(isset($termo->empresa))
                                                                 <tr data-ordem="{{ $ordem++ }}" data-tipo="empresa_legado">
+                                                                    <td class="text-center">
+                                                                        @if(!empty($termo->empresa->email))
+                                                                            <input type="checkbox" class="form-check-input"
+                                                                                name="remover_destinatarios[]"
+                                                                                value="{{ $termo->empresa->email }}">
+                                                                        @else
+                                                                            —
+                                                                        @endif
+                                                                    </td>
                                                                     <td class="text-center">
                                                                         <button type="button" class="btn btn-sm btn-link p-0"
                                                                             onclick="moverLinha(this, -1, {{ $termo->id_termo }})"
@@ -547,6 +593,15 @@
                                                                 @foreach($termo->escola->representantes as $rep)
                                                                     <tr data-ordem="{{ $ordem++ }}" data-tipo="escola_rep">
                                                                         <td class="text-center">
+                                                                            @if(!empty($rep->email))
+                                                                                <input type="checkbox" class="form-check-input"
+                                                                                    name="remover_destinatarios[]"
+                                                                                    value="{{ $rep->email }}">
+                                                                            @else
+                                                                                —
+                                                                            @endif
+                                                                        </td>
+                                                                        <td class="text-center">
                                                                             <button type="button" class="btn btn-sm btn-link p-0"
                                                                                 onclick="moverLinha(this, -1, {{ $termo->id_termo }})"
                                                                                 title="Mover para cima">
@@ -566,6 +621,15 @@
                                                                 @endforeach
                                                             @elseif(isset($termo->escola))
                                                                 <tr data-ordem="{{ $ordem++ }}" data-tipo="escola_legado">
+                                                                    <td class="text-center">
+                                                                        @if(!empty($termo->escola->email))
+                                                                            <input type="checkbox" class="form-check-input"
+                                                                                name="remover_destinatarios[]"
+                                                                                value="{{ $termo->escola->email }}">
+                                                                        @else
+                                                                            —
+                                                                        @endif
+                                                                    </td>
                                                                     <td class="text-center">
                                                                         <button type="button" class="btn btn-sm btn-link p-0"
                                                                             onclick="moverLinha(this, -1, {{ $termo->id_termo }})"
@@ -588,21 +652,17 @@
                                                     </table>
                                                 </div>
                                                 <p class="text-muted small mb-0">
-                                                    <strong>Observação:</strong> Todos os representantes cadastrados nas
-                                                    Escolas/Empresas serão incluídos automaticamente. O Agente de Integração (EBCP)
-                                                    também será incluído.
+                                                    <strong>Observação:</strong> Marque em <strong>Remover?</strong> quem não deve
+                                                    receber esse envio específico. Essa ação vale somente para este envio.
                                                 </p>
                                             </div>
                                             <div class="modal-footer">
                                                 <button type="button" class="btn btn-secondary"
                                                     data-bs-dismiss="modal">Cancelar</button>
-                                                <form action="{{ route('termos.enviarZapSign', $termo->id_termo) }}" method="POST"
-                                                    style="display:inline-block;">
-                                                    @csrf
-                                                    <button type="submit" class="btn btn-success">
-                                                        <i class="fas fa-paper-plane me-1"></i>
-                                                        Enviar
-                                                    </button>
+                                                <button type="submit" class="btn btn-success">
+                                                    <i class="fas fa-paper-plane me-1"></i>
+                                                    Enviar
+                                                </button>
                                                 </form>
                                             </div>
                                         </div>

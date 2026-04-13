@@ -850,6 +850,9 @@
                         @endif
 
                         <hr class="my-2">
+                        <form action="{{ route('termos.enviarZapSign', $termo->id_termo) }}" method="POST"
+                            style="display:inline-block; width: 100%;">
+                            @csrf
                         <p class="mb-1">
                             <strong>Destinatários</strong>
                             <span class="text-muted small">(clique nas setas para reordenar)</span>
@@ -859,6 +862,7 @@
                                 id="tabelaDestinatariosShow">
                                 <thead class="table-light">
                                     <tr>
+                                        <th style="width: 90px;">Remover?</th>
                                         <th style="width: 50px;">Ordem</th>
                                         <th style="width: 120px;">Tipo</th>
                                         <th>Nome</th>
@@ -868,6 +872,14 @@
                                 </thead>
                                 <tbody id="tbodyDestinatariosShow">
                                     <tr data-ordem="1" data-tipo="estagiario">
+                                        <td class="text-center">
+                                            @if(!empty($termo->estagiario->email))
+                                                <input type="checkbox" class="form-check-input"
+                                                    name="remover_destinatarios[]" value="{{ $termo->estagiario->email }}">
+                                            @else
+                                                —
+                                            @endif
+                                        </td>
                                         <td class="text-center">
                                             <button type="button" class="btn btn-sm btn-link p-0"
                                                 onclick="moverLinhaShow(this, -1)" title="Mover para cima">
@@ -884,6 +896,10 @@
                                         <td>—</td>
                                     </tr>
                                     <tr data-ordem="2" data-tipo="ebcp">
+                                        <td class="text-center">
+                                            <input type="checkbox" class="form-check-input" name="remover_destinatarios[]"
+                                                value="moacirecetista@hotmail.com">
+                                        </td>
                                         <td class="text-center">
                                             <button type="button" class="btn btn-sm btn-link p-0"
                                                 onclick="moverLinhaShow(this, -1)" title="Mover para cima">
@@ -907,6 +923,14 @@
                                         @foreach($termo->empresa->representantes as $rep)
                                             <tr data-ordem="{{ $ordem++ }}" data-tipo="empresa_rep">
                                                 <td class="text-center">
+                                                    @if(!empty($rep->email))
+                                                        <input type="checkbox" class="form-check-input"
+                                                            name="remover_destinatarios[]" value="{{ $rep->email }}">
+                                                    @else
+                                                        —
+                                                    @endif
+                                                </td>
+                                                <td class="text-center">
                                                     <button type="button" class="btn btn-sm btn-link p-0"
                                                         onclick="moverLinhaShow(this, -1)" title="Mover para cima">
                                                         <i class="fas fa-arrow-up text-primary"></i>
@@ -924,6 +948,14 @@
                                         @endforeach
                                     @elseif(isset($termo->empresa))
                                         <tr data-ordem="{{ $ordem++ }}" data-tipo="empresa_legado">
+                                            <td class="text-center">
+                                                @if(!empty($termo->empresa->email))
+                                                    <input type="checkbox" class="form-check-input"
+                                                        name="remover_destinatarios[]" value="{{ $termo->empresa->email }}">
+                                                @else
+                                                    —
+                                                @endif
+                                            </td>
                                             <td class="text-center">
                                                 <button type="button" class="btn btn-sm btn-link p-0"
                                                     onclick="moverLinhaShow(this, -1)" title="Mover para cima">
@@ -947,6 +979,15 @@
                                             @foreach($termo->escola->representantes as $rep)
                                                 <tr data-ordem="{{ $ordem++ }}" data-tipo="escola_rep">
                                                     <td class="text-center">
+                                                        @if(!empty($rep->email))
+                                                            <input type="checkbox" class="form-check-input"
+                                                                name="remover_destinatarios[]"
+                                                                value="{{ $rep->email }}">
+                                                        @else
+                                                            —
+                                                        @endif
+                                                    </td>
+                                                    <td class="text-center">
                                                         <button type="button" class="btn btn-sm btn-link p-0"
                                                             onclick="moverLinhaShow(this, -1)" title="Mover para cima">
                                                             <i class="fas fa-arrow-up text-primary"></i>
@@ -964,6 +1005,14 @@
                                             @endforeach
                                         @else
                                             <tr data-ordem="{{ $ordem++ }}" data-tipo="escola_legado">
+                                                <td class="text-center">
+                                                    @if(!empty($termo->escola->email))
+                                                        <input type="checkbox" class="form-check-input"
+                                                            name="remover_destinatarios[]" value="{{ $termo->escola->email }}">
+                                                    @else
+                                                        —
+                                                    @endif
+                                                </td>
                                                 <td class="text-center">
                                                     <button type="button" class="btn btn-sm btn-link p-0"
                                                         onclick="moverLinhaShow(this, -1)" title="Mover para cima">
@@ -985,20 +1034,16 @@
                             </table>
                         </div>
                         <p class="text-muted small mb-0">
-                            <strong>Observação:</strong> Os representantes cadastrados nas Escolas/Empresas
-                            serão incluídos automaticamente, exceto quando a instituição estiver marcada
-                            como não assinante do ZapSign.
+                            <strong>Observação:</strong> Marque em <strong>Remover?</strong> quem não deve receber
+                            este envio específico no ZapSign.
                         </p>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                        <form action="{{ route('termos.enviarZapSign', $termo->id_termo) }}" method="POST"
-                            style="display:inline-block;">
-                            @csrf
-                            <button type="submit" class="btn btn-success">
-                                <i class="fas fa-paper-plane me-1"></i>
-                                Enviar
-                            </button>
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-paper-plane me-1"></i>
+                            Enviar
+                        </button>
                         </form>
                     </div>
                 </div>
@@ -1280,9 +1325,13 @@
                                 <strong>Destinatários que receberão o documento:</strong>
                             </p>
                             <div class="table-responsive">
+                                <form action="{{ route('rescisoes.enviarZapSign', $termo->rescisao->id_rescisao) }}" method="POST"
+                                    style="display:inline-block; width: 100%;">
+                                    @csrf
                                 <table class="table table-sm table-bordered mb-2" style="font-size: 9pt">
                                     <thead class="table-light">
                                         <tr>
+                                            <th style="width: 90px;">Remover?</th>
                                             <th style="width: 120px;">Tipo</th>
                                             <th>Nome</th>
                                             <th style="width: 35%;">E-mail</th>
@@ -1290,11 +1339,23 @@
                                     </thead>
                                     <tbody>
                                         <tr>
+                                            <td class="text-center">
+                                                @if(!empty($termo->estagiario->email))
+                                                    <input type="checkbox" class="form-check-input"
+                                                        name="remover_destinatarios[]" value="{{ $termo->estagiario->email }}">
+                                                @else
+                                                    —
+                                                @endif
+                                            </td>
                                             <td><i class="fas fa-user text-primary me-1"></i> Estagiário</td>
                                             <td>{{ $termo->estagiario->nome_estagiario }}</td>
                                             <td>{{ $termo->estagiario->email ?? '—' }}</td>
                                         </tr>
                                         <tr>
+                                            <td class="text-center">
+                                                <input type="checkbox" class="form-check-input" name="remover_destinatarios[]"
+                                                    value="moacirecetista@hotmail.com">
+                                            </td>
                                             <td><i class="fas fa-handshake text-info me-1"></i> Ag. Integração</td>
                                             <td>EBCP CONSULTORIA LTDA</td>
                                             <td>moacirecetista@hotmail.com</td>
@@ -1303,6 +1364,14 @@
                                         @if(isset($termo->empresa) && $termo->empresa->representantes->count() > 0)
                                             @foreach($termo->empresa->representantes as $rep)
                                                 <tr>
+                                                    <td class="text-center">
+                                                        @if(!empty($rep->email))
+                                                            <input type="checkbox" class="form-check-input"
+                                                                name="remover_destinatarios[]" value="{{ $rep->email }}">
+                                                        @else
+                                                            —
+                                                        @endif
+                                                    </td>
                                                     <td><i class="fas fa-building text-secondary me-1"></i> Concedente</td>
                                                     <td>{{ $rep->nome }}</td>
                                                     <td>{{ $rep->email }}</td>
@@ -1310,6 +1379,14 @@
                                             @endforeach
                                         @elseif(isset($termo->empresa))
                                             <tr>
+                                                <td class="text-center">
+                                                    @if(!empty($termo->empresa->email))
+                                                        <input type="checkbox" class="form-check-input"
+                                                            name="remover_destinatarios[]" value="{{ $termo->empresa->email }}">
+                                                    @else
+                                                        —
+                                                    @endif
+                                                </td>
                                                 <td><i class="fas fa-building text-secondary me-1"></i> Concedente</td>
                                                 <td>{{ $termo->empresa->nome_representante ?? $termo->empresa->nome_empresa }}</td>
                                                 <td>{{ $termo->empresa->email ?? '—' }}</td>
@@ -1320,6 +1397,14 @@
                                             @if($termo->escola->representantes->count() > 0)
                                                 @foreach($termo->escola->representantes as $rep)
                                                     <tr>
+                                                        <td class="text-center">
+                                                            @if(!empty($rep->email))
+                                                                <input type="checkbox" class="form-check-input"
+                                                                    name="remover_destinatarios[]" value="{{ $rep->email }}">
+                                                            @else
+                                                                —
+                                                            @endif
+                                                        </td>
                                                         <td><i class="fas fa-school text-success me-1"></i> Instituição</td>
                                                         <td>{{ $rep->nome }}</td>
                                                         <td>{{ $rep->email }}</td>
@@ -1327,6 +1412,14 @@
                                                 @endforeach
                                             @else
                                                 <tr>
+                                                    <td class="text-center">
+                                                        @if(!empty($termo->escola->email))
+                                                            <input type="checkbox" class="form-check-input"
+                                                                name="remover_destinatarios[]" value="{{ $termo->escola->email }}">
+                                                        @else
+                                                            —
+                                                        @endif
+                                                    </td>
                                                     <td><i class="fas fa-school text-success me-1"></i> Instituição</td>
                                                     <td>{{ $termo->escola->nome_representante ?? $termo->escola->nome_escola }}</td>
                                                     <td>{{ $termo->escola->email ?? '—' }}</td>
@@ -1337,20 +1430,16 @@
                                 </table>
                             </div>
                             <p class="text-muted small mb-0">
-                                <strong>Observação:</strong> Os representantes cadastrados receberão o documento para assinatura
-                                digital,
-                                exceto quando a instituição estiver marcada como não assinante do ZapSign.
+                                <strong>Observação:</strong> Marque em <strong>Remover?</strong> quem não deve receber
+                                este envio específico.
                             </p>
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                            <form action="{{ route('rescisoes.enviarZapSign', $termo->rescisao->id_rescisao) }}" method="POST"
-                                style="display:inline-block;">
-                                @csrf
-                                <button type="submit" class="btn btn-success">
-                                    <i class="fas fa-paper-plane me-1"></i>
-                                    Enviar
-                                </button>
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-paper-plane me-1"></i>
+                                Enviar
+                            </button>
                             </form>
                         </div>
                     </div>

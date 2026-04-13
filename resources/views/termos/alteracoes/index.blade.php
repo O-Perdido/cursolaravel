@@ -177,15 +177,6 @@
 
                         @if(!$alteracaoTermo->zapsign_doc_token)
                             <p class="text-muted mb-3">Documento ainda nao enviado para assinatura.</p>
-                            <form
-                                action="{{ route('alteracao.enviarZapSign', [$alteracaoTermo->termo->id_termo, $alteracaoTermo->id_alteracao]) }}"
-                                method="POST" style="display:inline-block;">
-                                @csrf
-                                <button type="submit" class="btn btn-success btn-sm">
-                                    <i class="fas fa-paper-plane me-1"></i>
-                                    Enviar para assinatura
-                                </button>
-                            </form>
                         @else
                             <div class="d-flex flex-wrap gap-2 mb-3">
                                 <a href="{{ route('alteracao.statusZapSign', [$alteracaoTermo->termo->id_termo, $alteracaoTermo->id_alteracao]) }}"
@@ -249,10 +240,19 @@
                         @endif
 
                         <h6 class="mb-2">Lista prevista de assinantes</h6>
+                        @if(!$alteracaoTermo->zapsign_doc_token)
+                            <form id="formEnviarAlteracao{{ $alteracaoTermo->id_alteracao }}"
+                                action="{{ route('alteracao.enviarZapSign', [$alteracaoTermo->termo->id_termo, $alteracaoTermo->id_alteracao]) }}"
+                                method="POST">
+                                @csrf
+                        @endif
                         <div class="table-responsive">
                             <table class="table table-sm table-bordered mb-0" style="font-size: 9pt">
                                 <thead class="table-light">
                                     <tr>
+                                        @if(!$alteracaoTermo->zapsign_doc_token)
+                                            <th style="width: 90px;">Remover?</th>
+                                        @endif
                                         <th style="width: 120px;">Tipo</th>
                                         <th>Nome</th>
                                         <th style="width: 35%;">E-mail</th>
@@ -260,11 +260,28 @@
                                 </thead>
                                 <tbody>
                                     <tr>
+                                        @if(!$alteracaoTermo->zapsign_doc_token)
+                                            <td class="text-center">
+                                                @if(!empty($alteracaoTermo->termo->estagiario->email))
+                                                    <input type="checkbox" class="form-check-input"
+                                                        name="remover_destinatarios[]"
+                                                        value="{{ $alteracaoTermo->termo->estagiario->email }}">
+                                                @else
+                                                    —
+                                                @endif
+                                            </td>
+                                        @endif
                                         <td><i class="fas fa-user text-primary me-1"></i> Estagiario</td>
                                         <td>{{ $alteracaoTermo->termo->estagiario->nome_estagiario }}</td>
                                         <td>{{ $alteracaoTermo->termo->estagiario->email ?? '—' }}</td>
                                     </tr>
                                     <tr>
+                                        @if(!$alteracaoTermo->zapsign_doc_token)
+                                            <td class="text-center">
+                                                <input type="checkbox" class="form-check-input" name="remover_destinatarios[]"
+                                                    value="moacirecetista@hotmail.com">
+                                            </td>
+                                        @endif
                                         <td><i class="fas fa-handshake text-info me-1"></i> Ag. Integracao</td>
                                         <td>EBCP CONSULTORIA LTDA</td>
                                         <td>moacirecetista@hotmail.com</td>
@@ -274,6 +291,16 @@
                                         @if($alteracaoTermo->termo->empresa->representantes->count() > 0)
                                             @foreach($alteracaoTermo->termo->empresa->representantes as $rep)
                                                 <tr>
+                                                    @if(!$alteracaoTermo->zapsign_doc_token)
+                                                        <td class="text-center">
+                                                            @if(!empty($rep->email))
+                                                                <input type="checkbox" class="form-check-input"
+                                                                    name="remover_destinatarios[]" value="{{ $rep->email }}">
+                                                            @else
+                                                                —
+                                                            @endif
+                                                        </td>
+                                                    @endif
                                                     <td><i class="fas fa-building text-secondary me-1"></i> Concedente</td>
                                                     <td>{{ $rep->nome }}</td>
                                                     <td>{{ $rep->email }}</td>
@@ -281,6 +308,17 @@
                                             @endforeach
                                         @else
                                             <tr>
+                                                @if(!$alteracaoTermo->zapsign_doc_token)
+                                                    <td class="text-center">
+                                                        @if(!empty($alteracaoTermo->termo->empresa->email))
+                                                            <input type="checkbox" class="form-check-input"
+                                                                name="remover_destinatarios[]"
+                                                                value="{{ $alteracaoTermo->termo->empresa->email }}">
+                                                        @else
+                                                            —
+                                                        @endif
+                                                    </td>
+                                                @endif
                                                 <td><i class="fas fa-building text-secondary me-1"></i> Concedente</td>
                                                 <td>{{ $alteracaoTermo->termo->empresa->nome_representante ?? $alteracaoTermo->termo->empresa->nome_empresa }}</td>
                                                 <td>{{ $alteracaoTermo->termo->empresa->email ?? '—' }}</td>
@@ -292,6 +330,16 @@
                                         @if($alteracaoTermo->termo->escola->representantes->count() > 0)
                                             @foreach($alteracaoTermo->termo->escola->representantes as $rep)
                                                 <tr>
+                                                    @if(!$alteracaoTermo->zapsign_doc_token)
+                                                        <td class="text-center">
+                                                            @if(!empty($rep->email))
+                                                                <input type="checkbox" class="form-check-input"
+                                                                    name="remover_destinatarios[]" value="{{ $rep->email }}">
+                                                            @else
+                                                                —
+                                                            @endif
+                                                        </td>
+                                                    @endif
                                                     <td><i class="fas fa-school text-success me-1"></i> Instituicao</td>
                                                     <td>{{ $rep->nome }}</td>
                                                     <td>{{ $rep->email }}</td>
@@ -299,6 +347,17 @@
                                             @endforeach
                                         @else
                                             <tr>
+                                                @if(!$alteracaoTermo->zapsign_doc_token)
+                                                    <td class="text-center">
+                                                        @if(!empty($alteracaoTermo->termo->escola->email))
+                                                            <input type="checkbox" class="form-check-input"
+                                                                name="remover_destinatarios[]"
+                                                                value="{{ $alteracaoTermo->termo->escola->email }}">
+                                                        @else
+                                                            —
+                                                        @endif
+                                                    </td>
+                                                @endif
                                                 <td><i class="fas fa-school text-success me-1"></i> Instituicao</td>
                                                 <td>{{ $alteracaoTermo->termo->escola->nome_representante ?? $alteracaoTermo->termo->escola->nome_escola }}
                                                 </td>
@@ -309,8 +368,18 @@
                                 </tbody>
                             </table>
                         </div>
+                        @if(!$alteracaoTermo->zapsign_doc_token)
+                            </form>
+                        @endif
                     </div>
                     <div class="modal-footer">
+                        @if(!$alteracaoTermo->zapsign_doc_token)
+                            <button type="submit" class="btn btn-success"
+                                form="formEnviarAlteracao{{ $alteracaoTermo->id_alteracao }}">
+                                <i class="fas fa-paper-plane me-1"></i>
+                                Enviar para assinatura
+                            </button>
+                        @endif
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
                     </div>
                 </div>

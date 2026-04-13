@@ -695,9 +695,21 @@ class TermoController extends Controller
     /**
      * Enviar termo para assinatura no ZapSign
      */
-    public function enviarParaZapSign($id)
+    public function enviarParaZapSign(Request $request, $id)
     {
         try {
+            $request->validate([
+                'remover_destinatarios' => 'nullable|array',
+                'remover_destinatarios.*' => 'nullable|email',
+            ]);
+
+            $emailsRemovidos = collect($request->input('remover_destinatarios', []))
+                ->map(fn($email) => strtolower(trim((string) $email)))
+                ->filter()
+                ->unique()
+                ->values()
+                ->all();
+
             $termo = Termo::with(['estagiario', 'empresa', 'escola'])->findOrFail($id);
             $zapSignService = new ZapSignService();
 
@@ -779,6 +791,16 @@ class TermoController extends Controller
                 'nome' => $ebcp->nome_ebcp,
                 'tipo' => 'Agente de Integração'
             ];
+
+            [$signatarios, $signatariosParaPdf] = $this->filtrarSignatariosRemovidos(
+                $signatarios,
+                $signatariosParaPdf,
+                $emailsRemovidos
+            );
+
+            if (empty($signatarios)) {
+                return redirect()->back()->with('error', 'Nenhum destinatário válido foi selecionado para envio ao ZapSign.');
+            }
 
             // Gerar PDF com os signatários dinâmicos
             $pdf = Pdf::loadView('termos.gerarPdfTermo', [
@@ -983,6 +1005,33 @@ class TermoController extends Controller
         // Método simples: contar ocorrências de "/Type /Page" no PDF
         $count = preg_match_all("/\/Page\W/", $pdfContent, $matches);
         return max(1, $count); // Retornar no mínimo 1 página
+    }
+
+    private function filtrarSignatariosRemovidos(array $signatarios, array $signatariosParaPdf, array $emailsRemovidos): array
+    {
+        if (empty($emailsRemovidos)) {
+            return [$signatarios, $signatariosParaPdf];
+        }
+
+        $emailsRemovidosLookup = array_flip($emailsRemovidos);
+        $signatariosFiltrados = [];
+        $signatariosParaPdfFiltrados = [];
+
+        foreach ($signatarios as $index => $signatario) {
+            $email = strtolower(trim((string) ($signatario['email'] ?? '')));
+
+            if ($email !== '' && isset($emailsRemovidosLookup[$email])) {
+                continue;
+            }
+
+            $signatariosFiltrados[] = $signatario;
+
+            if (isset($signatariosParaPdf[$index])) {
+                $signatariosParaPdfFiltrados[] = $signatariosParaPdf[$index];
+            }
+        }
+
+        return [$signatariosFiltrados, $signatariosParaPdfFiltrados];
     }
 
     /**

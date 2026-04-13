@@ -78,9 +78,21 @@ class RescisaoController extends Controller
     /**
      * Enviar rescisão para assinatura no ZapSign
      */
-    public function enviarParaZapSign($id)
+    public function enviarParaZapSign(Request $request, $id)
     {
         try {
+            $request->validate([
+                'remover_destinatarios' => 'nullable|array',
+                'remover_destinatarios.*' => 'nullable|email',
+            ]);
+
+            $emailsRemovidos = collect($request->input('remover_destinatarios', []))
+                ->map(fn($email) => strtolower(trim((string) $email)))
+                ->filter()
+                ->unique()
+                ->values()
+                ->all();
+
             $rescisao = Rescisao::with(['termo.estagiario', 'termo.empresa', 'termo.escola'])->findOrFail($id);
             $termo = $rescisao->termo;
             $zapSignService = new ZapSignService();
@@ -163,6 +175,16 @@ class RescisaoController extends Controller
                 'nome' => $ebcp->nome_ebcp,
                 'tipo' => 'Agente de Integração'
             ];
+
+            [$signatarios, $signatariosParaPdf] = $this->filtrarSignatariosRemovidos(
+                $signatarios,
+                $signatariosParaPdf,
+                $emailsRemovidos
+            );
+
+            if (empty($signatarios)) {
+                return redirect()->back()->with('error', 'Nenhum destinatário válido foi selecionado para envio ao ZapSign.');
+            }
 
             // Gerar PDF com signatários
             $pdf = Pdf::loadView('termos.gerarPdfRescisao', [
@@ -277,6 +299,33 @@ class RescisaoController extends Controller
     {
         $count = preg_match_all("/\/Page\W/", $pdfContent, $matches);
         return max(1, $count);
+    }
+
+    private function filtrarSignatariosRemovidos(array $signatarios, array $signatariosParaPdf, array $emailsRemovidos): array
+    {
+        if (empty($emailsRemovidos)) {
+            return [$signatarios, $signatariosParaPdf];
+        }
+
+        $emailsRemovidosLookup = array_flip($emailsRemovidos);
+        $signatariosFiltrados = [];
+        $signatariosParaPdfFiltrados = [];
+
+        foreach ($signatarios as $index => $signatario) {
+            $email = strtolower(trim((string) ($signatario['email'] ?? '')));
+
+            if ($email !== '' && isset($emailsRemovidosLookup[$email])) {
+                continue;
+            }
+
+            $signatariosFiltrados[] = $signatario;
+
+            if (isset($signatariosParaPdf[$index])) {
+                $signatariosParaPdfFiltrados[] = $signatariosParaPdf[$index];
+            }
+        }
+
+        return [$signatariosFiltrados, $signatariosParaPdfFiltrados];
     }
 
     /**
