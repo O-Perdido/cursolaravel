@@ -14,6 +14,9 @@ use App\Http\Controllers\TermoController;
 use App\Http\Controllers\RescisaoController;
 use App\Http\Controllers\FolhaPagamentoController;
 use App\Http\Controllers\FolhasTermosController;
+use App\Http\Controllers\FinanceiroController;
+use App\Http\Controllers\FinanceiroContaController;
+use App\Http\Controllers\FinanceiroLancamentoController;
 use App\Http\Controllers\LocalController;
 use App\Http\Controllers\EmailVerificationController;
 use App\Http\Controllers\ZapSignWebhookController;
@@ -507,6 +510,21 @@ Route::middleware(['auth'])->group(function () {
 
         // Rota para deletar um usuário
         Route::delete('/usuarios/{id}', [UserController::class, 'destroy'])->name('usuarios.destroy');
+
+        Route::prefix('financeiro')->name('financeiro.')->middleware(['nivel:admin'])->group(function () {
+            Route::get('/', [FinanceiroController::class, 'index'])->name('index');
+            Route::get('/contas', [FinanceiroContaController::class, 'index'])->name('contas.index');
+            Route::get('/contas/create', [FinanceiroContaController::class, 'create'])->name('contas.create');
+            Route::post('/contas', [FinanceiroContaController::class, 'store'])->name('contas.store');
+            Route::get('/contas/{id}/edit', [FinanceiroContaController::class, 'edit'])->name('contas.edit');
+            Route::put('/contas/{id}', [FinanceiroContaController::class, 'update'])->name('contas.update');
+            Route::delete('/contas/{id}', [FinanceiroContaController::class, 'destroy'])->name('contas.destroy');
+            Route::get('/lancamentos', [FinanceiroController::class, 'lancamentos'])->name('lancamentos.index');
+            Route::post('/lancamentos', [FinanceiroLancamentoController::class, 'store'])->name('lancamentos.store');
+            Route::put('/lancamentos/{id}', [FinanceiroLancamentoController::class, 'update'])->name('lancamentos.update');
+            Route::delete('/lancamentos/{id}', [FinanceiroLancamentoController::class, 'destroy'])->name('lancamentos.destroy');
+            Route::get('/acumulado', [FinanceiroController::class, 'acumulado'])->name('acumulado.index');
+        });
 
         // Rotas para configurações do sistema
         Route::get('/configuracoes', [App\Http\Controllers\ConfiguracaoController::class, 'index'])->name('configuracoes.index');

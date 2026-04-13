@@ -605,6 +605,11 @@
                                     <li><a class="dropdown-item" href="{{ route('usuarios.index') }}">
                                             <i class="fa-solid fa-users" style="color: #102e6c"></i> Usuários</a>
                                     </li>
+                                @endif
+                                @if (Auth::user()->nivel == 'admin')
+                                    <li><a class="dropdown-item" href="{{ route('financeiro.index') }}">
+                                            <i class="fa-solid fa-wallet" style="color: #102e6c;"></i> Financeiro</a>
+                                    </li>
                                     <li><a class="dropdown-item" href="{{ route('configuracoes.index') }}">
                                             <i class="fa-solid fa-gear" style="color: #102e6c;"></i> Configurações</a>
                                     </li>

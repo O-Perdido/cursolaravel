@@ -386,6 +386,15 @@
             </li>
             @if (Auth::user()->nivel === 'admin')
                 <li class="nav-item">
+                    <a href="{{ route('financeiro.index') }}" class="nav-link">
+                        <span class="nav-icon material-symbols-outlined">account_balance_wallet</span>
+                        <span class="nav-label">Financeiro</span>
+                    </a>
+                    <span class="nav-tooltip">Financeiro</span>
+                </li>
+            @endif
+            @if (Auth::user()->nivel === 'admin')
+                <li class="nav-item">
                     <a href="{{ route('configuracoes.index') }}" class="nav-link">
                         <span class="nav-icon material-symbols-outlined">settings</span>
                         <span class="nav-label">Configurações</span>
@@ -403,7 +412,7 @@
                     <span class="nav-label">Central de Ajuda</span>
                 </a>
                 <span class="nav-tooltip">Central de Ajuda</span>
-            </li>            
+            </li>
             <li class="nav-item">
                 <a href="{{ route('logout') }}" class="nav-link">
                     <span class="nav-icon material-symbols-outlined">logout</span>
