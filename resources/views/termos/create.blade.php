@@ -637,7 +637,7 @@
                             const resp = await fetch(url, { headers: { 'Accept': 'application/json' } });
                             if (resp.ok) {
                                 const data = await resp.json();
-                                const hasContacts = !!(data.tem_estagiario_definido && (data.nome_estagiario || data.contato_whatsapp || data.contato_email));
+                                const hasContacts = !!(data.tem_estagiario_definido && (data.nome_estagiario || data.nome_social_estagiario || data.contato_whatsapp || data.contato_email));
                                 if (btnInfoVaga) btnInfoVaga.disabled = !hasContacts;
                             } else {
                                 if (btnInfoVaga) btnInfoVaga.disabled = true;
@@ -672,6 +672,7 @@
                         const data = await resp.json();
 
                         document.getElementById('infoNomeEstagiario').textContent = data.nome_estagiario || '-';
+                        document.getElementById('infoNomeSocialEstagiario').textContent = data.nome_social_estagiario || '-';
                         document.getElementById('infoWhatsapp').textContent = data.contato_whatsapp || '-';
                         document.getElementById('infoEmail').textContent = data.contato_email || '-';
 
@@ -732,6 +733,7 @@
                 <div class="modal-body">
                     <div id="infoVagaBody">
                         <p><strong>Estagiário:</strong> <span id="infoNomeEstagiario">-</span></p>
+                        <p><strong>Nome social:</strong> <span id="infoNomeSocialEstagiario">-</span></p>
 
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <p class="mb-0"><strong>WhatsApp:</strong> <span id="infoWhatsapp">-</span></p>

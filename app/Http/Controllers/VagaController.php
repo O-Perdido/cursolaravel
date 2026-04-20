@@ -116,6 +116,7 @@ class VagaController extends Controller
             'valor_auxilio_transporte' => 'nullable|numeric',
             'tem_estagiario_definido' => 'required|boolean',
             'nome_estagiario' => 'nullable|string|max:150',
+            'nome_social_estagiario' => 'nullable|string|max:150',
             'contato_whatsapp' => 'nullable|string|max:20',
             'contato_email' => 'nullable|email',
             'divulgada_publicamente' => 'nullable|boolean',
@@ -183,6 +184,7 @@ class VagaController extends Controller
             'valor_auxilio_transporte' => 'nullable|numeric',
             'tem_estagiario_definido' => 'required|boolean',
             'nome_estagiario' => 'nullable|string|max:150',
+            'nome_social_estagiario' => 'nullable|string|max:150',
             'contato_whatsapp' => 'nullable|string|max:20',
             'contato_email' => 'nullable|email',
             'divulgada_publicamente' => 'nullable|boolean',
@@ -258,6 +260,7 @@ class VagaController extends Controller
         return response()->json([
             'id_vaga' => $vaga->id_vaga,
             'nome_estagiario' => $vaga->nome_estagiario,
+            'nome_social_estagiario' => $vaga->nome_social_estagiario,
             'fk_id_estagiario_definido' => $vaga->fk_id_estagiario_definido,
             'contato_whatsapp' => $vaga->contato_whatsapp,
             'contato_email' => $vaga->contato_email,
@@ -279,6 +282,7 @@ class VagaController extends Controller
         $camposEstagiario = [
             'tem_estagiario_definido',
             'nome_estagiario',
+            'nome_social_estagiario',
             'contato_whatsapp',
             'contato_email',
         ];
@@ -291,6 +295,7 @@ class VagaController extends Controller
             $request->merge([
                 'tem_estagiario_definido' => (bool) $vaga->tem_estagiario_definido,
                 'nome_estagiario' => $vaga->nome_estagiario,
+                'nome_social_estagiario' => $vaga->nome_social_estagiario,
                 'contato_whatsapp' => $vaga->contato_whatsapp,
                 'contato_email' => $vaga->contato_email,
             ]);
@@ -299,10 +304,11 @@ class VagaController extends Controller
         }
 
         $nome = trim((string) $request->input('nome_estagiario', $vaga?->nome_estagiario ?? ''));
+        $nomeSocial = trim((string) $request->input('nome_social_estagiario', $vaga?->nome_social_estagiario ?? ''));
         $whatsapp = trim((string) $request->input('contato_whatsapp', $vaga?->contato_whatsapp ?? ''));
         $email = trim((string) $request->input('contato_email', $vaga?->contato_email ?? ''));
 
-        $dadosPreenchidos = $nome !== '' || $whatsapp !== '' || $email !== '';
+        $dadosPreenchidos = $nome !== '' || $nomeSocial !== '' || $whatsapp !== '' || $email !== '';
         $flagSolicitada = in_array(
             $request->input('tem_estagiario_definido', $vaga?->tem_estagiario_definido ? '1' : '0'),
             ['sim', '1', 1, true, 'true'],
@@ -312,6 +318,7 @@ class VagaController extends Controller
 
         $request->merge([
             'nome_estagiario' => $nome,
+            'nome_social_estagiario' => $nomeSocial,
             'contato_whatsapp' => $whatsapp,
             'contato_email' => $email,
             'tem_estagiario_definido' => $temEstagiario,

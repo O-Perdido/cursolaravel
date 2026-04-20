@@ -1,6 +1,12 @@
 REGISTRO DE ALTERAÇÕES
 
 20/04/2026 - GitHub Copilot:
+* Adicionei o campo `nome_social_estagiario` em `tb_vagas` para o fluxo de vaga com estagiário definido.
+* Atualizei cadastro e edição de vaga para permitir informar o nome social junto do nome do estagiário.
+* Ajustei `VagaController` para validar/salvar o novo campo e retornar no endpoint `api.vagas.info`.
+* Atualizei o modal de informações da vaga em criação/edição de termo para exibir também o nome social do estagiário.
+
+20/04/2026 - GitHub Copilot:
 * Adicionei suporte a nome social no cadastro e edição de estagiário (fluxos admin, público e AJAX).
 * Incluí checkbox "Possui nome social?" com exibição condicional do campo "Nome Civil".
 * Implementei a regra de persistência invertida no backend:

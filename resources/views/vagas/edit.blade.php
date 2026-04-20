@@ -137,6 +137,10 @@
                                 <label for="nome_estagiario" class="form-label">Nome do Estagiário</label>
                                 <input type="text" name="nome_estagiario" id="nome_estagiario" class="form-control form-control-sm" value="{{ old('nome_estagiario', $vaga->nome_estagiario) }}" placeholder="Nome completo" {{ $vaga->fk_id_termo ? 'readonly' : '' }}>
                             </div>
+                            <div class="mb-2">
+                                <label for="nome_social_estagiario" class="form-label">Nome Social</label>
+                                <input type="text" name="nome_social_estagiario" id="nome_social_estagiario" class="form-control form-control-sm" value="{{ old('nome_social_estagiario', $vaga->nome_social_estagiario) }}" placeholder="Nome social (opcional)" {{ $vaga->fk_id_termo ? 'readonly' : '' }}>
+                            </div>
                             <div class="row g-2">
                                 <div class="col-md-6">
                                     <label for="contato_whatsapp" class="form-label">WhatsApp</label>
@@ -371,11 +375,17 @@
                 const radioComEstagiario = document.getElementById('vaga_com_estagiario');
                 const radioSemEstagiario = document.getElementById('vaga_sem_estagiario');
                 const nomeEstagiarioInput = document.getElementById('nome_estagiario');
+                const nomeSocialEstagiarioInput = document.getElementById('nome_social_estagiario');
                 const contatoWhatsappInput = document.getElementById('contato_whatsapp');
                 const contatoEmailInput = document.getElementById('contato_email');
 
                 if (radioComEstagiario && radioSemEstagiario && camposEstagiario) {
-                    const camposEstagiarioInputs = [nomeEstagiarioInput, contatoWhatsappInput, contatoEmailInput];
+                    const camposEstagiarioInputs = [
+                        nomeEstagiarioInput,
+                        nomeSocialEstagiarioInput,
+                        contatoWhatsappInput,
+                        contatoEmailInput
+                    ];
                     const possuiCamposPreenchidos = () => camposEstagiarioInputs.some((input) => input && input.value.trim() !== '');
 
                     function toggleCamposEstagiario() {

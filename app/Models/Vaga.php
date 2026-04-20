@@ -31,6 +31,7 @@ class Vaga extends Model
         // Campos de estagiário vinculado à vaga (opcionais)
         'tem_estagiario_definido',
         'nome_estagiario',
+        'nome_social_estagiario',
         'contato_whatsapp',
         'contato_email',
         'divulgada_publicamente',
