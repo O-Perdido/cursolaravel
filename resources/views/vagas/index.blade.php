@@ -185,9 +185,11 @@
                                 @if($vaga->fk_id_estagiario_definido || $vaga->tem_estagiario_definido)
                                     <span class="badge bg-warning text-dark">Estagiário definido</span>
                                 @endif
+                                <!--
                                 @if($vaga->tem_termo_pendente)
                                     <span class="badge bg-danger">Termo pendente</span>
                                 @endif
+                                -->
                             </div>
                             @if (Auth::user()->nivel == 'admin' || Auth::user()->nivel == 'operador')
                                 @if($vaga->fk_id_termo)
