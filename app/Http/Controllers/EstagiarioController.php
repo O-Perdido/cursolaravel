@@ -20,6 +20,18 @@ use Barryvdh\DomPDF\Facade\Pdf as PDF;
 class EstagiarioController extends Controller
 {
 
+    private function resolverCamposNome(Request $request): array
+    {
+        $possuiNomeSocial = $request->boolean('possui_nome_social');
+
+        return [
+            'nome_estagiario' => mb_strtoupper($request->nome_estagiario),
+            'nome_secundario' => $possuiNomeSocial && $request->filled('nome_secundario')
+                ? mb_strtoupper($request->nome_secundario)
+                : null,
+        ];
+    }
+
     public function validarCPF($cpf)
     {
         $cpf = preg_replace('/[^0-9]/', '', $cpf); // Remove caracteres não numéricos
@@ -151,6 +163,8 @@ class EstagiarioController extends Controller
 
         $request->validate([
             'nome_estagiario' => 'required|string|max:255',
+            'possui_nome_social' => 'nullable|boolean',
+            'nome_secundario' => 'nullable|string|max:255|required_if:possui_nome_social,1',
             'numero_cpf' => [
                 'required',
                 'unique:tb_estagiarios,numero_cpf',
@@ -184,6 +198,8 @@ class EstagiarioController extends Controller
             'numero_cpf.unique' => 'Já existe um estagiário cadastrado com este CPF.',
         ]);
 
+        $camposNome = $this->resolverCamposNome($request);
+
         // Processar arquivos (se existirem)
 
         if ($request->hasFile('foto_documento')) {
@@ -200,7 +216,8 @@ class EstagiarioController extends Controller
 
         // Criar o Estagiário no banco de dados
         Estagiario::create([
-            'nome_estagiario' => mb_strtoupper($request->nome_estagiario),
+            'nome_estagiario' => $camposNome['nome_estagiario'],
+            'nome_secundario' => $camposNome['nome_secundario'],
             'numero_cpf' => $request->numero_cpf,
             'data_nascimento' => $request->data_nascimento,
             'numero_telefone' => $request->numero_telefone,
@@ -240,6 +257,8 @@ class EstagiarioController extends Controller
 
         $request->validate([
             'nome_estagiario' => 'required|string|max:255',
+            'possui_nome_social' => 'nullable|boolean',
+            'nome_secundario' => 'nullable|string|max:255|required_if:possui_nome_social,1',
             'numero_cpf' => [
                 'required',
                 'unique:tb_estagiarios,numero_cpf',
@@ -273,6 +292,8 @@ class EstagiarioController extends Controller
             'numero_cpf.unique' => 'Já existe um estagiário cadastrado com este CPF.',
         ]);
 
+        $camposNome = $this->resolverCamposNome($request);
+
         // Processar arquivos (se existirem)
 
         if ($request->hasFile('foto_documento')) {
@@ -290,7 +311,8 @@ class EstagiarioController extends Controller
 
         // Criar o Estagiário no banco de dados
         $estagiario = Estagiario::create([
-            'nome_estagiario' => mb_strtoupper($request->nome_estagiario),
+            'nome_estagiario' => $camposNome['nome_estagiario'],
+            'nome_secundario' => $camposNome['nome_secundario'],
             'numero_cpf' => $request->numero_cpf,
             'data_nascimento' => $request->data_nascimento,
             'numero_telefone' => $request->numero_telefone,
@@ -345,6 +367,8 @@ class EstagiarioController extends Controller
 
         $rules = [
             'nome_estagiario' => 'required|string|max:255',
+            'possui_nome_social' => 'nullable|boolean',
+            'nome_secundario' => 'nullable|string|max:255|required_if:possui_nome_social,1',
             'numero_cpf' => [
                 'required',
                 'unique:tb_estagiarios,numero_cpf',
@@ -384,8 +408,10 @@ class EstagiarioController extends Controller
             'numero_pis.required' => 'O PIS é obrigatório para maiores de 17 anos.',
         ]);
 
+        $camposNome = $this->resolverCamposNome($request);
 
-        $result = DB::transaction(function () use ($request) {
+
+        $result = DB::transaction(function () use ($request, $camposNome) {
             if ($request->hasFile('foto_documento')) {
                 $fotoDocumentoPath = $request->file('foto_documento')->store('uploads/fotos', 'public');
             }
@@ -399,7 +425,8 @@ class EstagiarioController extends Controller
             }
 
             $estagiario = Estagiario::create([
-                'nome_estagiario' => mb_strtoupper($request->nome_estagiario),
+                'nome_estagiario' => $camposNome['nome_estagiario'],
+                'nome_secundario' => $camposNome['nome_secundario'],
                 'numero_cpf' => $request->numero_cpf,
                 'data_nascimento' => $request->data_nascimento,
                 'numero_telefone' => $request->numero_telefone,
@@ -635,6 +662,8 @@ class EstagiarioController extends Controller
 
         $request->validate([
             'nome_estagiario' => 'required|string|max:255',
+            'possui_nome_social' => 'nullable|boolean',
+            'nome_secundario' => 'nullable|string|max:255|required_if:possui_nome_social,1',
             'numero_cpf' => "required|string|unique:tb_estagiarios,numero_cpf,{$id},id_estagiario", // CPF deve ser único, exceto para o estagiário atual
             'email' => "required|email", // Email deve ser válido
             'numero_telefone' => 'nullable|string',
@@ -658,6 +687,8 @@ class EstagiarioController extends Controller
         ], [
             'numero_cpf.unique' => 'Já existe um estagiário cadastrado com este CPF.',
         ]);
+
+        $camposNome = $this->resolverCamposNome($request);
 
         $novosArquivos = [];
         $arquivosAntigos = [
@@ -683,7 +714,14 @@ class EstagiarioController extends Controller
 
             DB::beginTransaction();
 
-            $dadosAtualizacao = $request->except(['foto_documento', 'comprovante_residencia', 'comprovante_escolar']);
+            $dadosAtualizacao = $request->except([
+                'foto_documento',
+                'comprovante_residencia',
+                'comprovante_escolar',
+                'possui_nome_social',
+            ]);
+            $dadosAtualizacao['nome_estagiario'] = $camposNome['nome_estagiario'];
+            $dadosAtualizacao['nome_secundario'] = $camposNome['nome_secundario'];
             foreach ($novosArquivos as $campo => $path) {
                 $dadosAtualizacao[$campo] = $path;
             }
@@ -778,6 +816,8 @@ class EstagiarioController extends Controller
         // Validação (sem CPF e outros dados sensíveis)
         $request->validate([
             'nome_estagiario' => 'required|string|max:255',
+            'possui_nome_social' => 'nullable|boolean',
+            'nome_secundario' => 'nullable|string|max:255|required_if:possui_nome_social,1',
             'data_nascimento' => 'required|date',
             'numero_telefone' => 'nullable|string',
             'numero_celular' => 'required|string',
@@ -797,10 +837,13 @@ class EstagiarioController extends Controller
             'tipo_chave_pix' => 'nullable|in:CPF,EMAIL,TELEFONE,ALEATORIA',
             'chave_pix' => 'nullable|string',
         ]);
+
+        $camposNome = $this->resolverCamposNome($request);
         
         // Atualizar dados
         $estagiario->update([
-            'nome_estagiario' => mb_strtoupper($request->nome_estagiario),
+            'nome_estagiario' => $camposNome['nome_estagiario'],
+            'nome_secundario' => $camposNome['nome_secundario'],
             'data_nascimento' => $request->data_nascimento,
             'numero_telefone' => $request->numero_telefone,
             'numero_celular' => $request->numero_celular,

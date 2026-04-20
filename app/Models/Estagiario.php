@@ -22,6 +22,7 @@ class Estagiario extends Model
     // Atributos que são atribuíveis em massa (protegendo contra mass assignment)
     protected $fillable = [
         'nome_estagiario',
+        'nome_secundario',
         'numero_cpf',
         'data_nascimento',
         'numero_telefone',

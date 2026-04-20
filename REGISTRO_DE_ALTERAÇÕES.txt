@@ -1,5 +1,14 @@
 REGISTRO DE ALTERAÇÕES
 
+20/04/2026 - GitHub Copilot:
+* Adicionei suporte a nome social no cadastro e edição de estagiário (fluxos admin, público e AJAX).
+* Incluí checkbox "Possui nome social?" com exibição condicional do campo "Nome Civil".
+* Implementei a regra de persistência invertida no backend:
+* Quando houver nome social, `nome_estagiario` salva o nome social e `nome_secundario` salva o nome civil.
+* Quando não houver nome social, `nome_estagiario` segue normal e `nome_secundario` fica `null`.
+* Atualizei também a edição do perfil do estagiário para respeitar a mesma regra visual e de salvamento.
+* Criei migração para adicionar o novo campo `nome_secundario` em `tb_estagiarios`.
+
 16/03/2026 - GitHub Copilot:
 * Corrigi o fluxo de criação de alteração de termo para não distorcer `valor_bolsa` e `auxilio_transporte` quando os campos da alteração são enviados em branco.
 * A normalização monetária agora só é aplicada quando o usuário realmente preenche `valor_bolsa_alteracao` e/ou `auxilio_transporte_alteracao`.

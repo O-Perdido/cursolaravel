@@ -254,9 +254,22 @@
                         <div class="col-md-6">
                             <h5 class="mb-3 text-primary"><i class="fas fa-user mr-2"></i> Dados Pessoais</h5>
 
+                            <div class="form-check mb-3">
+                                <input type="checkbox" class="form-check-input" id="possui_nome_social" name="possui_nome_social" value="1">
+                                <label class="form-check-label" for="possui_nome_social">Possui nome social?</label>
+                            </div>
+
                             <div class="form-group">
-                                <label for="nome_estagiario">Nome Completo <span class="text-danger">*</span></label>
+                                <label for="nome_estagiario" id="label_nome_estagiario">Nome Completo <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control" id="nome_estagiario" name="nome_estagiario" required
+                                    oninput="this.value = this.value.toUpperCase()">
+                            </div>
+
+                            
+
+                            <div class="form-group" id="grupo_nome_secundario" style="display: none;">
+                                <label for="nome_secundario">Nome Civil <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="nome_secundario" name="nome_secundario"
                                     oninput="this.value = this.value.toUpperCase()">
                             </div>
 
@@ -675,6 +688,10 @@
             const uploadProgressWrap = document.getElementById('upload-progress-wrap');
             const uploadProgressBar = document.getElementById('upload-progress-bar');
             const uploadProgressText = document.getElementById('upload-progress-text');
+            const possuiNomeSocialCheckbox = document.getElementById('possui_nome_social');
+            const grupoNomeSecundario = document.getElementById('grupo_nome_secundario');
+            const nomeSecundarioInput = document.getElementById('nome_secundario');
+            const labelNomeEstagiario = document.getElementById('label_nome_estagiario');
 
             const REQUEST_TIMEOUT_MS = 120000;
             const RETRY_DELAYS_MS = [2000, 5000, 10000];
@@ -714,6 +731,21 @@
             const uploadMaxBytes = parseShorthandBytes(uploadMaxIni);
             const postMaxBytes = parseShorthandBytes(postMaxIni);
             const maxPerFile = uploadMaxBytes > 0 ? Math.min(maxFileByValidation, uploadMaxBytes) : maxFileByValidation;
+
+            function atualizarCamposNomeSocial() {
+                const ativo = possuiNomeSocialCheckbox.checked;
+                grupoNomeSecundario.style.display = ativo ? 'block' : 'none';
+                nomeSecundarioInput.required = ativo;
+                labelNomeEstagiario.innerHTML = ativo
+                    ? 'Nome Social <span class="text-danger">*</span>'
+                    : 'Nome Completo <span class="text-danger">*</span>';
+
+                if (!ativo) {
+                    nomeSecundarioInput.value = '';
+                }
+
+                checkFormValid();
+            }
 
             function delay(ms) {
                 return new Promise(resolve => setTimeout(resolve, ms));
@@ -942,6 +974,8 @@
             // Checkbox de termos
             const termosCheckbox = document.getElementById('aceitacao_termos');
             termosCheckbox.addEventListener('change', checkFormValid);
+            possuiNomeSocialCheckbox.addEventListener('change', atualizarCamposNomeSocial);
+            nomeSecundarioInput.addEventListener('input', checkFormValid);
 
             // Calcular idade e validar PIS obrigatório
             const dataNascimentoInput = document.getElementById('data_nascimento');
@@ -987,6 +1021,7 @@
                 const cpfValido = validarCPF(cpfInput.value);
                 const termosAceitos = termosCheckbox.checked;
                 const senhaValida = validatePasswords();
+                const nomeSocialValido = !possuiNomeSocialCheckbox.checked || nomeSecundarioInput.value.trim().length > 0;
 
                 // Validar PIS se obrigatório
                 const idade = calcularIdade(dataNascimentoInput.value);
@@ -994,7 +1029,7 @@
                 const pisFilled = numeropisInput.value.trim().length > 0;
                 const pisValido = !isPISRequired || pisFilled;
 
-                cadastrarBtn.disabled = !(cpfValido && termosAceitos && senhaValida && pisValido);
+                cadastrarBtn.disabled = !(cpfValido && termosAceitos && senhaValida && pisValido && nomeSocialValido);
             }
 
             // Carregar cidades ao selecionar estado
@@ -1141,6 +1176,7 @@
             // Inicializar validações
             validatePasswords();
             atualizarValidacaoPIS();
+            atualizarCamposNomeSocial();
             checkFormValid();
         });
     </script>

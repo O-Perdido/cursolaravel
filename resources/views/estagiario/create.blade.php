@@ -359,8 +359,17 @@
                 <!-- Coluna 1 - Dados Pessoais -->
                 <div class="col-md-6">
                     <div class="form-group">
-                        <label for="nome_estagiario">Nome do Estagiário</label>
+                        <label for="nome_estagiario" id="label_nome_estagiario">Nome do Estagiário</label>
                         <input type="text" class="form-control" id="nome_estagiario" name="nome_estagiario" required
+                            oninput="this.value = this.value.toUpperCase()">
+                    </div>
+                    <div class="form-check mb-2">
+                        <input type="checkbox" class="form-check-input" id="possui_nome_social" name="possui_nome_social" value="1">
+                        <label class="form-check-label" for="possui_nome_social">Possui nome social?</label>
+                    </div>
+                    <div class="form-group" id="grupo_nome_secundario" style="display: none;">
+                        <label for="nome_secundario">Nome Civil</label>
+                        <input type="text" class="form-control" id="nome_secundario" name="nome_secundario"
                             oninput="this.value = this.value.toUpperCase()">
                     </div>
                     <div class="form-group">
@@ -632,6 +641,25 @@
 
             document.addEventListener('DOMContentLoaded', function () {
                 const form = document.querySelector('form'); // Selecione o formulário correto se houver mais de um
+                const possuiNomeSocialCheckbox = document.getElementById('possui_nome_social');
+                const grupoNomeSecundario = document.getElementById('grupo_nome_secundario');
+                const nomeSecundarioInput = document.getElementById('nome_secundario');
+                const labelNomeEstagiario = document.getElementById('label_nome_estagiario');
+
+                function atualizarCamposNomeSocial() {
+                    const ativo = possuiNomeSocialCheckbox.checked;
+                    grupoNomeSecundario.style.display = ativo ? 'block' : 'none';
+                    nomeSecundarioInput.required = ativo;
+                    labelNomeEstagiario.textContent = ativo ? 'Nome Social' : 'Nome do Estagiário';
+
+                    if (!ativo) {
+                        nomeSecundarioInput.value = '';
+                    }
+                }
+
+                possuiNomeSocialCheckbox.addEventListener('change', atualizarCamposNomeSocial);
+                atualizarCamposNomeSocial();
+
                 if (form) {
                     form.addEventListener('submit', function () {
                         document.getElementById('form-loading').style.display = 'flex';

@@ -3,6 +3,12 @@
 @section('title', 'Editar Estagiário')
 
 @section('content')
+    @php
+        $possuiNomeSocial = old('possui_nome_social') !== null
+            ? (bool) old('possui_nome_social')
+            : !empty($estagiario->nome_secundario);
+    @endphp
+
     <h1>Editar Estagiário</h1>
 
     @if(session('success'))
@@ -34,9 +40,19 @@
             <!-- Dados Pessoais -->
             <div class="col-md-6">
                 <div class="form-group mb-2">
-                    <label for="nome_estagiario">Nome do Estagiário</label>
+                    <label for="nome_estagiario" id="label_nome_estagiario">{{ $possuiNomeSocial ? 'Nome Social' : 'Nome do Estagiário' }}</label>
                     <input type="text" id="nome_estagiario" name="nome_estagiario" class="form-control"
                         value="{{ old('nome_estagiario', $estagiario->nome_estagiario) }}">
+                </div>
+                <div class="form-check mb-2">
+                    <input type="checkbox" class="form-check-input" id="possui_nome_social" name="possui_nome_social" value="1"
+                        {{ $possuiNomeSocial ? 'checked' : '' }}>
+                    <label class="form-check-label" for="possui_nome_social">Possui nome social?</label>
+                </div>
+                <div class="form-group mb-2" id="grupo_nome_secundario" style="display: {{ $possuiNomeSocial ? 'block' : 'none' }};">
+                    <label for="nome_secundario">Nome Civil</label>
+                    <input type="text" id="nome_secundario" name="nome_secundario" class="form-control"
+                        value="{{ old('nome_secundario', $estagiario->nome_secundario) }}">
                 </div>
                 <div class="form-group mb-2">
                     <label for="numero_cpf">CPF</label>
@@ -197,6 +213,24 @@
             const estadoSelect = document.getElementById('fk_id_estado');
             const cidadesSelect = document.getElementById('fk_id_cidade');
             const cidadeOriginal = cidadesSelect.value; // Salva a cidade original
+            const possuiNomeSocialCheckbox = document.getElementById('possui_nome_social');
+            const grupoNomeSecundario = document.getElementById('grupo_nome_secundario');
+            const nomeSecundarioInput = document.getElementById('nome_secundario');
+            const labelNomeEstagiario = document.getElementById('label_nome_estagiario');
+
+            function atualizarCamposNomeSocial() {
+                const ativo = possuiNomeSocialCheckbox.checked;
+                grupoNomeSecundario.style.display = ativo ? 'block' : 'none';
+                nomeSecundarioInput.required = ativo;
+                labelNomeEstagiario.textContent = ativo ? 'Nome Social' : 'Nome do Estagiário';
+
+                if (!ativo) {
+                    nomeSecundarioInput.value = '';
+                }
+            }
+
+            possuiNomeSocialCheckbox.addEventListener('change', atualizarCamposNomeSocial);
+            atualizarCamposNomeSocial();
 
             estadoSelect.addEventListener('change', function () {
                 const estadoId = this.value;

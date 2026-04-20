@@ -3,6 +3,11 @@
 @section('title', 'Editar Meu Perfil')
 
 @section('content')
+    @php
+        $possuiNomeSocial = old('possui_nome_social') !== null
+            ? (bool) old('possui_nome_social')
+            : !empty($estagiario->nome_secundario);
+    @endphp
 
     @if($errors->any())
         <div class="alert alert-danger alert-dismissible fade show" role="alert">
@@ -65,9 +70,21 @@
                     </div>
                     <div class="card-body p-4">
                         <div class="mb-3">
-                            <label for="nome_estagiario" class="form-label">Nome Completo *</label>
+                            <label for="nome_estagiario" class="form-label" id="label_nome_estagiario">{{ $possuiNomeSocial ? 'Nome Social *' : 'Nome Completo *' }}</label>
                             <input type="text" class="form-control" id="nome_estagiario" name="nome_estagiario"
                                 value="{{ old('nome_estagiario', $estagiario->nome_estagiario) }}" required>
+                        </div>
+
+                        <div class="form-check mb-3">
+                            <input type="checkbox" class="form-check-input" id="possui_nome_social" name="possui_nome_social" value="1"
+                                {{ $possuiNomeSocial ? 'checked' : '' }}>
+                            <label class="form-check-label" for="possui_nome_social">Possui nome social?</label>
+                        </div>
+
+                        <div class="mb-3" id="grupo_nome_secundario" style="display: {{ $possuiNomeSocial ? 'block' : 'none' }};">
+                            <label for="nome_secundario" class="form-label">Nome Civil *</label>
+                            <input type="text" class="form-control" id="nome_secundario" name="nome_secundario"
+                                value="{{ old('nome_secundario', $estagiario->nome_secundario) }}">
                         </div>
 
                         <div class="row">
@@ -355,6 +372,21 @@
             const estadoSelect = document.getElementById('fk_id_estado');
             const cidadeSelect = document.getElementById('fk_id_cidade');
             const todasCidades = Array.from(cidadeSelect.querySelectorAll('option[data-estado]'));
+            const possuiNomeSocialCheckbox = document.getElementById('possui_nome_social');
+            const grupoNomeSecundario = document.getElementById('grupo_nome_secundario');
+            const nomeSecundarioInput = document.getElementById('nome_secundario');
+            const labelNomeEstagiario = document.getElementById('label_nome_estagiario');
+
+            function atualizarCamposNomeSocial() {
+                const ativo = possuiNomeSocialCheckbox.checked;
+                grupoNomeSecundario.style.display = ativo ? 'block' : 'none';
+                nomeSecundarioInput.required = ativo;
+                labelNomeEstagiario.textContent = ativo ? 'Nome Social *' : 'Nome Completo *';
+
+                if (!ativo) {
+                    nomeSecundarioInput.value = '';
+                }
+            }
 
             function filtrarCidades() {
                 const estadoId = estadoSelect.value;
@@ -379,11 +411,14 @@
 
             // Filtrar ao mudar estado
             estadoSelect.addEventListener('change', filtrarCidades);
+            possuiNomeSocialCheckbox.addEventListener('change', atualizarCamposNomeSocial);
 
             // Filtrar no carregamento se houver estado selecionado
             if (estadoSelect.value) {
                 filtrarCidades();
             }
+
+            atualizarCamposNomeSocial();
         });
     </script>
 
