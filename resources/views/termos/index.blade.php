@@ -337,8 +337,10 @@
                 <thead style="position: sticky; top: 0; background-color: #f8f9fa; z-index: 1;">
                     <tr>
                         <th>Número do Termo</th>
+                        <!--
                         <th>Data</th>
-                        <th>Nome Estagiario</th>
+                        -->
+                        <th style="min-width: 250px">Nome Estagiario</th>
                         <th>Unidade Concedente</th>
                         <th>Instituição de Ensino</th>
                         <th style="text-align: center;">Status do Contrato</th>
@@ -352,10 +354,17 @@
                             <td style="vertical-align: middle;">
                                 {{ $termo->numero_termo }}/{{ $termo->ano_termo }}
                             </td>
+                            <!--
                             <td style="vertical-align: middle;">
                                 {{ $termo->data ? date('d/m/Y', strtotime($termo->data)) : 'Data não disponível' }}
                             </td>
-                            <td style="vertical-align: middle;">{{ $termo->estagiario->nome_estagiario }}</td>
+                            -->
+                            <td style="vertical-align: middle;">
+                                <div>{{ $termo->estagiario->nome_estagiario }}</div>
+                                @if(!empty($termo->estagiario->nome_secundario))
+                                    <div class="text-muted small">Nome civil: {{ $termo->estagiario->nome_secundario }}</div>
+                                @endif
+                            </td>
                             <td style="vertical-align: middle;">{{ $termo->empresa->nome_empresa }}</td>
                             <td style="vertical-align: middle;">{{ $termo->escola->nome_escola }}</td>
                             <td style="text-align: center; vertical-align: middle;">
@@ -442,7 +451,12 @@
                                             <div class="modal-body text-break">
                                                 <p>Deseja enviar este termo para assinatura eletrônica via ZapSign?</p>
                                                 <p><strong>Termo:</strong> {{ $termo->numero_termo }}/{{ $termo->ano_termo }}</p>
-                                                <p><strong>Estagiário:</strong> {{ $termo->estagiario->nome_estagiario }}</p>
+                                                <p>
+                                                    <strong>Estagiário:</strong> {{ $termo->estagiario->nome_estagiario }}
+                                                    @if(!empty($termo->estagiario->nome_secundario))
+                                                        <br><span class="text-muted small">Nome civil: {{ $termo->estagiario->nome_secundario }}</span>
+                                                    @endif
+                                                </p>
                                                 @if($termo->estagiario->email)
                                                     <p><strong>Email:</strong> {{ $termo->estagiario->email }}</p>
                                                 @else
@@ -497,7 +511,12 @@
                                                                     </button>
                                                                 </td>
                                                                 <td><i class="fas fa-user text-primary me-1"></i> Estagiário</td>
-                                                                <td>{{ $termo->estagiario->nome_estagiario }}</td>
+                                                                <td>
+                                                                    {{ $termo->estagiario->nome_estagiario }}
+                                                                    @if(!empty($termo->estagiario->nome_secundario))
+                                                                        <br><span class="text-muted small">Nome civil: {{ $termo->estagiario->nome_secundario }}</span>
+                                                                    @endif
+                                                                </td>
                                                                 <td>{{ $termo->estagiario->email ?? '—' }}</td>
                                                                 <td>—</td>
                                                             </tr>

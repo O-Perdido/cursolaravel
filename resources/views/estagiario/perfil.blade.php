@@ -68,6 +68,9 @@
                         <div class="col-md-12">
                             <label class="text-muted small mb-1">Nome Completo</label>
                             <p class="fw-semibold mb-0">{{ $estagiario->nome_estagiario }}</p>
+                            @if(!empty($estagiario->nome_secundario))
+                                <p class="text-muted mb-0" style="font-size: 0.85rem;">Nome civil: {{ $estagiario->nome_secundario }}</p>
+                            @endif
                         </div>
                         <div class="col-md-6">
                             <label class="text-muted small mb-1">CPF</label>

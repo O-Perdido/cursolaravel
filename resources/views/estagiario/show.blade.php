@@ -9,6 +9,9 @@
     <div class="card shadow-sm">
         <div class="card-header text-black">
             <h5 class="mb-0">{{ $estagiario->nome_estagiario }}</h5>
+            @if(!empty($estagiario->nome_secundario))
+                <small class="text-muted">Nome civil: {{ $estagiario->nome_secundario }}</small>
+            @endif
         </div>
         <div class="card-body">
             <div class="row">
@@ -16,6 +19,9 @@
                 <div class="col-md-6">
                     <h6 class="text-muted mb-3">Dados Pessoais</h6>
                     <p class="mb-1"><strong>Nome:</strong> {{ $estagiario->nome_estagiario }}</p>
+                    @if(!empty($estagiario->nome_secundario))
+                        <p class="mb-1 text-muted"><strong>Nome civil:</strong> {{ $estagiario->nome_secundario }}</p>
+                    @endif
                     <p class="mb-1"><strong>CPF:</strong>
                         {{ $estagiario->numero_cpf ? preg_replace('/(\d{3})(\d{3})(\d{3})(\d{2})/', '$1.$2.$3-$4', $estagiario->numero_cpf) : '' }}
                     </p>

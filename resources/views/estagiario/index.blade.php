@@ -156,7 +156,12 @@
             <tbody>
                 @foreach ($estagiarios as $estagiario)
                     <tr>
-                        <td>{{ $estagiario->nome_estagiario }}</td>
+                        <td>
+                            <div>{{ $estagiario->nome_estagiario }}</div>
+                            @if(!empty($estagiario->nome_secundario))
+                                <div class="text-muted small">Nome civil: {{ $estagiario->nome_secundario }}</div>
+                            @endif
+                        </td>
                         <td>{{ $estagiario->numero_cpf }}</td>
                         <td>{{ $estagiario->email }}</td>
                         <td>

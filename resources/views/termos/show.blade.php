@@ -465,6 +465,9 @@
                             <ul class="list-group list-group-flush">
                                 <li class="list-group-item"><strong>Estagiário:</strong>
                                     {{ $termo->estagiario->nome_estagiario }}
+                                    @if(!empty($termo->estagiario->nome_secundario))
+                                        <br><span class="text-muted small">Nome civil: {{ $termo->estagiario->nome_secundario }}</span>
+                                    @endif
                                     @if (Auth::user()->nivel == 'admin' || Auth::user()->nivel == 'operador')
                                         <a href="{{ route('estagiario.show', $termo->estagiario->id_estagiario) }}"
                                             target="_blank" class="ml-1" title="Ver detalhes do estagiário">
@@ -580,6 +583,9 @@
                                             <strong>Estagiário:</strong>
                                             @if(!empty($nomeEstagiario))
                                                 <span>{{ $nomeEstagiario }}</span>
+                                                @if(!empty($termo->estagiario->nome_secundario))
+                                                    <br><span class="text-muted small">Nome civil: {{ $termo->estagiario->nome_secundario }}</span>
+                                                @endif
                                             @endif
                                         </div>
                                         <div>
