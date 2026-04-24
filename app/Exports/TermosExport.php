@@ -74,6 +74,39 @@ class TermosExport implements FromView
                 ->whereDoesntHave('rescisao');
         }
 
+        // Filtrar por status de assinatura ZapSign
+        $statusAssinatura = $this->request->input('status_assinatura');
+        $signedStatuses = ['finished', 'signed', 'concluded', 'completed'];
+        $pendingStatuses = ['enviado', 'pending', 'waiting', 'waiting_signature', 'processing', 'partially_signed', 'partial'];
+
+        if ($statusAssinatura === 'nao_enviado') {
+            $query->where(function ($q) {
+                $q->whereNull('zapsign_doc_token')
+                    ->orWhere('zapsign_doc_token', '');
+            });
+        }
+
+        if ($statusAssinatura === 'assinado') {
+            $query->whereRaw(
+                'LOWER(COALESCE(zapsign_status, "")) IN (' . implode(',', array_fill(0, count($signedStatuses), '?')) . ')',
+                $signedStatuses
+            );
+        }
+
+        if ($statusAssinatura === 'pendente') {
+            $query->whereRaw(
+                'LOWER(COALESCE(zapsign_status, "")) IN (' . implode(',', array_fill(0, count($pendingStatuses), '?')) . ')',
+                $pendingStatuses
+            );
+        }
+
+        if ($statusAssinatura === 'nao_assinado') {
+            $query->whereRaw(
+                '(LOWER(COALESCE(zapsign_status, "")) NOT IN (' . implode(',', array_fill(0, count($signedStatuses), '?')) . ') OR zapsign_status IS NULL OR zapsign_status = "")',
+                $signedStatuses
+            );
+        }
+
         // return view('termos.gerarRelatorioTermo', [
         //     'termos' => Termo::all(),
 

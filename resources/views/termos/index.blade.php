@@ -276,8 +276,19 @@
                             </select>
                         </div>
 
+                        <div class="col-md-3">
+                            <label for="status_assinatura" class="form-label mb-1 fw-semibold">Assinatura ZapSign</label>
+                            <select name="status_assinatura" id="status_assinatura" class="form-select form-select-sm">
+                                <option value="">Todos</option>
+                                <option value="nao_enviado" {{ request('status_assinatura') == 'nao_enviado' ? 'selected' : '' }}>Não enviado</option>
+                                <option value="pendente" {{ request('status_assinatura') == 'pendente' ? 'selected' : '' }}>Pendente</option>
+                                <option value="assinado" {{ request('status_assinatura') == 'assinado' ? 'selected' : '' }}>Assinado</option>
+                                <option value="nao_assinado" {{ request('status_assinatura') == 'nao_assinado' ? 'selected' : '' }}>Não assinado</option>
+                            </select>
+                        </div>
+
                         <!-- Botões de Ação -->
-                        <div class="col-md-6 d-flex align-items-end gap-2">
+                        <div class="col-md-3 d-flex align-items-end gap-2">
                             <button type="submit" class="btn btn-primary btn-sm flex-fill">
                                 <i class="fas fa-search me-1"></i> Filtrar
                             </button>
@@ -804,6 +815,16 @@
                                         <option value="vencidos" {{ request('status') == 'vencidos' ? 'selected' : '' }}>
                                             Vencidos
                                         </option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="status_assinatura" class="form-label mb-1">Assinatura ZapSign</label>
+                                    <select name="status_assinatura" id="status_assinatura" class="form-select form-select-sm">
+                                        <option value="">Todos</option>
+                                        <option value="nao_enviado" {{ request('status_assinatura') == 'nao_enviado' ? 'selected' : '' }}>Não enviado</option>
+                                        <option value="pendente" {{ request('status_assinatura') == 'pendente' ? 'selected' : '' }}>Pendente</option>
+                                        <option value="assinado" {{ request('status_assinatura') == 'assinado' ? 'selected' : '' }}>Assinado</option>
+                                        <option value="nao_assinado" {{ request('status_assinatura') == 'nao_assinado' ? 'selected' : '' }}>Não assinado</option>
                                     </select>
                                 </div>
                                 <div class="col-md-2 d-flex flex-column align-items-end justify-content-end gap-2">

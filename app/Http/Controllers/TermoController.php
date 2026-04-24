@@ -86,6 +86,39 @@ class TermoController extends Controller
                 ->whereDoesntHave('rescisao');
         }
 
+        // Filtrar por status de assinatura ZapSign
+        $statusAssinatura = $request->input('status_assinatura');
+        $signedStatuses = ['finished', 'signed', 'concluded', 'completed'];
+        $pendingStatuses = ['enviado', 'pending', 'waiting', 'waiting_signature', 'processing', 'partially_signed', 'partial'];
+
+        if ($statusAssinatura === 'nao_enviado') {
+            $query->where(function ($q) {
+                $q->whereNull('zapsign_doc_token')
+                    ->orWhere('zapsign_doc_token', '');
+            });
+        }
+
+        if ($statusAssinatura === 'assinado') {
+            $query->whereRaw(
+                'LOWER(COALESCE(zapsign_status, "")) IN (' . implode(',', array_fill(0, count($signedStatuses), '?')) . ')',
+                $signedStatuses
+            );
+        }
+
+        if ($statusAssinatura === 'pendente') {
+            $query->whereRaw(
+                'LOWER(COALESCE(zapsign_status, "")) IN (' . implode(',', array_fill(0, count($pendingStatuses), '?')) . ')',
+                $pendingStatuses
+            );
+        }
+
+        if ($statusAssinatura === 'nao_assinado') {
+            $query->whereRaw(
+                '(LOWER(COALESCE(zapsign_status, "")) NOT IN (' . implode(',', array_fill(0, count($signedStatuses), '?')) . ') OR zapsign_status IS NULL OR zapsign_status = "")',
+                $signedStatuses
+            );
+        }
+
         // Se usuário for do tipo "empresa", restringe a listagem à sua unidade
         if (Auth::check() && Auth::user()->nivel === 'empresa') {
             $query->where('fk_id_empresa', Auth::user()->fk_id_empresa);
@@ -169,6 +202,39 @@ class TermoController extends Controller
         if ($request->has('status') && $request->input('status') == 'vencidos') {
             $query->where('data_fim_estagio', '<', now())
                 ->whereDoesntHave('rescisao');
+        }
+
+        // Filtrar por status de assinatura ZapSign
+        $statusAssinatura = $request->input('status_assinatura');
+        $signedStatuses = ['finished', 'signed', 'concluded', 'completed'];
+        $pendingStatuses = ['enviado', 'pending', 'waiting', 'waiting_signature', 'processing', 'partially_signed', 'partial'];
+
+        if ($statusAssinatura === 'nao_enviado') {
+            $query->where(function ($q) {
+                $q->whereNull('zapsign_doc_token')
+                    ->orWhere('zapsign_doc_token', '');
+            });
+        }
+
+        if ($statusAssinatura === 'assinado') {
+            $query->whereRaw(
+                'LOWER(COALESCE(zapsign_status, "")) IN (' . implode(',', array_fill(0, count($signedStatuses), '?')) . ')',
+                $signedStatuses
+            );
+        }
+
+        if ($statusAssinatura === 'pendente') {
+            $query->whereRaw(
+                'LOWER(COALESCE(zapsign_status, "")) IN (' . implode(',', array_fill(0, count($pendingStatuses), '?')) . ')',
+                $pendingStatuses
+            );
+        }
+
+        if ($statusAssinatura === 'nao_assinado') {
+            $query->whereRaw(
+                '(LOWER(COALESCE(zapsign_status, "")) NOT IN (' . implode(',', array_fill(0, count($signedStatuses), '?')) . ') OR zapsign_status IS NULL OR zapsign_status = "")',
+                $signedStatuses
+            );
         }
 
         $termos = $query->with('estagiario')->get();

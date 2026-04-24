@@ -306,19 +306,44 @@
             const mask = document.getElementById(maskId);
             const hidden = document.getElementById(hiddenId);
             if (!mask || !hidden) return;
+
+            const syncMoneyValue = () => {
+                const normalized = unmaskBRLToNumber(mask.value);
+                hidden.value = normalized === '' ? '0.00' : normalized;
+                mask.value = formatToBRL(mask.value);
+            };
+
             if (hidden.value) mask.value = formatToBRL(Math.round(parseFloat(hidden.value) * 100));
+            syncMoneyValue();
+
             mask.addEventListener('input', function () {
-                this.value = formatToBRL(this.value);
-                hidden.value = unmaskBRLToNumber(this.value);
+                syncMoneyValue();
             });
             mask.addEventListener('blur', function () {
-                this.value = formatToBRL(this.value);
-                hidden.value = unmaskBRLToNumber(this.value);
+                syncMoneyValue();
             });
         }
         @if(!$vaga->fk_id_termo)
             bindMoneyMask('valor_bolsa_mask', 'valor_bolsa');
             bindMoneyMask('valor_auxilio_transporte_mask', 'valor_auxilio_transporte');
+
+            const formVaga = document.querySelector('form[action="{{ route('vagas.update', $vaga->id_vaga) }}"]');
+            if (formVaga) {
+                formVaga.addEventListener('submit', function () {
+                    const bolsaMask = document.getElementById('valor_bolsa_mask');
+                    const bolsaHidden = document.getElementById('valor_bolsa');
+                    const auxilioMask = document.getElementById('valor_auxilio_transporte_mask');
+                    const auxilioHidden = document.getElementById('valor_auxilio_transporte');
+
+                    if (bolsaMask && bolsaHidden) {
+                        bolsaHidden.value = unmaskBRLToNumber(bolsaMask.value) || '0.00';
+                    }
+
+                    if (auxilioMask && auxilioHidden) {
+                        auxilioHidden.value = unmaskBRLToNumber(auxilioMask.value) || '0.00';
+                    }
+                });
+            }
         @endif
         bindPhoneMask('contato_whatsapp');
 

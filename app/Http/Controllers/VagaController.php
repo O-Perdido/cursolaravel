@@ -98,6 +98,7 @@ class VagaController extends Controller
         $user = Auth::user();
         $empresaId = $user->nivel === 'empresa' ? $user->fk_id_empresa : $request->input('fk_id_empresa');
         $request->merge(['fk_id_empresa' => $empresaId]);
+        $this->normalizarValoresMonetarios($request);
         
         $this->normalizarEstagiarioDefinido($request);
         
@@ -167,6 +168,8 @@ class VagaController extends Controller
         if ($vaga->fk_id_termo) {
             return back()->withErrors(['msg' => 'Não é possível editar vaga vinculada a termo.']);
         }
+        
+        $this->normalizarValoresMonetarios($request);
         
         $this->normalizarEstagiarioDefinido($request, $vaga);
         
@@ -274,6 +277,17 @@ class VagaController extends Controller
             'lotacao' => $vaga->lotacao,
             'valor_bolsa' => $vaga->valor_bolsa,
             'valor_auxilio_transporte' => $vaga->valor_auxilio_transporte,
+        ]);
+    }
+
+    private function normalizarValoresMonetarios(Request $request): void
+    {
+        $valorBolsa = $request->input('valor_bolsa');
+        $auxilioTransporte = $request->input('valor_auxilio_transporte');
+
+        $request->merge([
+            'valor_bolsa' => ($valorBolsa === null || $valorBolsa === '') ? 0 : $valorBolsa,
+            'valor_auxilio_transporte' => ($auxilioTransporte === null || $auxilioTransporte === '') ? 0 : $auxilioTransporte,
         ]);
     }
 
