@@ -45,6 +45,10 @@ class TermosExport implements FromView
             $query->where('fk_id_escola', $this->request->escola);
         }
 
+        if ($this->request->filled('usuario_gerador')) {
+            $query->where('fk_id_user_gerador', $this->request->usuario_gerador);
+        }
+
         if ($this->request->filled('data_inicial')) {
             $query->whereDate('data_fim_estagio', '>=', $this->request->data_inicial);
         }

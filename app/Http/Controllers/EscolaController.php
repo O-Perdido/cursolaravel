@@ -87,6 +87,7 @@ class EscolaController extends Controller
             'numero_apolice' => 'nullable|string',
             'nome_seguradora' => 'nullable|string',
             'nao_assina_zapsign' => 'nullable|boolean',
+            'orientacao_assinatura' => 'nullable|string|max:2000|required_if:nao_assina_zapsign,1',
 
         ]);
 
@@ -110,6 +111,9 @@ class EscolaController extends Controller
             'numero_apolice' => $request->numero_apolice,
             'nome_seguradora' => $request->nome_seguradora,
             'nao_assina_zapsign' => $request->boolean('nao_assina_zapsign'),
+            'orientacao_assinatura' => $request->filled('orientacao_assinatura')
+                ? $request->orientacao_assinatura
+                : null,
         ]);
 
         // Redirecionamento com sucesso
@@ -186,6 +190,8 @@ class EscolaController extends Controller
             'cargo_representante' => 'nullable|string',
             'cpf_representante' => 'nullable|string|max:11',
             */
+            'nao_assina_zapsign' => 'nullable|boolean',
+            'orientacao_assinatura' => 'nullable|string|max:2000|required_if:nao_assina_zapsign,1',
         ]);
 
         $request->merge([

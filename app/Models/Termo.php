@@ -61,6 +61,8 @@ class Termo extends Model
         'zapsign_enviado_em',
             'fk_id_vaga',
             'vinculo',
+        // Auditoria
+        'fk_id_user_gerador',
     ];
 
     protected $casts = [
@@ -130,4 +132,9 @@ class Termo extends Model
     {
         return $this->hasMany(Avaliacao::class, 'fk_id_termo', 'id_termo');
     }
+    public function userGerador()
+    {
+        return $this->belongsTo(\App\Models\User::class, 'fk_id_user_gerador', 'id');
+    }
+
 }

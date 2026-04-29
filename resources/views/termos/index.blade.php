@@ -254,7 +254,7 @@
                         @endif
 
                         <!-- Linha 2: Período e Status -->
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <label class="form-label mb-1 fw-semibold">Período de Término do Estágio</label>
                             <div class="input-group input-group-sm">
                                 <input type="date" name="data_inicial" id="data_inicial" class="form-control form-control-sm"
@@ -276,7 +276,7 @@
                             </select>
                         </div>
 
-                        <div class="col-md-3">
+                        <div class="col-md-2">
                             <label for="status_assinatura" class="form-label mb-1 fw-semibold">Assinatura ZapSign</label>
                             <select name="status_assinatura" id="status_assinatura" class="form-select form-select-sm">
                                 <option value="">Todos</option>
@@ -287,8 +287,20 @@
                             </select>
                         </div>
 
+                        <div class="col-md-3">
+                            <label for="usuario_gerador" class="form-label mb-1 fw-semibold">Gerado por</label>
+                            <select name="usuario_gerador" id="usuario_gerador" class="form-select form-select-sm">
+                                <option value="">Todos</option>
+                                @foreach ($usuariosGeradores as $usuarioGerador)
+                                    <option value="{{ $usuarioGerador->id }}" {{ (string) request('usuario_gerador') === (string) $usuarioGerador->id ? 'selected' : '' }}>
+                                        {{ $usuarioGerador->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
                         <!-- Botões de Ação -->
-                        <div class="col-md-3 d-flex align-items-end gap-2">
+                        <div class="col-md-2 d-flex align-items-end gap-2">
                             <button type="submit" class="btn btn-primary btn-sm flex-fill">
                                 <i class="fas fa-search me-1"></i> Filtrar
                             </button>
@@ -357,6 +369,9 @@
                         <th style="text-align: center;">Status do Contrato</th>
                         <th style="text-align: center;">Assinatura ZapSign</th>
                         <th style="text-align: center;">Ações</th>
+                            @if(Auth::user()->nivel == 'admin' || Auth::user()->nivel == 'operador')
+                            <th style="text-align: center;">Gerado por</th>
+                            @endif
                     </tr>
                 </thead>
                 <tbody>
@@ -478,6 +493,12 @@
                                                 @endif
 
                                                 <hr class="my-2">
+                                                @if(isset($termo->escola) && $termo->escola->nao_assina_zapsign && !empty($termo->escola->orientacao_assinatura))
+                                                    <div class="alert alert-info py-2 px-3 small" role="alert">
+                                                        <strong>Orientação da Instituição de Ensino:</strong>
+                                                        {!! nl2br(e($termo->escola->orientacao_assinatura)) !!}
+                                                    </div>
+                                                @endif
                                                 <form action="{{ route('termos.enviarZapSign', $termo->id_termo) }}" method="POST"
                                                     style="display:inline-block; width: 100%;">
                                                     @csrf
@@ -727,6 +748,17 @@
                                     </div>
                                 </div>
                             </td>
+                            @if(Auth::user()->nivel == 'admin' || Auth::user()->nivel == 'operador')
+                                <td style="text-align: center; vertical-align: middle;">
+                                    @if($termo->userGerador)
+                                        <span data-bs-toggle="tooltip" title="{{ $termo->userGerador->email }}">
+                                            {{ $termo->userGerador->name }}
+                                        </span>
+                                    @else
+                                        <span class="text-muted small">—</span>
+                                    @endif
+                                </td>
+                            @endif
                         </tr>
                     @endforeach
                 </tbody>

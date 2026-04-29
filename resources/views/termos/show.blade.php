@@ -209,6 +209,40 @@
                         'failed' => ['Erro', 'danger'],
                     ];
                 @endphp
+                    {{-- Bloco de Auditoria --}}
+                    <div class="card border-0 shadow-sm mb-4">
+                        <div class="card-header text-white d-flex align-items-center" style="background-color: #374151;">
+                            <i class="fas fa-history me-2"></i>
+                            <strong>Auditoria</strong>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-2">
+                                <div class="col-md-4">
+                                    <span class="text-muted small d-block">Gerado por</span>
+                                    <span class="fw-semibold">
+                                        @if($termo->userGerador)
+                                            {{ $termo->userGerador->name }}
+                                            <span class="badge bg-secondary ms-1" style="font-size:0.7rem;">{{ $termo->userGerador->nivel }}</span>
+                                        @else
+                                            <span class="text-muted fst-italic">Não registrado</span>
+                                        @endif
+                                    </span>
+                                </div>
+                                <div class="col-md-4">
+                                    <span class="text-muted small d-block">Data de cadastro</span>
+                                    <span class="fw-semibold">
+                                        {{ $termo->created_at ? $termo->created_at->format('d/m/Y H:i') : '—' }}
+                                    </span>
+                                </div>
+                                <div class="col-md-4">
+                                    <span class="text-muted small d-block">Última atualização</span>
+                                    <span class="fw-semibold">
+                                        {{ $termo->updated_at ? $termo->updated_at->format('d/m/Y H:i') : '—' }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 <div class="card border-0 shadow-sm mb-4">
                     <div class="card-header text-white d-flex justify-content-between align-items-center"
                         style="background-color: #1f2937;">
@@ -856,6 +890,12 @@
                         @endif
 
                         <hr class="my-2">
+                        @if(isset($termo->escola) && $termo->escola->nao_assina_zapsign && !empty($termo->escola->orientacao_assinatura))
+                            <div class="alert alert-info py-2 px-3 small" role="alert">
+                                <strong>Orientação da Instituição de Ensino:</strong>
+                                {!! nl2br(e($termo->escola->orientacao_assinatura)) !!}
+                            </div>
+                        @endif
                         <form action="{{ route('termos.enviarZapSign', $termo->id_termo) }}" method="POST"
                             style="display:inline-block; width: 100%;">
                             @csrf
@@ -1327,6 +1367,12 @@
                                 {{ \Carbon\Carbon::parse($termo->rescisao->data_rescisao)->format('d/m/Y') }}</p>
 
                             <hr class="my-2">
+                            @if(isset($termo->escola) && $termo->escola->nao_assina_zapsign && !empty($termo->escola->orientacao_assinatura))
+                                <div class="alert alert-info py-2 px-3 small" role="alert">
+                                    <strong>Orientação da Instituição de Ensino:</strong>
+                                    {!! nl2br(e($termo->escola->orientacao_assinatura)) !!}
+                                </div>
+                            @endif
                             <p class="mb-1">
                                 <strong>Destinatários que receberão o documento:</strong>
                             </p>

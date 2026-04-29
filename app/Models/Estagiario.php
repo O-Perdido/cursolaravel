@@ -16,8 +16,7 @@ class Estagiario extends Model
 
     protected $primaryKey = 'id_estagiario';  // Altere para o nome correto da coluna
 
-    // Se a tabela não usar os campos de timestamp "created_at" e "updated_at", defina a propriedade $timestamps como false
-    public $timestamps = false;
+    public $timestamps = true;
 
     // Atributos que são atribuíveis em massa (protegendo contra mass assignment)
     protected $fillable = [

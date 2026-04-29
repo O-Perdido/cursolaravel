@@ -246,6 +246,12 @@
                                 method="POST">
                                 @csrf
                         @endif
+                        @if(isset($alteracaoTermo->termo->escola) && $alteracaoTermo->termo->escola->nao_assina_zapsign && !empty($alteracaoTermo->termo->escola->orientacao_assinatura))
+                            <div class="alert alert-info py-2 px-3 small" role="alert">
+                                <strong>Orientação da Instituição de Ensino:</strong>
+                                {!! nl2br(e($alteracaoTermo->termo->escola->orientacao_assinatura)) !!}
+                            </div>
+                        @endif
                         <div class="table-responsive">
                             <table class="table table-sm table-bordered mb-0" style="font-size: 9pt">
                                 <thead class="table-light">

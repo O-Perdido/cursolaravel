@@ -58,11 +58,18 @@
                     <hr class="my-2">
                     <h6 class="text-muted mb-3">ZapSign</h6>
                     <!-- Exibir se a escola não assina pelo ZapSign -->
-                    @if (!$escola->assinatura_zapsign)
+                    @if ($escola->nao_assina_zapsign)
                         <p class="mb-1"><strong>Assinatura:</strong> Não assina pelo ZapSign</p>
                     @else
                         <p class="mb-1"><strong>Assinatura:</strong> Assina pelo ZapSign</p>
                     @endif
+                    <p class="mb-1"><strong>Orientação de Assinatura:</strong>
+                        @if($escola->orientacao_assinatura)
+                            {!! nl2br(e($escola->orientacao_assinatura)) !!}
+                        @else
+                            —
+                        @endif
+                    </p>
                     <hr class="my-2">
                     <h6 class="text-muted mb-3">Seguro</h6>
                     <p class="mb-1"><strong>Número da Apólice:</strong> {{ $escola->numero_apolice }}</p>

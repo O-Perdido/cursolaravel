@@ -43,6 +43,7 @@ class Escola extends Model
         'numero_apolice',
         'nome_seguradora',
         'nao_assina_zapsign',
+        'orientacao_assinatura',
     ];
 
     // Definir os campos que devem ser ocultados ao serializar o modelo (opcional)

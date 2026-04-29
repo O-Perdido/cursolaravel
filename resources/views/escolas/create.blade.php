@@ -147,6 +147,13 @@
             <small class="text-muted">Quando marcado, a instituicao nao sera adicionada como destinataria no envio.</small>
         </div>
 
+        <div class="form-group mt-2">
+            <label for="orientacao_assinatura">Orientacao de assinatura</label>
+            <textarea class="form-control" id="orientacao_assinatura" name="orientacao_assinatura" rows="3"
+                placeholder="Ex.: Assinatura manual pela secretaria academica; enviar documento por e-mail institucional.">{{ old('orientacao_assinatura') }}</textarea>
+            <small class="text-muted">Obrigatorio quando a opcao "nao assina pelo ZapSign" estiver marcada.</small>
+        </div>
+
         <div class="form-group mt-3 text-end">
             <button type="submit" class="btn btn-primary" id="submitButton">Salvar</button>
         </div>
@@ -274,6 +281,16 @@
         // Desabilita o botão ao carregar a página
         window.addEventListener('DOMContentLoaded', function () {
             checarCamposValidos();
+
+            const checkboxNaoAssina = document.getElementById('nao_assina_zapsign');
+            const campoOrientacao = document.getElementById('orientacao_assinatura');
+
+            function atualizarObrigatoriedadeOrientacao() {
+                campoOrientacao.required = checkboxNaoAssina.checked;
+            }
+
+            checkboxNaoAssina.addEventListener('change', atualizarObrigatoriedadeOrientacao);
+            atualizarObrigatoriedadeOrientacao();
         });
 
 

@@ -14,6 +14,7 @@ use Illuminate\Http\Request;
 use App\Models\Termo;
 use App\Models\Estagiario;
 use App\Models\Empresa;
+use App\Models\User;
 use App\Models\Supervisor;
 use App\Models\Local;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -60,6 +61,10 @@ class TermoController extends Controller
 
         if ($request->filled('local')) {
             $query->where('fk_id_local', $request->input('local'));
+        }
+
+        if ($request->filled('usuario_gerador')) {
+            $query->where('fk_id_user_gerador', $request->input('usuario_gerador'));
         }
 
         if ($request->filled('data_inicial')) {
@@ -129,6 +134,15 @@ class TermoController extends Controller
 
         // Carrega dados para os selects
         $escolas = Escola::orderBy('nome_escola', 'asc')->get();
+        $usuariosGeradores = User::query()
+            ->whereIn('id', function ($subquery) {
+                $subquery->select('fk_id_user_gerador')
+                    ->from('tb_termos')
+                    ->whereNotNull('fk_id_user_gerador')
+                    ->distinct();
+            })
+            ->orderBy('name', 'asc')
+            ->get(['id', 'name']);
 
         // Itens por página (25, 50, 100, 200, "all")
         $perPageParam = $request->input('per_page');
@@ -146,13 +160,13 @@ class TermoController extends Controller
         }
 
         // Eager loading essencial para evitar N+1 na view
-        $query->with(['estagiario', 'empresa.representantes', 'escola.representantes']);
+        $query->with(['estagiario', 'empresa.representantes', 'escola.representantes', 'userGerador']);
 
         $termos = $query->paginate($perPage)->appends($request->query());
         $num_termos = $termos->total();
 
         $empresas = Empresa::orderBy('nome_empresa', 'asc')->get();
-        return view('termos.index', compact('termos', 'empresas', 'escolas', 'num_termos'));
+        return view('termos.index', compact('termos', 'empresas', 'escolas', 'usuariosGeradores', 'num_termos'));
     }
 
     public function gerarPdfRelatorioTermo(Request $request, ?int $id_empresa = null)
@@ -178,6 +192,10 @@ class TermoController extends Controller
 
         if ($request->filled('local')) {
             $query->where('fk_id_local', $request->input('local'));
+        }
+
+        if ($request->filled('usuario_gerador')) {
+            $query->where('fk_id_user_gerador', $request->input('usuario_gerador'));
         }
 
         if ($request->filled('data_inicial')) {
@@ -420,6 +438,8 @@ class TermoController extends Controller
         }
 
         $termo = Termo::create($validatedData);
+            $termo->fk_id_user_gerador = Auth::id();
+            $termo->save();
         
         // Se vaga foi selecionada, vincular e atualizar status
         if (!empty($validatedData['fk_id_vaga'])) {
@@ -590,7 +610,7 @@ class TermoController extends Controller
 
     public function show($id)
     {
-        $termo = Termo::with('rescisao')->findOrFail($id);
+        $termo = Termo::with(['rescisao', 'userGerador'])->findOrFail($id);
 
         $zapSignService = new ZapSignService();
         $detalhesTce = null;
