@@ -449,6 +449,30 @@
                                             preencher
                                             o PIS.
                                         </div>
+
+                                        {{-- Tutorial colapsável PIS/NIT --}}
+                                        <div class="mt-2">
+                                            <a class="small text-info" data-toggle="collapse" href="#tutorial-pis" role="button" aria-expanded="false" aria-controls="tutorial-pis" style="cursor:pointer; text-decoration:none;">
+                                                <i class="fas fa-question-circle mr-1"></i> Não sei meu PIS/NIT — como encontrar?
+                                            </a>
+                                            <div class="collapse" id="tutorial-pis">
+                                                <div class="card card-body py-2 px-3 mt-1" style="font-size:13px; background:#f0f9ff; border-color:#bee3f8;">
+                                                    <p class="mb-2 font-weight-bold" style="color:#1a56a0;">
+                                                        <i class="fas fa-mobile-alt mr-1"></i> Consulte pelo app <strong>Meu INSS</strong> em 5 passos:
+                                                    </p>
+                                                    <ol class="mb-2 pl-3" style="line-height:1.8;">
+                                                        <li>Abra o app <strong>Meu INSS</strong> no celular.</li>
+                                                        <li>Faça login com sua conta <strong>Gov.br</strong>.</li>
+                                                        <li>Toque em <strong>"Mais Serviços"</strong>.</li>
+                                                        <li>Procure e selecione <strong>"Meu Cadastro"</strong>.</li>
+                                                        <li>Role a página — o número do <strong>NIT/PIS</strong> estará listado lá.</li>
+                                                    </ol>
+                                                    <p class="mb-0 text-muted" style="font-size:12px;">
+                                                        <i class="fas fa-lightbulb mr-1 text-warning"></i> Não tem o app? Busque por <em>"Meu INSS"</em> na App Store ou Google Play — é gratuito.
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
@@ -1014,7 +1038,22 @@
             }
 
             dataNascimentoInput.addEventListener('change', atualizarValidacaoPIS);
-            numeropisInput.addEventListener('input', checkFormValid);
+            numeropisInput.addEventListener('input', function () {
+                const idade = calcularIdade(dataNascimentoInput.value);
+                const isPISRequired = idade !== null && idade >= 17;
+
+                if (isPISRequired) {
+                    if (this.value.replace(/\D/g, '').length >= 3) {
+                        pisNotification.classList.remove('show');
+                        numeropisInput.classList.remove('pis-required');
+                    } else {
+                        pisNotification.classList.add('show');
+                        numeropisInput.classList.add('pis-required');
+                    }
+                }
+
+                checkFormValid();
+            });
 
             // Verifica se o formulário está válido
             function checkFormValid() {
