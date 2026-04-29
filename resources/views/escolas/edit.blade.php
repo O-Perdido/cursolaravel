@@ -143,6 +143,15 @@
             <small class="text-muted">Obrigatorio quando a opcao "nao assina pelo ZapSign" estiver marcada.</small>
         </div>
 
+        <div class="form-group mt-2">
+            <label for="ativo">Status da Instituicao</label>
+            <select class="form-control" id="ativo" name="ativo" required>
+                <option value="1" {{ old('ativo', $escola->ativo ? '1' : '0') == '1' ? 'selected' : '' }}>Ativa</option>
+                <option value="0" {{ old('ativo', $escola->ativo ? '1' : '0') == '0' ? 'selected' : '' }}>Inativa</option>
+            </select>
+            <small class="text-muted">Instituicoes inativas nao aparecem na selecao para gerar novos termos.</small>
+        </div>
+
         <div class="form-group mt-3 text-end">
             <button type="submit" class="btn btn-primary">Salvar</button>
         </div>

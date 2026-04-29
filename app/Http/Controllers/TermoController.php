@@ -288,7 +288,9 @@ class TermoController extends Controller
         }
 
         $estagiarios = Estagiario::orderBy('nome_estagiario', 'asc')->get();
-        $escolas = Escola::orderBy('nome_escola', 'asc')->get();
+        $escolas = Escola::where('ativo', true)
+            ->orderBy('nome_escola', 'asc')
+            ->get();
         $empresas = Empresa::orderBy('nome_empresa', 'asc')->get();
         $supervisores = Supervisor::orderBy('nome_supervisor', 'asc')->get();
 
@@ -306,7 +308,12 @@ class TermoController extends Controller
         $termo = Termo::with(['estagiario', 'empresa', 'escola', 'supervisorFixo', 'local', 'vaga'])
             ->findOrFail($id);
         $estagiarios = Estagiario::orderBy('nome_estagiario', 'asc')->get();
-        $escolas = Escola::orderBy('nome_escola', 'asc')->get();
+        $escolas = Escola::where(function ($query) use ($termo) {
+                $query->where('ativo', true)
+                    ->orWhere('id_escola', $termo->fk_id_escola);
+            })
+            ->orderBy('nome_escola', 'asc')
+            ->get();
         $empresas = Empresa::orderBy('nome_empresa', 'asc')->get();
         $supervisores = Supervisor::orderBy('nome_supervisor', 'asc')->get();
 

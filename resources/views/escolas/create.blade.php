@@ -121,22 +121,6 @@
             </div>
         </div>
 
-        <!-- Apólice e Seguradora -->
-        <div class="row mt-2">
-            <div class="col-md-6">
-                <div class="form-group mb-2">
-                    <label for="numero_apolice">Número da Apólice</label>
-                    <input type="text" class="form-control" id="numero_apolice" name="numero_apolice">
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="form-group mb-2">
-                    <label for="nome_seguradora">Nome da Seguradora</label>
-                    <input type="text" class="form-control" id="nome_seguradora" name="nome_seguradora">
-                </div>
-            </div>
-        </div>
-
         <div class="form-group mt-3">
             <div class="form-check">
                 <input class="form-check-input" type="checkbox" id="nao_assina_zapsign" name="nao_assina_zapsign" value="1">
@@ -152,6 +136,15 @@
             <textarea class="form-control" id="orientacao_assinatura" name="orientacao_assinatura" rows="3"
                 placeholder="Ex.: Assinatura manual pela secretaria academica; enviar documento por e-mail institucional.">{{ old('orientacao_assinatura') }}</textarea>
             <small class="text-muted">Obrigatorio quando a opcao "nao assina pelo ZapSign" estiver marcada.</small>
+        </div>
+
+        <div class="form-group mt-2">
+            <label for="ativo">Status da Instituicao</label>
+            <select class="form-control" id="ativo" name="ativo" required>
+                <option value="1" {{ old('ativo', '1') == '1' ? 'selected' : '' }}>Ativa</option>
+                <option value="0" {{ old('ativo') == '0' ? 'selected' : '' }}>Inativa</option>
+            </select>
+            <small class="text-muted">Instituicoes inativas nao aparecem na selecao para gerar novos termos.</small>
         </div>
 
         <div class="form-group mt-3 text-end">

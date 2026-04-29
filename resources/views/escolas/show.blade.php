@@ -9,7 +9,14 @@
     <div class="card shadow-sm">
         <div class="card-header text-black">
             <div class="d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">{{ $escola->nome_escola }}</h5>
+                <h5 class="mb-0">
+                    {{ $escola->nome_escola }}
+                    @if($escola->ativo)
+                        <span class="badge bg-success ms-2">Ativa</span>
+                    @else
+                        <span class="badge bg-danger ms-2">Inativa</span>
+                    @endif
+                </h5>
                 <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal"
                     data-bs-target="#representantesModal">
                     <i class="fas fa-users me-1"></i> Gerenciar Representantes
@@ -70,10 +77,6 @@
                             —
                         @endif
                     </p>
-                    <hr class="my-2">
-                    <h6 class="text-muted mb-3">Seguro</h6>
-                    <p class="mb-1"><strong>Número da Apólice:</strong> {{ $escola->numero_apolice }}</p>
-                    <p class="mb-1"><strong>Nome da Seguradora:</strong> {{ $escola->nome_seguradora }}</p>
                 </div>
             </div>
         </div>

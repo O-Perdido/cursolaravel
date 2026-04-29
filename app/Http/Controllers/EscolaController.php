@@ -84,10 +84,9 @@ class EscolaController extends Controller
             'nome_representante' => 'nullable|string',
             'cargo_representante' => 'nullable|string',
             'cpf_representante' => 'nullable|string',
-            'numero_apolice' => 'nullable|string',
-            'nome_seguradora' => 'nullable|string',
             'nao_assina_zapsign' => 'nullable|boolean',
             'orientacao_assinatura' => 'nullable|string|max:2000|required_if:nao_assina_zapsign,1',
+            'ativo' => 'required|boolean',
 
         ]);
 
@@ -108,12 +107,11 @@ class EscolaController extends Controller
             'nome_representante' => $request->nome_representante,
             'cargo_representante' => $request->cargo_representante,
             'cpf_representante' => $request->cpf_representante,
-            'numero_apolice' => $request->numero_apolice,
-            'nome_seguradora' => $request->nome_seguradora,
             'nao_assina_zapsign' => $request->boolean('nao_assina_zapsign'),
             'orientacao_assinatura' => $request->filled('orientacao_assinatura')
                 ? $request->orientacao_assinatura
                 : null,
+            'ativo' => $request->boolean('ativo', true),
         ]);
 
         // Redirecionamento com sucesso
@@ -192,10 +190,12 @@ class EscolaController extends Controller
             */
             'nao_assina_zapsign' => 'nullable|boolean',
             'orientacao_assinatura' => 'nullable|string|max:2000|required_if:nao_assina_zapsign,1',
+            'ativo' => 'required|boolean',
         ]);
 
         $request->merge([
             'nao_assina_zapsign' => $request->boolean('nao_assina_zapsign'),
+            'ativo' => $request->boolean('ativo'),
         ]);
 
         $escola = Escola::findOrFail($id);
