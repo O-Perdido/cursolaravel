@@ -17,8 +17,10 @@
                         <label for="nivel">Selecione o tipo de Usuário</label>
                         <select class="form-control" name="nivel" id="nivel" onchange="toggleNomeUnidade()">
                             <option value="" disabled selected>Selecione...</option>
-                            <option value="admin">Administrador</option>
-                            <option value="operador">Operador</option>
+                            @if(auth()->user()->nivel === 'admin')
+                                <option value="admin">Administrador</option>
+                                <option value="operador">Operador</option>
+                            @endif
                             <option value="empresa">Unidade Concedente</option>
                             <option value="estagiario">Estagiário</option>
                         </select>
@@ -46,7 +48,7 @@
                     </div>
                     <div class="form-group mb-3" id="nome-group">
                         <label for="nome">Nome do Usuário</label>
-                        <input type="text" class="form-control" id="name" name="name" value="{{ old('name') }}" readonly>
+                        <input type="text" class="form-control" id="name" name="name" value="{{ old('name') }}">
                         @error('name')
                             <div class="alert alert-danger mt-2">{{ $message }}</div>
                         @enderror
@@ -125,18 +127,23 @@
             var unidadeGroup = document.getElementById('empresa-group');
             var estagiarioGroup = document.getElementById('estagiario-group');
 
+            var nameField = document.getElementById('name');
             if (nivel === 'empresa') {
                 nomeGroup.style.display = 'none';
                 unidadeGroup.style.display = 'block';
                 estagiarioGroup.style.display = 'none';
+                nameField.setAttribute('readonly', true);
             } else if (nivel === 'estagiario') {
                 nomeGroup.style.display = 'none';
                 unidadeGroup.style.display = 'none';
                 estagiarioGroup.style.display = 'block';
+                nameField.setAttribute('readonly', true);
             } else {
                 nomeGroup.style.display = 'block';
                 unidadeGroup.style.display = 'none';
                 estagiarioGroup.style.display = 'none';
+                nameField.removeAttribute('readonly');
+                nameField.focus();
             }
         }
 
