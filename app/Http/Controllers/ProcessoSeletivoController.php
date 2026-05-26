@@ -461,6 +461,33 @@ class ProcessoSeletivoController extends Controller
         return back()->with('success', "Status atualizado para: {$statusLabel[$validated['novo_status']]}");
     }
 
+    // Excluir inscrição
+    public function excluirInscricao($id, $inscricao)
+    {
+        $user = Auth::user();
+
+        // Apenas admin e operador podem excluir inscrições
+        if ($user->nivel === 'empresa') {
+            return back()->with('error', 'Você não tem permissão para excluir inscrições.');
+        }
+
+        $processo = ProcessoSeletivo::findOrFail($id);
+
+        $inscricaoProcesso = InscricaoProcesso::where('id_inscricao', $inscricao)
+            ->where('fk_id_processo', $processo->id_processo)
+            ->firstOrFail();
+
+        DB::transaction(function () use ($inscricaoProcesso) {
+            if ($inscricaoProcesso->arquivo_inscricao && Storage::disk('public')->exists($inscricaoProcesso->arquivo_inscricao)) {
+                Storage::disk('public')->delete($inscricaoProcesso->arquivo_inscricao);
+            }
+
+            $inscricaoProcesso->delete();
+        });
+
+        return back()->with('success', 'Inscrição excluída com sucesso.');
+    }
+
     // Exportar inscrições (PDF/Excel)
     public function exportarInscricoes(Request $request, $id)
     {

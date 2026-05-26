@@ -8,6 +8,7 @@ use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -185,6 +186,7 @@ class ProcessoSeletivoPublicoController extends Controller
 
         $tentativa = 0;
         $maxTentativas = 3;
+        $erroFinal = null;
 
         while ($tentativa < $maxTentativas) {
             try {
@@ -219,15 +221,51 @@ class ProcessoSeletivoPublicoController extends Controller
                 break;
             } catch (QueryException $e) {
                 $tentativa++;
+                $mensagemErro = $e->getMessage();
+
                 $erroDuplicidadeNumero = $e->getCode() === '23000'
-                    && str_contains($e->getMessage(), 'tb_inscricoes_processo_numero_inscricao_unique');
+                    && (str_contains($mensagemErro, 'tb_inscricoes_processo_numero_inscricao_unique')
+                        || str_contains($mensagemErro, 'numero_inscricao'));
+
+                $erroDuplicidadeInscricao = $e->getCode() === '23000'
+                    && (str_contains($mensagemErro, 'fk_id_processo')
+                        && str_contains($mensagemErro, 'fk_id_estagiario'));
+
+                if ($erroDuplicidadeInscricao) {
+                    $inscricaoExistente = InscricaoProcesso::where('fk_id_processo', $id)
+                        ->where('fk_id_estagiario', $estagiarioId)
+                        ->first();
+
+                    if ($inscricaoExistente) {
+                        $inscricaoJaExistia = true;
+                        $inscricao = $inscricaoExistente;
+                        $numeroInscricao = $inscricaoExistente->numero_inscricao;
+                        break;
+                    }
+                }
 
                 if (!$erroDuplicidadeNumero || $tentativa >= $maxTentativas) {
-                    throw $e;
+                    $erroFinal = $e;
+                    break;
                 }
 
                 usleep(100000 * $tentativa);
             }
+        }
+
+        if (!$inscricao) {
+            Log::warning('Falha ao concluir inscricao em processo seletivo.', [
+                'processo_id' => $id,
+                'estagiario_id' => $estagiarioId,
+                'tentativas' => $tentativa,
+                'erro' => $erroFinal?->getMessage(),
+            ]);
+
+            $mensagemErro = 'Nao foi possivel concluir sua inscricao agora. Tente novamente em instantes.';
+
+            return $request->wantsJson()
+                ? response()->json(['error' => $mensagemErro], 422)
+                : redirect()->back()->withErrors($mensagemErro);
         }
 
         $mensagem = $inscricaoJaExistia

@@ -423,6 +423,10 @@
             <div class="modal fade" id="modalInscrever" tabindex="-1" aria-labelledby="labelInscrever" aria-hidden="true">
                 <div class="modal-dialog">
                     <div class="modal-content">
+                        <form id="formInscricaoPublico" method="POST"
+                            action="{{ route('processos-seletivos.inscrever', $processo->id_processo) }}"
+                            enctype="multipart/form-data">
+                            @csrf
                         <div class="modal-header">
                             <h5 class="modal-title" id="labelInscrever">Confirmar Inscrição</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -446,17 +450,30 @@
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                            <form method="POST" action="{{ route('processos-seletivos.inscrever', $processo->id_processo) }}"
-                                class="d-inline" enctype="multipart/form-data">
-                                @csrf
-                                <button type="submit" class="btn btn-success">
-                                    <i class="fas fa-check me-1"></i> Confirmar Inscrição
-                                </button>
-                            </form>
+                            <button type="submit" class="btn btn-success" id="btnConfirmarInscricaoPublico">
+                                <i class="fas fa-check me-1"></i> Confirmar Inscrição
+                            </button>
                         </div>
+                        </form>
                     </div>
                 </div>
             </div>
         @endif
     @endauth
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('formInscricaoPublico');
+            const submitBtn = document.getElementById('btnConfirmarInscricaoPublico');
+
+            if (!form || !submitBtn) {
+                return;
+            }
+
+            form.addEventListener('submit', function() {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Processando...';
+            });
+        });
+    </script>
 @endsection

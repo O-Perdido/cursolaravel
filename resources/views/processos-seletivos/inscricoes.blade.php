@@ -137,6 +137,14 @@
                                                 </button>
                                             </form>
                                         @endif
+                                        <form action="{{ route('processos-seletivos.inscricoes.excluir', [$processo->id_processo, $inscricao->id_inscricao]) }}" method="POST" class="d-inline"
+                                            onsubmit="return confirm('Tem certeza que deseja excluir esta inscrição? Esta ação não pode ser desfeita.');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-outline-danger" title="Excluir Inscrição">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
                                     </div>
                                 </td>
                             @endif

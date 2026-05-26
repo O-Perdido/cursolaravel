@@ -258,6 +258,25 @@ resources/views/welcome_estagiario.blade.php (card substitído)
 3. **Rotas registradas** no `web.php`
 4. **Views responsivas** e testadas
 5. **CSRF protection** incluído em todos os formulários
+
+---
+
+## 🔧 Correções de Estabilidade (26/05/2026)
+
+### 1. Inscrição via modal público com upload obrigatório
+- Ajustado o modal em `detalhes-publico` para garantir que o campo `arquivo_inscricao` fique dentro do mesmo formulário submetido.
+- Corrigido cenário em que o usuário anexava arquivo, confirmava, e o backend não recebia o anexo no POST multipart.
+- Adicionado estado visual de processamento no botão de confirmação para reduzir dupla submissão.
+
+### 2. Duplicidade de número de inscrição
+- Fortalecido o tratamento de concorrência no controller público de inscrição para não exibir erro SQL cru ao usuário final.
+- Duplicidade por dupla submissão da mesma pessoa agora é tratada com recuperação da inscrição existente.
+- Ajustada a geração de `numero_inscricao` para usar o ano do `numero_processo` (em vez do ano atual), evitando colisões entre processos de anos diferentes com mesmo sequencial interno.
+
+### 3. Exclusão manual de inscrição (admin/operador)
+- Adicionada rota `DELETE` para exclusão de uma inscrição específica em processo seletivo.
+- Implementado método no controller para excluir a inscrição e remover o anexo (`arquivo_inscricao`) do storage quando existir.
+- Incluído botão de excluir na listagem de inscrições com confirmação explícita antes da remoção.
 6. **Validações** implementadas nos controllers
 
 ### Correção recente (03/03/2026)

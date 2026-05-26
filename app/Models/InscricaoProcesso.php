@@ -30,21 +30,22 @@ class InscricaoProcesso extends Model
     // Ex: 2026-0001-0001 (ano-num_processo-seq_inscricao)
     public static function gerarNumeroInscricao($fk_id_processo)
     {
-        $ano = date('Y');
-        
         // Obter número do processo (com padding para 4 dígitos)
         $processo = ProcessoSeletivo::find($fk_id_processo);
         if (!$processo) {
             return null;
         }
-        
-        // Extrair número sequencial do processo (ex: "2026-0001" -> 0001)
-        $numProcesso = str_pad(
-            (int) substr($processo->numero_processo, -4),
-            4,
-            '0',
-            STR_PAD_LEFT
-        );
+
+        $numeroProcesso = (string) ($processo->numero_processo ?? '');
+
+        if (preg_match('/^(\d{4})-(\d{1,})$/', $numeroProcesso, $partesNumero)) {
+            $ano = $partesNumero[1];
+            $numProcesso = str_pad((string) ((int) $partesNumero[2]), 4, '0', STR_PAD_LEFT);
+        } else {
+            // Fallback para dados legados sem numero_processo padrao.
+            $ano = (string) ($processo->created_at?->format('Y') ?? date('Y'));
+            $numProcesso = str_pad((string) ((int) $processo->id_processo), 4, '0', STR_PAD_LEFT);
+        }
         
         // Gerar próximo sequencial com base no maior número já utilizado neste processo
         // (count()+1 pode duplicar quando existem exclusões no histórico)

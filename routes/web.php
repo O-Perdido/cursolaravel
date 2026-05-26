@@ -190,6 +190,7 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/processos-seletivos/resultados/{id}', [App\Http\Controllers\ProcessoSeletivoController::class, 'removerResultado'])->name('processos-seletivos.resultados.destroy');
         Route::get('/processos-seletivos/{id}/inscricoes', [App\Http\Controllers\ProcessoSeletivoController::class, 'listarInscricoes'])->name('processos-seletivos.inscricoes');
         Route::post('/processos-seletivos/{id}/inscricoes/atualizar-status', [App\Http\Controllers\ProcessoSeletivoController::class, 'atualizarStatusInscricao'])->name('processos-seletivos.inscricoes.atualizar-status');
+        Route::delete('/processos-seletivos/{id}/inscricoes/{inscricao}', [App\Http\Controllers\ProcessoSeletivoController::class, 'excluirInscricao'])->name('processos-seletivos.inscricoes.excluir');
         Route::post('/processos-seletivos/{id}/inscricoes/exportar', [App\Http\Controllers\ProcessoSeletivoController::class, 'exportarInscricoes'])->name('processos-seletivos.exportar-inscricoes');
         Route::get('/processos-seletivos/{id}/resultados', [App\Http\Controllers\ProcessoSeletivoController::class, 'resultados'])->name('processos-seletivos.resultados');
         Route::post('/processos-seletivos/{id}/resultados', [App\Http\Controllers\ProcessoSeletivoController::class, 'publicarResultado'])->name('processos-seletivos.publicar-resultado');
