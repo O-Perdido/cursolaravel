@@ -41,7 +41,7 @@ class RescisaoController extends Controller
 
         // Desvincula a vaga caso o termo esteja vinculado a uma
         if ($termo->fk_id_vaga) {
-            $vaga = Vaga::find($termo->fk_id_vaga);
+            $vaga = Vaga::find($termo->fk_id_vaga, ['*']);
             if ($vaga) {
                 // Marca a vaga como suspensa (não volta a ficar disponível automaticamente)
                 $vaga->status = 'suspensa';
