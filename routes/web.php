@@ -329,9 +329,6 @@ Route::middleware(['auth'])->group(function () {
         // Rota para salvar um novo termo
         Route::post('/rescisoes/{id_termo}', [RescisaoController::class, 'store'])->name('rescisoes.store');
 
-        //Rota para gerar o PDF da rescisao
-        Route::get('/rescisao/{id}', [RescisaoController::class, 'gerarPdf'])->name('rescisoes.gerarPdf');
-
         // Rota para enviar rescisão para ZapSign
         Route::post('/rescisao/{id}/enviar-zapsign', [RescisaoController::class, 'enviarParaZapSign'])->name('rescisoes.enviarZapSign');
 
@@ -449,6 +446,11 @@ Route::middleware(['auth'])->group(function () {
 
 
     Route::get('/termos/{id}/alteracoes/{id_alteracao}', [AlteracaoTermoController::class, 'gerarPdf'])->name('alteracao.gerarPdf');
+
+    // Rota para gerar o PDF da rescisão
+    Route::get('/rescisao/{id}', [RescisaoController::class, 'gerarPdf'])
+        ->middleware(['nivel:admin,operador,empresa'])
+        ->name('rescisoes.gerarPdf');
 
     // Rota para exibir a lista de alteracoes
     Route::get('/termos/{id}/alteracoes', [AlteracaoTermoController::class, 'index'])->name('alteracoes.index');

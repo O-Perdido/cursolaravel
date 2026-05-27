@@ -10,6 +10,7 @@ use App\Models\Vaga;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Services\ZapSignService;
 use App\Services\AvaliacaoService;
+use Illuminate\Support\Facades\Auth;
 
 class RescisaoController extends Controller
 {
@@ -59,8 +60,13 @@ class RescisaoController extends Controller
 
     public function gerarPdf($id)
     {
+        $rescisao = Rescisao::with(['termo.estagiario', 'termo.empresa.cidade'])->findOrFail($id);
+        $user = Auth::user();
 
-        $rescisao = Rescisao::findOrFail($id);
+        if ($user && $user->nivel === 'empresa' && (int) $rescisao->termo->fk_id_empresa !== (int) $user->fk_id_empresa) {
+            abort(403, 'Você não tem permissão para visualizar este documento.');
+        }
+
         $linklogo = public_path('images/logo_pdf_padrao.png');
 
 

@@ -1,5 +1,9 @@
 REGISTRO DE ALTERAÇÕES
 
+27/05/2026 - GitHub Copilot:
+* Corrigi o acesso ao PDF de rescisão para usuário de unidade concedente (nível `empresa`), movendo a rota `rescisoes.gerarPdf` para middleware `nivel:admin,operador,empresa`.
+* Adicionei validação de autorização no `RescisaoController@gerarPdf` para garantir que empresa só visualize rescisões dos próprios termos (bloqueio 403 para acesso fora do escopo).
+
 24/04/2026 - GitHub Copilot:
 * Corrigi o cadastro/edição de vaga para não enviar `null` em `valor_auxilio_transporte` e `valor_bolsa` quando o usuário salva sem interagir nos campos de moeda.
 * Ajustei o JavaScript das telas de vaga para sincronizar os campos ocultos no carregamento e no submit, forçando `0.00` quando vazio.
