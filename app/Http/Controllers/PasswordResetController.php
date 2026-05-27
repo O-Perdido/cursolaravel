@@ -7,8 +7,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\Auth\Events\PasswordReset;
+use Throwable;
 
 class PasswordResetController extends Controller
 {
@@ -23,9 +25,22 @@ class PasswordResetController extends Controller
     {
         $request->validate(['email' => 'required|email']);
 
-        $status = Password::sendResetLink(
-            $request->only('email')
-        );
+        try {
+            $status = Password::sendResetLink(
+                $request->only('email')
+            );
+        } catch (Throwable $exception) {
+            Log::error('Falha ao enviar e-mail de redefinicao de senha', [
+                'email' => $request->input('email'),
+                'erro' => $exception->getMessage(),
+            ]);
+
+            return back()
+                ->withInput($request->only('email'))
+                ->withErrors([
+                    'email' => 'Nao foi possivel enviar o e-mail de redefinicao agora. Tente novamente em alguns minutos.',
+                ]);
+        }
 
         return $status === Password::RESET_LINK_SENT
             ? back()->with(['status' => __($status)])
