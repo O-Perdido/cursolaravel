@@ -215,23 +215,25 @@
                 @endif
 
                 @php
-                    $editalArquivo = $processo->arquivos()->first();
+                    $arquivosEdital = $processo->arquivos()->orderByDesc('created_at')->get();
                 @endphp
-                @if($editalArquivo)
+                @if($arquivosEdital->count() > 0)
                     <div class="card shadow-sm border-0 mb-3">
                         <div class="card-header bg-light border-0">
                             <h5 class="mb-0"><i class="fas fa-file-pdf me-2 text-danger"></i>Documentos</h5>
                         </div>
                         <div class="card-body">
                             <div class="list-group">
-                                <a href="{{ route('processos-seletivos.arquivos.download-publico', $editalArquivo->id_arquivo) }}"
-                                    class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <i class="fas fa-file-pdf me-2 text-danger"></i>
-                                        <strong>{{ $editalArquivo->nome_exibicao ?? 'Edital do Processo' }}</strong>
-                                    </div>
-                                    <i class="fas fa-download text-muted"></i>
-                                </a>
+                                @foreach($arquivosEdital as $arquivoEdital)
+                                    <a href="{{ route('processos-seletivos.arquivos.download-publico', $arquivoEdital->id_arquivo) }}"
+                                        class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <i class="fas fa-file-pdf me-2 text-danger"></i>
+                                            <strong>{{ $arquivoEdital->nome_exibicao ?? 'Edital do Processo' }}</strong>
+                                        </div>
+                                        <i class="fas fa-download text-muted"></i>
+                                    </a>
+                                @endforeach
                             </div>
                         </div>
                     </div>
