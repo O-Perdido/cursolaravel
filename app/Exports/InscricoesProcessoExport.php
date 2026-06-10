@@ -33,7 +33,9 @@ class InscricoesProcessoExport implements FromCollection, WithHeadings, WithMapp
             'curso' => 'Curso',
             'instituicao' => 'Instituição de Ensino',
             'status' => 'Status',
-            'data_inscricao' => 'Data da Inscrição'
+            'data_inscricao' => 'Data da Inscrição',
+            'data_nascimento' => 'Data de Nascimento',
+            'idade' => 'Idade'
         ];
     }
 
@@ -85,6 +87,13 @@ class InscricoesProcessoExport implements FromCollection, WithHeadings, WithMapp
                     break;
                 case 'data_inscricao':
                     $row[] = \Carbon\Carbon::parse($inscricao->created_at)->format('d/m/Y H:i');
+                    break;
+                case 'data_nascimento':
+                    $row[] = $inscricao->estagiario->data_nascimento ?? 'N/A';
+                    break;
+                case 'idade':
+                    $nascimento = $inscricao->estagiario->data_nascimento ?? null;
+                    $row[] = $nascimento ? \Carbon\Carbon::createFromFormat('d/m/Y', $nascimento)->age . ' anos' : 'N/A';
                     break;
                 default:
                     $row[] = '';
@@ -177,6 +186,12 @@ class InscricoesProcessoExport implements FromCollection, WithHeadings, WithMapp
                     break;
                 case 'data_inscricao':
                     $widths[$letter] = 18;
+                    break;
+                case 'data_nascimento':
+                    $widths[$letter] = 18;
+                    break;
+                case 'idade':
+                    $widths[$letter] = 10;
                     break;
                 default:
                     $widths[$letter] = 15;

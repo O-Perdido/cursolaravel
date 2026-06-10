@@ -201,6 +201,12 @@
                 @if(in_array('data_inscricao', $colunas))
                     <th style="width: 10%;" class="text-center">{{ $colunasLabels['data_inscricao'] }}</th>
                 @endif
+                @if(in_array('data_nascimento', $colunas))
+                    <th style="width: 10%;" class="text-center">{{ $colunasLabels['data_nascimento'] }}</th>
+                @endif
+                @if(in_array('idade', $colunas))
+                    <th style="width: 6%;" class="text-center">{{ $colunasLabels['idade'] }}</th>
+                @endif
             </tr>
         </thead>
         <tbody>
@@ -239,6 +245,16 @@
                     @if(in_array('data_inscricao', $colunas))
                         <td class="text-center text-nowrap">
                             {{ \Carbon\Carbon::parse($inscricao->created_at)->format('d/m/Y H:i') }}
+                        </td>
+                    @endif
+                    @if(in_array('data_nascimento', $colunas))
+                        <td class="text-center text-nowrap">
+                            {{ $inscricao->estagiario->data_nascimento ?? 'N/A' }}
+                        </td>
+                    @endif
+                    @if(in_array('idade', $colunas))
+                        <td class="text-center">
+                            {{ $inscricao->estagiario->data_nascimento ? \Carbon\Carbon::createFromFormat('d/m/Y', $inscricao->estagiario->data_nascimento)->age . ' anos' : 'N/A' }}
                         </td>
                     @endif
                 </tr>

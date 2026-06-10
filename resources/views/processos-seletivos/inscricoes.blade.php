@@ -299,6 +299,22 @@
                                         </label>
                                     </div>
                                 </div>
+                                <div class="col-md-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="colunas[]" value="data_nascimento" id="colDataNascimento">
+                                        <label class="form-check-label" for="colDataNascimento">
+                                            <i class="fas fa-birthday-cake me-1 text-muted"></i> Data de Nascimento
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="colunas[]" value="idade" id="colIdade">
+                                        <label class="form-check-label" for="colIdade">
+                                            <i class="fas fa-user-clock me-1 text-muted"></i> Idade
+                                        </label>
+                                    </div>
+                                </div>
                             </div>
                             <div class="mt-3 border-top pt-2">
                                 <button type="button" class="btn btn-sm btn-outline-primary" onclick="selecionarTodas()">

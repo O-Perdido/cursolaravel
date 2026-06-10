@@ -523,7 +523,9 @@ class ProcessoSeletivoController extends Controller
                 'curso',
                 'instituicao',
                 'status',
-                'data_inscricao'
+                'data_inscricao',
+                'data_nascimento',
+                'idade'
             ];
         }
 
@@ -564,7 +566,9 @@ class ProcessoSeletivoController extends Controller
             'curso' => 'Curso',
             'instituicao' => 'Instituição',
             'status' => 'Status',
-            'data_inscricao' => 'Data Inscrição'
+            'data_inscricao' => 'Data Inscrição',
+            'data_nascimento' => 'Data de Nascimento',
+            'idade' => 'Idade'
         ];
 
         $statusLabels = [
