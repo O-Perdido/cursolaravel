@@ -805,7 +805,7 @@
                     <div class="row align-items-end">
                         <div class="col-md-10">
                             <div class="row g-2">
-                                <div class="col-md-4">
+                                <div class="col-md-3">
                                     <label for="escola" class="form-label mb-1">Instituição</label>
                                     <select name="escola" id="escola" class="form-select form-select-sm">
                                         <option value="">Todas</option>
@@ -816,10 +816,21 @@
                                         @endforeach
                                     </select>
                                 </div>
-                                <div class="col-md-4">
+                                <div class="col-md-3">
                                     <label for="estagiario" class="form-label mb-1">Estagiário</label>
                                     <input type="text" name="estagiario" id="estagiario" class="form-control form-control-sm"
                                         value="{{ request('estagiario') }}" placeholder="Nome">
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="local" class="form-label mb-1">Local</label>
+                                    <select name="local" id="local" class="form-select form-select-sm">
+                                        <option value="">Todos</option>
+                                        @foreach ($locais as $l)
+                                            <option value="{{ $l->id_local }}" {{ request('local') == $l->id_local ? 'selected' : '' }}>
+                                                {{ $l->descricao }}
+                                            </option>
+                                        @endforeach
+                                    </select>
                                 </div>
                                 <div class="col-md-3">
                                     <label for="data_inicial" class="form-label mb-1">Data Inicial</label>

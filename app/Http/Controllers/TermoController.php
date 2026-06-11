@@ -166,7 +166,15 @@ class TermoController extends Controller
         $num_termos = $termos->total();
 
         $empresas = Empresa::orderBy('nome_empresa', 'asc')->get();
-        return view('termos.index', compact('termos', 'empresas', 'escolas', 'usuariosGeradores', 'num_termos'));
+
+        $locais = collect();
+        if (Auth::check() && Auth::user()->nivel === 'empresa') {
+            $locais = Local::where('fk_id_empresa', Auth::user()->fk_id_empresa)
+                ->orderBy('descricao', 'asc')
+                ->get();
+        }
+
+        return view('termos.index', compact('termos', 'empresas', 'escolas', 'usuariosGeradores', 'num_termos', 'locais'));
     }
 
     public function gerarPdfRelatorioTermo(Request $request, ?int $id_empresa = null)

@@ -56,6 +56,7 @@
                     <br>{{ $request->empresa == null ? '' : 'Unidade Concedente: ' . $empresas->where('id_empresa', $request->empresa)->first()->nome_empresa }}
                     <br>{{ $request->escola == null ? '' : 'Instituição de Ensino: ' . $escolas->where('id_escola', $request->escola)->first()->nome_escola }}
                     <br>{{ $request->estagiario == null ? '' : 'Nome do Estagiário: ' . $request->estagiario }}
+                    <br>{{ $request->local == null ? '' : 'Local: ' . (App\Models\Local::find($request->local)?->descricao) }}
                     <br><!--Intervalo de pesquisa: Data de Início: - Data Final:-->
                 </p>
             </td>
