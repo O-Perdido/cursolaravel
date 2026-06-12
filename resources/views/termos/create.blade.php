@@ -77,16 +77,21 @@
                 </div>
 
                 <div class="mb-3" style="position: relative;">
-                    <label for="fk_id_escola" class="form-label">Selecione a Instituição de Ensino</label>
+                    <label for="escola_search" class="form-label">Selecione a Instituição de Ensino</label>
                     <input type="text" class="form-control" id="escola_search" placeholder="Digite para buscar..."
                         autocomplete="off">
-                    <select class="form-control mt-2" id="fk_id_escola" name="fk_id_escola" size="5" required
-                        style="display:none; position: absolute; top: 60px; left: 0; width: 100%; z-index: 1050; background: #fff; border: 1px solid #ced4da;">
-                        <option value="">Escolha uma instituição de ensino</option>
-                        @foreach($escolas as $escola)
-                            <option value="{{ $escola->id_escola }}">{{ $escola->nome_escola }}</option>
-                        @endforeach
-                    </select>
+                    <input type="hidden" id="fk_id_escola" name="fk_id_escola">
+                    <div id="escola_select_wrapper"
+                        style="display:none; position:absolute; top:75px; left:0; z-index:1050; min-width:100%; max-width:90vw; background:#fff; border:1px solid #ced4da; border-radius:4px; box-shadow:0 4px 12px rgba(0,0,0,.15);">
+                        <div style="max-height:250px; overflow-y:auto;">
+                            <ul id="escola_options_list" style="list-style:none; margin:0; padding:0;">
+                                <li data-value="" class="escola-opt" style="color:#6c757d; font-style:italic; border-bottom:2px solid #dee2e6;">Escolha uma instituição de ensino</li>
+                                @foreach($escolas as $escola)
+                                    <li data-value="{{ $escola->id_escola }}" class="escola-opt">{{ $escola->nome_escola }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="form-group" style="position: relative;">
@@ -216,6 +221,21 @@
 
     </form>
 
+    <style>
+        .escola-opt {
+            padding: 7px 12px;
+            cursor: pointer;
+            border-top: 1px solid #f0f0f0;
+            line-height: 1.4;
+            white-space: normal;
+            word-break: break-word;
+            transition: background .1s;
+        }
+        .escola-opt:first-child { border-top: none; }
+        .escola-opt:hover { background: #f0f4ff; }
+        .escola-opt.selected { background: #e0edff; font-weight: 600; }
+    </style>
+
     <script>
 
         document.getElementById('valor_bolsa_fixo').addEventListener('input', function () {
@@ -317,10 +337,54 @@
             });
         }
 
+        // Variante com lista ul/li customizada — sem os problemas de eventos do select nativo.
+        function setupFilterWithWrapper(searchId, hiddenInputId, wrapperId) {
+            const searchInput = document.getElementById(searchId);
+            const hiddenInput = document.getElementById(hiddenInputId);
+            const wrapper = document.getElementById(wrapperId);
+            const list = wrapper.querySelector('ul');
+            let allItems = Array.from(list.querySelectorAll('li.escola-opt'));
+
+            function showWrapper() { wrapper.style.display = 'block'; }
+            function hideWrapper() { wrapper.style.display = 'none'; }
+
+            searchInput.addEventListener('click', function (e) {
+                e.stopPropagation();
+                // Reexibe todos antes de mostrar
+                allItems.forEach(i => i.style.display = '');
+                showWrapper();
+                setTimeout(() => { searchInput.select(); }, 0);
+            });
+
+            searchInput.addEventListener('input', function () {
+                const value = normalizeForSearch(this.value);
+                allItems.forEach(item => {
+                    if (!item.dataset.value) { item.style.display = ''; return; }
+                    item.style.display = normalizeForSearch(item.textContent).includes(value) ? '' : 'none';
+                });
+                showWrapper();
+            });
+
+            list.addEventListener('click', function (e) {
+                e.stopPropagation();
+                const li = e.target.closest('li.escola-opt');
+                if (!li || !li.dataset.value) return;
+                hiddenInput.value = li.dataset.value;
+                searchInput.value = li.textContent.trim();
+                allItems.forEach(i => i.classList.remove('selected'));
+                li.classList.add('selected');
+                hideWrapper();
+            });
+
+            wrapper.addEventListener('click', function (e) { e.stopPropagation(); });
+            document.addEventListener('click', function () { hideWrapper(); });
+        }
+
+
         document.addEventListener('DOMContentLoaded', function () {
+            setupFilterWithWrapper('escola_search', 'fk_id_escola', 'escola_select_wrapper');
             setupFilter('estagiario_search', 'fk_id_estagiario');
             setupFilter('empresa_search', 'fk_id_empresa');
-            setupFilter('escola_search', 'fk_id_escola');
             setupFilter('supervisor_search', 'fk_id_supervisor_fixo');
 
             // Lógica de Locais dependente da Unidade Concedente

@@ -190,15 +190,15 @@
                     </a>
                 </div>
                 <form method="GET" action="{{ route('termos.index') }}">
-                    <div class="row g-3">
+                    <div class="row g-2">
                         <!-- Linha 1: Filtros principais -->
-                        <div class="col-md-3">
+                        <div class="col-12 col-md-3" style="position: relative;">
                             <label for="escola_search" class="form-label mb-1 fw-semibold">Instituição</label>
                             <input type="text" class="form-control form-control-sm" id="escola_search"
                                 placeholder="Digite para buscar..." autocomplete="off"
                                 value="{{ $escolas->firstWhere('id_escola', request('escola'))?->nome_escola }}">
-                            <select name="escola" id="escola" class="form-select form-select-sm mt-2" size="5"
-                                style="display:none; position:absolute; z-index:1050; background:#fff; border:1px solid #ced4da; width:700px;">
+                            <select name="escola" id="escola" class="form-control mt-2" size="5"
+                                style="display:none; position: absolute; top: 60px; left: 0; min-width: 100%; width: max-content; max-width: 90vw; z-index: 1050; background: #fff; border: 1px solid #ced4da; white-space: nowrap;">
                                 <option value="">Todas</option>
                                 @foreach ($escolas as $escola)
                                     <option value="{{ $escola->id_escola ?? '' }}" {{ request('escola') == ($escola->id_escola ?? '') ? 'selected' : '' }}>
@@ -208,13 +208,13 @@
                             </select>
                         </div>
 
-                        <div class="col-md-3">
+                        <div class="col-12 col-md-3">
                             <label for="estagiario" class="form-label mb-1 fw-semibold">Estagiário</label>
                             <input type="text" name="estagiario" id="estagiario" class="form-control form-control-sm"
                                 value="{{ request('estagiario') }}" placeholder="Nome do estagiário">
                         </div>
 
-                        <div class="col-md-3">
+                        <div class="col-12 col-md-3">
                             <label for="numero_termo" class="form-label mb-1 fw-semibold">Número/Ano do Termo</label>
                             <div class="input-group input-group-sm">
                                 <input type="number" name="numero_termo" id="numero_termo" class="form-control form-control-sm"
@@ -226,7 +226,7 @@
                         </div>
 
                         @if (Auth::user()->nivel != 'empresa')
-                            <div class="col-md-3">
+                            <div class="col-12 col-md-3">
                                 <label for="empresa_search" class="form-label mb-1 fw-semibold">Unidade Concedente</label>
                                 <input type="text" class="form-control form-control-sm" id="empresa_search"
                                     placeholder="Digite para buscar..." autocomplete="off"
@@ -245,7 +245,7 @@
                                 </div>
                             </div>
 
-                            <div class="col-md-3" id="localFilterCol" style="{{ request('empresa') ? '' : 'display:none;' }}">
+                            <div class="col-12 col-md-3" id="localFilterCol" style="{{ request('empresa') ? '' : 'display:none;' }}">
                                 <label for="local" class="form-label mb-1 fw-semibold">Local</label>
                                 <select name="local" id="local" class="form-select form-select-sm">
                                     <option value="">Todos</option>
@@ -254,7 +254,7 @@
                         @endif
 
                         <!-- Linha 2: Período e Status -->
-                        <div class="col-md-3">
+                        <div class="col-12 col-md-3">
                             <label class="form-label mb-1 fw-semibold">Período de Término do Estágio</label>
                             <div class="input-group input-group-sm">
                                 <input type="date" name="data_inicial" id="data_inicial" class="form-control form-control-sm"
@@ -265,7 +265,7 @@
                             </div>
                         </div>
 
-                        <div class="col-md-2">
+                        <div class="col-12 col-md-2">
                             <label for="status" class="form-label mb-1 fw-semibold">Status</label>
                             <select name="status" id="status" class="form-select form-select-sm">
                                 <option value="">Todos</option>
@@ -276,7 +276,7 @@
                             </select>
                         </div>
 
-                        <div class="col-md-2">
+                        <div class="col-12 col-md-2">
                             <label for="status_assinatura" class="form-label mb-1 fw-semibold">Assinatura ZapSign</label>
                             <select name="status_assinatura" id="status_assinatura" class="form-select form-select-sm">
                                 <option value="">Todos</option>
@@ -287,7 +287,7 @@
                             </select>
                         </div>
 
-                        <div class="col-md-3">
+                        <div class="col-12 col-md-3">
                             <label for="usuario_gerador" class="form-label mb-1 fw-semibold">Gerado por</label>
                             <select name="usuario_gerador" id="usuario_gerador" class="form-select form-select-sm">
                                 <option value="">Todos</option>
@@ -300,21 +300,20 @@
                         </div>
 
                         <!-- Botões de Ação -->
-                        <div class="col-md-2 d-flex align-items-end gap-2">
-                            <button type="submit" class="btn btn-primary btn-sm flex-fill">
-                                <i class="fas fa-search me-1"></i> Filtrar
+                        <div class="col-12 col-md-2 d-flex align-items-end gap-1">
+                            <button type="submit" class="btn btn-primary btn-sm flex-fill" title="Filtrar">
+                                <i class="fas fa-search"></i>
                             </button>
-                            <a href="{{ route('termos.index') }}" class="btn btn-outline-secondary btn-sm flex-fill">
-                                <i class="fas fa-eraser me-1"></i> Limpar
+                            <a href="{{ route('termos.index') }}" class="btn btn-outline-secondary btn-sm flex-fill" title="Limpar filtros">
+                                <i class="fas fa-eraser"></i>
                             </a>
                             <a href="{{ route('termos.gerarPdfRelatorioTermo', request()->query()) }}"
-                                class="btn btn-outline-danger btn-sm flex-fill" target="_blank" data-bs-toggle="tooltip"
-                                title="Gerar PDF">
-                                <i class="fas fa-file-pdf me-1"></i> PDF
+                                class="btn btn-outline-danger btn-sm flex-fill" target="_blank" title="Gerar PDF">
+                                <i class="fas fa-file-pdf"></i>
                             </a>
                             <a href="{{ route('termos.export', request()->query()) }}"
-                                class="btn btn-outline-success btn-sm flex-fill" data-bs-toggle="tooltip" title="Gerar Excel">
-                                <i class="fas fa-file-excel me-1"></i> Excel
+                                class="btn btn-outline-success btn-sm flex-fill" title="Gerar Excel">
+                                <i class="fas fa-file-excel"></i>
                             </a>
                         </div>
                     </div>
