@@ -27,7 +27,7 @@ class NotaasWebhookController extends Controller
             $payloadRaw = $request->getContent();
             $computed = hash_hmac('sha256', $payloadRaw, $secret);
 
-            if ($signature !== $computed) {
+            if (!hash_equals(strtolower($signature ?? ''), strtolower($computed))) {
                 Log::warning('NotaasWebhook: Assinatura inválida', [
                     'recebida' => $signature,
                     'computada' => $computed
