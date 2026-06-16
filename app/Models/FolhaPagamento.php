@@ -29,8 +29,13 @@ class FolhaPagamento extends Model
         'total_folha',
         'tipo_calculo_auxilio_transporte',
         'tipo_calculo_recesso',
-        'dias_uteis'
-
+        'dias_uteis',
+        'notaas_invoice_id',
+        'notaas_status',
+        'notaas_pdf_url',
+        'notaas_xml_url',
+        'notaas_error_message',
+        'notaas_emitted_at',
     ];
 
     //Mes referencia formatado por extenso
@@ -70,5 +75,8 @@ class FolhaPagamento extends Model
         return $this->hasMany(FolhasTermos::class, 'fk_id_folha', 'id_folha_pagamento');
     }
 
-
+    public function notaFiscal()
+    {
+        return $this->hasOne(NotaasInvoice::class, 'fk_id_folha', 'id_folha_pagamento');
+    }
 }

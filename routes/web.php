@@ -13,6 +13,7 @@ use App\Http\Controllers\EscolaController;
 use App\Http\Controllers\TermoController;
 use App\Http\Controllers\RescisaoController;
 use App\Http\Controllers\FolhaPagamentoController;
+use App\Http\Controllers\NotaasInvoiceController;
 use App\Http\Controllers\FolhasTermosController;
 use App\Http\Controllers\FinanceiroController;
 use App\Http\Controllers\FinanceiroContaController;
@@ -371,6 +372,13 @@ Route::middleware(['auth'])->group(function () {
         // Rotas AJAX para salvar em lotes
         Route::post('/folhas-pagamento/{id_folha_pagamento}/batch', [FolhaPagamentoController::class, 'storeallBatch'])->name('folhas.storeallBatch');
         Route::post('/folhas-pagamento/{id_folha_pagamento}/finalize', [FolhaPagamentoController::class, 'finalizeFolha'])->name('folhas.finalize');
+
+        // Rotas para Notas Fiscais Notaas (Painel & Emissões)
+        Route::get('/notas-fiscais', [NotaasInvoiceController::class, 'index'])->name('notaas.index');
+        Route::post('/notas-fiscais/emitir-avulsa', [NotaasInvoiceController::class, 'storeCustom'])->name('notaas.storeCustom');
+        Route::post('/notas-fiscais/{id}/sincronizar', [NotaasInvoiceController::class, 'sincronizarStatusNfse'])->name('notaas.sincronizar');
+        Route::post('/notas-fiscais/{id}/cancelar', [NotaasInvoiceController::class, 'cancelarNfseNotaas'])->name('notaas.cancelar');
+        Route::post('/folhas-pagamento/{id_folha_pagamento}/emitir-nfse', [NotaasInvoiceController::class, 'emitirNfseNotaas'])->name('folhas.emitirNfse');
 
         // Rota para salvar uma nova folha de pagamento
         Route::post('/folhas-pagamento', [FolhaPagamentoController::class, 'store'])->name('folhas.store');

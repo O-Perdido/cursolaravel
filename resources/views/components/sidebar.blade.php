@@ -377,6 +377,15 @@
                     <span class="nav-tooltip">Folhas de Pagamento</span>
                 </li>
             @endif
+            @if (Auth::user()->nivel === 'admin' || Auth::user()->nivel === 'operador')
+                <li class="nav-item">
+                    <a href="{{ route('notaas.index') }}" class="nav-link">
+                        <span class="nav-icon material-symbols-outlined">receipt_long</span>
+                        <span class="nav-label">Notas Fiscais</span>
+                    </a>
+                    <span class="nav-tooltip">Notas Fiscais</span>
+                </li>
+            @endif
             <li class="nav-item">
                 <a href="{{ route('usuarios.index') }}" class="nav-link">
                     <span class="nav-icon material-symbols-outlined">groups</span>

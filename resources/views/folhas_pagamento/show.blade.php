@@ -46,6 +46,106 @@
         </div>
     </div>
 
+    <!-- Painel de Integração NFS-e Notaas -->
+    @if (Auth::user()->nivel == 'admin' || Auth::user()->nivel == 'operador')
+        <div class="card mb-4 border shadow-sm">
+            <div class="card-header bg-light d-flex justify-content-between align-items-center py-2">
+                <h6 class="mb-0 fw-semibold text-secondary d-flex align-items-center gap-2">
+                    <i class="fas fa-file-invoice text-primary"></i>
+                    Nota Fiscal Eletrônica (NFS-e via Notaas)
+                </h6>
+                @if ($folha->notaFiscal && !empty($folha->notaFiscal->notaas_invoice_id))
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="small text-muted">Status:</span>
+                        @switch($folha->notaFiscal->notaas_status)
+                            @case('queued')
+                                <span class="badge bg-warning text-dark"><i class="fas fa-clock"></i> Na Fila (Notaas)</span>
+                                @break
+                            @case('processing')
+                                <span class="badge bg-info"><i class="fas fa-spinner fa-spin"></i> Processando</span>
+                                @break
+                            @case('issued')
+                                <span class="badge bg-success"><i class="fas fa-check-circle"></i> Emitida</span>
+                                @break
+                            @case('error')
+                                <span class="badge bg-danger"><i class="fas fa-exclamation-triangle"></i> Erro de Emissão</span>
+                                @break
+                            @case('cancelled')
+                                <span class="badge bg-secondary"><i class="fas fa-ban"></i> Cancelada</span>
+                                @break
+                            @default
+                                <span class="badge bg-light text-dark">{{ $folha->notaFiscal->notaas_status }}</span>
+                        @endswitch
+                    </div>
+                @else
+                    <span class="badge bg-light text-dark border">Não emitida</span>
+                @endif
+            </div>
+            <div class="card-body py-3">
+                @if (!$folha->notaFiscal || empty($folha->notaFiscal->notaas_invoice_id))
+                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                        <div>
+                            <p class="mb-0 text-muted small">Esta folha de pagamento ainda não possui nota fiscal eletrônica associada.</p>
+                            <span class="text-xs text-muted">Valores disponíveis: Taxa Adm: <strong>R$ {{ number_format($folha->total_taxa_adm, 2, ',', '.') }}</strong> | Total Folha: <strong>R$ {{ number_format($folha->total_folha, 2, ',', '.') }}</strong> | Soma: <strong>R$ {{ number_format($folha->total_taxa_adm + $folha->total_folha, 2, ',', '.') }}</strong></span>
+                        </div>
+                        <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#emitirNfseModal">
+                            <i class="fas fa-plus-circle me-1"></i> Emitir NFS-e via Notaas
+                        </button>
+                    </div>
+                @else
+                    <div class="row align-items-center g-3">
+                        <div class="col-md-7">
+                            <div class="small text-muted mb-1">
+                                <span class="fw-semibold">ID da Nota (Notaas):</span> <code>{{ $folha->notaFiscal->notaas_invoice_id }}</code>
+                            </div>
+                            @if ($folha->notaFiscal->notaas_emitted_at)
+                                <div class="small text-muted mb-1">
+                                    <span class="fw-semibold">Data de Emissão:</span> {{ \Carbon\Carbon::parse($folha->notaFiscal->notaas_emitted_at)->format('d/m/Y H:i:s') }}
+                                </div>
+                            @endif
+                            @if ($folha->notaFiscal->notaas_error_message)
+                                <div class="alert alert-danger py-2 px-3 mt-2 mb-0 small">
+                                    <strong>Erro retornado pela SEFAZ:</strong> {{ $folha->notaFiscal->notaas_error_message }}
+                                </div>
+                            @endif
+                        </div>
+                        <div class="col-md-5 d-flex justify-content-end align-items-center gap-2 flex-wrap">
+                            <!-- Formulário para sincronizar status -->
+                            <form action="{{ route('notaas.sincronizar', $folha->notaFiscal->id) }}" method="POST" class="m-0">
+                                @csrf
+                                <button type="submit" class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-sync-alt me-1"></i> Sincronizar Status
+                                </button>
+                            </form>
+
+                            @if ($folha->notaFiscal->notaas_status === 'issued')
+                                @if ($folha->notaFiscal->notaas_pdf_url)
+                                    <a href="{{ $folha->notaFiscal->notaas_pdf_url }}" target="_blank" class="btn btn-outline-success btn-sm">
+                                        <i class="fas fa-file-pdf me-1"></i> Visualizar PDF
+                                    </a>
+                                @endif
+                                @if ($folha->notaFiscal->notaas_xml_url)
+                                    <a href="{{ $folha->notaFiscal->notaas_xml_url }}" target="_blank" class="btn btn-outline-secondary btn-sm">
+                                        <i class="fas fa-file-code me-1"></i> Baixar XML
+                                    </a>
+                                @endif
+                                <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#cancelarNfseModal">
+                                    <i class="fas fa-ban me-1"></i> Cancelar NFS-e
+                                </button>
+                            @endif
+
+                            @if ($folha->notaFiscal->notaas_status === 'error')
+                                <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#emitirNfseModal">
+                                    <i class="fas fa-redo me-1"></i> Tentar Reemitir Nota
+                                </button>
+                            @endif
+                        </div>
+                    </div>
+                @endif
+            </div>
+        </div>
+    @endif
+
     <div class="row">
         <div class="col-md-6">
             <h1>Folha de Pagamento - {{ $folha->numero_folha }}/{{ \Carbon\Carbon::parse($folha->data_folha)->format('Y') }}
@@ -220,5 +320,116 @@
         </table>
     </div>
 
+    @if (Auth::user()->nivel == 'admin' || Auth::user()->nivel == 'operador')
+        <!-- Modal Emitir NFS-e -->
+        <div class="modal fade" id="emitirNfseModal" tabindex="-1" aria-labelledby="emitirNfseModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <form action="{{ route('folhas.emitirNfse', $folha->id_folha_pagamento) }}" method="POST">
+                        @csrf
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="emitirNfseModalLabel">Emitir Nota Fiscal (NFS-e via Notaas)</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                        </div>
+                        <div class="modal-body">
+                            <!-- Seleção de Valor com botões rápidos -->
+                            <div class="mb-3">
+                                <label for="valor_nota" class="form-label fw-bold">Valor da Nota Fiscal (R$)</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">R$</span>
+                                    <input type="number" step="0.01" class="form-control" id="valor_nota" name="valor_nota" 
+                                        value="{{ $folha->total_taxa_adm }}" required>
+                                </div>
+                                <div class="mt-2">
+                                    <button type="button" class="btn btn-outline-secondary btn-sm me-2" 
+                                        onclick="setValorNota('{{ $folha->total_taxa_adm }}')">
+                                        Usar Taxa Adm (R$ {{ number_format($folha->total_taxa_adm, 2, ',', '.') }})
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary btn-sm me-2" 
+                                        onclick="setValorNota('{{ $folha->total_folha }}')">
+                                        Usar Total Folha (R$ {{ number_format($folha->total_folha, 2, ',', '.') }})
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary btn-sm" 
+                                        onclick="setValorNota('{{ $folha->total_taxa_adm + $folha->total_folha }}')">
+                                        Usar Ambos (R$ {{ number_format($folha->total_taxa_adm + $folha->total_folha, 2, ',', '.') }})
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Descrição do Serviço -->
+                            <div class="mb-3">
+                                <label for="descricao_servico" class="form-label fw-bold">Descrição do Serviço Prestado</label>
+                                <textarea class="form-control" id="descricao_servico" name="descricao_servico" rows="4" required>TAXA DE CONTRATAÇÃO E ADMINISTRAÇÃO DE CONTRATOS DE ESTÁGIOS.</textarea><!--, referente à folha de pagamento nº {{ $folha->numero_folha }}, mês de referência: {{ $folha->getMesReferenciaFormatado() }}/{{ $folha->ano_referencia }}.-->
+                                <small class="text-muted">Este texto constará na nota fiscal emitida.</small>
+                            </div>
+
+                            <div class="row">
+                                <!-- Código de Serviço -->
+                                <div class="col-md-6 mb-3">
+                                    <label for="codigo_servico" class="form-label fw-bold">Código de Serviço (cTribNac - opcional)</label>
+                                    <input type="text" class="form-control" id="codigo_servico" name="codigo_servico" 
+                                        placeholder="Ex: 170501">
+                                    <small class="text-muted">Deixe em branco para usar o padrão da Notaas.</small>
+                                </div>
+
+                                <!-- Alíquota de ISS -->
+                                <div class="col-md-6 mb-3">
+                                    <label for="aliquota_iss" class="form-label fw-bold">Alíquota ISS (%)</label>
+                                    <input type="number" step="0.01" min="0" max="100" class="form-control" id="aliquota_iss" name="aliquota_iss" 
+                                        value="6.0" required>
+                                    <small class="text-muted">Informe a alíquota de ISS aplicável (ex: 6.0 para 6%).</small>
+                                </div>
+                            </div>
+
+                            <!-- ISS Retido -->
+                            <div class="mb-3 form-check">
+                                <input type="checkbox" class="form-check-input" id="iss_retido" name="iss_retido" value="1">
+                                <label class="form-check-label fw-semibold" for="iss_retido">ISS retido pelo tomador (empresa)?</label>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="submit" class="btn btn-primary">Transmitir para Notaas</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        @if ($folha->notaFiscal && $folha->notaFiscal->notaas_status === 'issued')
+            <!-- Modal Cancelar NFS-e -->
+            <div class="modal fade" id="cancelarNfseModal" tabindex="-1" aria-labelledby="cancelarNfseModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content text-start">
+                        <form action="{{ route('notaas.cancelar', $folha->notaFiscal->id) }}" method="POST">
+                            @csrf
+                            <div class="modal-header">
+                                <h5 class="modal-title text-danger" id="cancelarNfseModalLabel">Solicitar Cancelamento de NFS-e</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                            </div>
+                            <div class="modal-body text-start">
+                                <p class="text-danger fw-semibold"><i class="fas fa-exclamation-triangle"></i> Atenção: Esta ação enviará uma solicitação de cancelamento da nota diretamente à prefeitura/SEFAZ.</p>
+                                <div class="mb-3">
+                                    <label for="motivo_cancelamento" class="form-label fw-bold">Motivo do Cancelamento</label>
+                                    <textarea class="form-control" id="motivo_cancelamento" name="motivo_cancelamento" rows="3" 
+                                        placeholder="Descreva o motivo (mínimo de 5 caracteres)..." required></textarea>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Fechar</button>
+                                <button type="submit" class="btn btn-danger btn-sm">Confirmar Cancelamento</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        @endif
+
+        <script>
+            function setValorNota(value) {
+                document.getElementById('valor_nota').value = parseFloat(value).toFixed(2);
+            }
+        </script>
+    @endif
 
 @endsection

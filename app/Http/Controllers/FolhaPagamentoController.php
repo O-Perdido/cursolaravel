@@ -14,6 +14,8 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\FolhaPagamentoExport;
 use Illuminate\Support\Facades\Auth;
+use App\Services\NotaasService;
+use Illuminate\Support\Facades\Log;
 
 
 

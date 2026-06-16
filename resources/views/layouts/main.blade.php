@@ -576,6 +576,10 @@
                                                 <i class="fa-solid fa-file-invoice-dollar" style="color: #102e6c"></i>
                                                 Folhas de Pagamento</a>
                                         </li>
+                                        <li><a class="dropdown-item" href="{{ route('notaas.index') }}">
+                                                <i class="fa-solid fa-receipt" style="color: #102e6c"></i>
+                                                Notas Fiscais</a>
+                                        </li>
                                         @if($termosVencidosCount > 0)
                                             <li>
                                                 <a class="dropdown-item text-danger fw-bold"

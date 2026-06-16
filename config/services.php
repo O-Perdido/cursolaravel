@@ -43,4 +43,9 @@ return [
         'webhook_url' => env('INTER_BOLEPIX_WEBHOOK_URL'),
     ],
 
+    'notaas' => [
+        'api_key' => env('NOTAAS_API_KEY'),
+        'api_url' => env('NOTAAS_API_URL', 'https://platform.notaas.com.br/api/v1'),
+    ],
+
 ];
