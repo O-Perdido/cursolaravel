@@ -21,13 +21,28 @@ Abra o arquivo [`.env`](file:///c:/Users/Vinicius - Contratos/Documents/GitHub/c
 # Notaas API Configuration
 NOTAAS_API_KEY=INSIRA_SUA_API_KEY_AQUI
 NOTAAS_API_URL=https://platform.notaas.com.br/api/v1
+# Segredo do Webhook (opcional para validação de segurança HMAC-SHA256)
+NOTAAS_WEBHOOK_SECRET=INSIRA_SEU_WEBHOOK_SECRET_AQUI
 ```
 
 Substitua `INSIRA_SUA_API_KEY_AQUI` pela chave copiada no Passo 1.
 
 ---
 
-## Passo 3: Limpar o cache de configuração (Se necessário)
+## Passo 3: Configurar o Webhook no Painel do Notaas
+
+Para atualizar automaticamente o status das notas fiscais sem precisar clicar em "Sincronizar Status":
+
+1. Acesse o painel da Notaas: [https://platform.notaas.com.br](https://platform.notaas.com.br)
+2. Vá em **Configurações / Integrações / Webhooks** ou seção equivalente.
+3. Cadastre um novo endpoint de webhook apontando para:
+   `https://seu-dominio.com/webhooks/notaas`
+4. Selecione os eventos que deseja receber (recomendado selecionar todos os eventos de NFS-e, especialmente `nfse.issued`, `nfse.documents_ready`, `nfse.error` e `nfse.cancelled`).
+5. Copie o **Segredo/Secret** gerado e insira no seu arquivo `.env` no campo `NOTAAS_WEBHOOK_SECRET`.
+
+---
+
+## Passo 4: Limpar o cache de configuração (Se necessário)
 
 Se o seu sistema Laravel estiver rodando em produção ou com cache de configuração ativo, execute o comando abaixo no terminal da raiz do projeto para aplicar as novas variáveis do `.env`:
 
@@ -39,13 +54,8 @@ php artisan config:clear
 
 ## Funcionamento no Sistema
 
-Ao acessar a tela de detalhes de qualquer **Folha de Pagamento** ([show.blade.php](file:///c:/Users/Vinicius - Contratos/Documents/GitHub/cursolaravel/resources/views/folhas_pagamento/show.blade.php)):
+Ao acessar o **Painel de Notas Fiscais** ou os detalhes de qualquer **Folha de Pagamento**:
 
-1. Um novo painel **Nota Fiscal Eletrônica (NFS-e via Notaas)** estará disponível.
-2. Caso a nota não tenha sido emitida, o botão **Emitir NFS-e via Notaas** abrirá um modal interativo.
-3. No modal, selecione a opção de valor desejada:
-   - **Apenas Taxa Administrativa** (padrão preenchido).
-   - **Total da Folha**.
-   - **Ambos (Taxa Adm + Total Folha)**.
-   - **Valor Customizado**.
-4. A nota será enfileirada. Clique em **Sincronizar Status** para consultar o processamento pela Notaas e liberar os links para download do **PDF** e do **XML** autorizados da NFS-e.
+1. Você pode emitir notas (ligadas a folhas ou avulsas).
+2. O webhook atualiza automaticamente o banco de dados (status, PDF, XML, erros) de forma assíncrona assim que a SEFAZ ou prefeitura retornar.
+3. A sincronização manual através do botão **Sincronizar Status** continua disponível como um método de segurança.

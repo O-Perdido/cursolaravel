@@ -46,6 +46,7 @@ return [
     'notaas' => [
         'api_key' => env('NOTAAS_API_KEY'),
         'api_url' => env('NOTAAS_API_URL', 'https://platform.notaas.com.br/api/v1'),
+        'webhook_secret' => env('NOTAAS_WEBHOOK_SECRET'),
     ],
 
 ];

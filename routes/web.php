@@ -14,6 +14,7 @@ use App\Http\Controllers\TermoController;
 use App\Http\Controllers\RescisaoController;
 use App\Http\Controllers\FolhaPagamentoController;
 use App\Http\Controllers\NotaasInvoiceController;
+use App\Http\Controllers\NotaasWebhookController;
 use App\Http\Controllers\FolhasTermosController;
 use App\Http\Controllers\FinanceiroController;
 use App\Http\Controllers\FinanceiroContaController;
@@ -702,6 +703,9 @@ Route::post('/login', [AuthController::class, 'loginAttempt'])->name('auth');
 
 // Webhook ZapSign (rota pública)
 Route::post('/webhooks/zapsign', [ZapSignWebhookController::class, 'handle'])->name('webhook.zapsign');
+
+// Webhook Notaas (rota pública)
+Route::post('/webhooks/notaas', [NotaasWebhookController::class, 'handle'])->name('webhook.notaas');
 
 // Central de Ajuda (rota pública)
 Route::get('/ajuda', [App\Http\Controllers\AjudaController::class, 'index'])->name('ajuda');

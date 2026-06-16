@@ -16,6 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->validateCsrfTokens(except: [
             '/webhooks/zapsign',
             '/sigeconcursos/inter/webhook',
+            '/webhooks/notaas',
         ]);
 
         $middleware->alias([
