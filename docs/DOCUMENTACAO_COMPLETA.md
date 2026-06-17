@@ -71,7 +71,13 @@ graph TD
 
 ### 4. Modelagem de Banco de Dados (DER)
 
-A modelagem de dados do SIGE é altamente normalizada e estruturada para garantir velocidade de consulta e integridade referencial física. O relacionamento entre as tabelas do sistema está representado no diagrama abaixo:
+A modelagem de dados do SIGEBR é altamente normalizada e estruturada para garantir velocidade de consulta e integridade referencial física. 
+
+Devido à grande escala e alta complexidade de tabelas do banco de dados completo, o diagrama técnico foi exportado em formato vetorial de alta definição (SVG). Ele permite aproximação (zoom) sem perda de qualidade para inspeção detalhada de colunas, chaves primárias (PK) e estrangeiras (FK).
+
+* 📂 **Diagrama Completo em Alta Definição**: [sigebr_der_completo.svg](file:///c:/Users/pedro/Documents/GitHub/cursolaravel/docs/sigebr_der_completo.svg) (Recomendado abrir no navegador web para navegação interativa)
+
+Abaixo está o modelo conceitual simplificado das relações centrais do ecossistema SIGEBR:
 
 ```mermaid
 erDiagram

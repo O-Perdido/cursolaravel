@@ -20,7 +20,12 @@
             startOnLoad: true,
             theme: 'neutral',
             securityLevel: 'loose',
-            flowchart: { useMaxWidth: true, htmlLabels: false }
+            themeVariables: {
+                fontSize: '16px',
+                fontFamily: 'Inter, Arial, sans-serif'
+            },
+            flowchart: { useMaxWidth: false, htmlLabels: false },
+            er: { useMaxWidth: false }
         });
     </script>
 
@@ -461,6 +466,77 @@
             text-align: center;
         }
 
+        /* Large SVG Viewport with interactive Zoom and Pan */
+        .der-container {
+            margin-bottom: 2rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background-color: #0b0f19;
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .der-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            padding: 0.75rem;
+            background-color: rgba(109, 40, 217, 0.05);
+            border-bottom: 1px solid var(--border-color);
+            align-items: center;
+        }
+
+        .der-controls button, 
+        .der-controls a {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 0.4rem 0.8rem;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-family: var(--font-sans);
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            transition: all 0.2s;
+        }
+
+        .der-controls button:hover, 
+        .der-controls a:hover {
+            background-color: var(--primary-glow);
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .der-viewport {
+            max-height: 600px;
+            overflow: auto;
+            padding: 1rem;
+            display: flex;
+            justify-content: flex-start;
+            align-items: flex-start;
+            cursor: grab;
+            user-select: none;
+        }
+
+        .der-viewport:active {
+            cursor: grabbing;
+        }
+
+        #der-diagram-img {
+            width: 100%;
+            max-width: 100%;
+            height: auto;
+            transition: width 0.15s ease, max-width 0.15s ease;
+            display: block;
+        }
+
+        .print-only {
+            display: none;
+        }
+
         /* Interactive Controls */
         .theme-toggle,
         .print-btn {
@@ -725,6 +801,47 @@
                 page-break-inside: avoid !important;
                 break-inside: avoid !important;
                 padding: 1rem !important;
+                width: 100% !important;
+                overflow: visible !important;
+            }
+
+            .diagram-container svg {
+                max-width: 100% !important;
+                height: auto !important;
+            }
+
+            /* Print landscape page layout for massive diagram */
+            @page landscape-layout {
+                size: A4 landscape;
+                margin: 1cm;
+            }
+
+            .print-landscape {
+                page: landscape-layout;
+                break-before: always !important;
+                break-after: always !important;
+                width: 100% !important;
+                display: block !important;
+            }
+
+            .print-landscape .der-viewport {
+                max-height: none !important;
+                overflow: visible !important;
+                padding: 0 !important;
+                display: block !important;
+            }
+
+            .print-landscape #der-diagram-img {
+                width: 100% !important;
+                max-width: 100% !important;
+                height: auto !important;
+                margin: 0 auto !important;
+                box-shadow: none !important;
+                border: none !important;
+            }
+
+            .print-only {
+                display: block !important;
             }
 
             .card {
@@ -819,7 +936,7 @@
                         </div>
                         <div class="meta-item">
                             <div class="meta-label">Versão</div>
-                            <div class="meta-value">1.6.26</div>
+                            <div class="meta-value">1.0.0</div>
                         </div>
                     </div>
                 </div>
@@ -946,30 +1063,27 @@ graph TD
                     Mapeamento físico de relacionamentos do banco de dados <code>ebcp_db</code>. O diagrama exibe chaves
                     primárias (PK), chaves estrangeiras (FK) e a normalização aplicada.
                 </p>
-                <div class="diagram-container">
-                    <pre class="mermaid">
-erDiagram
-    USERS ||--o| tb_empresas : fk_id_empresa
-    USERS ||--o| tb_estagiarios : fk_id_estagiario
-    tb_empresas ||--o{ tb_supervisores : fk_id_empresa
-    tb_empresas ||--o{ tb_local : fk_id_empresa
-    tb_empresas ||--o{ tb_termos : fk_id_empresa
-    tb_estagiarios ||--o{ tb_termos : fk_id_estagiario
-    tb_escolas ||--o{ tb_termos : fk_id_escola
-    tb_supervisores ||--o{ tb_termos : fk_id_supervisor
-    tb_local ||--o{ tb_termos : fk_id_local
-    tb_termos ||--o{ tb_alteracao_termo : fk_id_termo
-    tb_termos ||--o| tb_rescisao : fk_id_termo
-    tb_termos ||--o{ tb_concessoes_recesso : fk_id_termo
-    tb_termos ||--o{ tb_avaliacoes : fk_id_termo
-    tb_empresas ||--o{ tb_folhas_pagamento : fk_id_empresa
-    tb_folhas_pagamento ||--o{ tb_folhas_termos : fk_id_folha
-    tb_termos ||--o{ tb_folhas_termos : fk_id_termo
-    tb_empresas ||--o{ tb_chamados : fk_id_empresa
-    tb_chamados ||--o{ tb_chamados_mensagens : fk_id_chamado
-    tb_tipos_chamados ||--o{ tb_chamados : fk_id_tipo_chamado
-</pre>
+                <p class="no-print" style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1.5rem; line-height: 1.5;">
+                    💡 <strong>Dica de Visualização:</strong> Use os botões abaixo para ampliar ou reduzir o diagrama. Você também pode arrastar o conteúdo (clicar e arrastar) para navegar pelos detalhes do banco de dados completo. Abra em "Tela Cheia" para navegar com o zoom nativo do navegador.
+                </p>
+
+                <!-- Interactive DER Viewport (Screen) / Full A4 Landscape (Print) -->
+                <div class="der-container print-landscape">
+                    <div class="der-controls no-print">
+                        <button type="button" onclick="adjustZoom(25)" title="Aumentar Zoom">🔍 Zoom In</button>
+                        <button type="button" onclick="adjustZoom(-25)" title="Diminuir Zoom">🔍 Zoom Out</button>
+                        <button type="button" onclick="resetZoom()" title="Restaurar Zoom Original">🔄 Redefinir</button>
+                        <a href="sigebr_der_completo.svg" target="_blank" title="Abrir em Nova Aba do Navegador">🖥️ Tela Cheia</a>
+                        <a href="sigebr_der_completo.svg" download="sigebr_der_completo.svg" title="Salvar arquivo SVG original">💾 Baixar SVG</a>
+                    </div>
+                    <div class="der-viewport" id="derViewport">
+                        <img id="der-diagram-img" src="sigebr_der_completo.svg" alt="Modelo de Banco de Dados - DER Completo">
+                    </div>
                 </div>
+
+                <p class="print-only" style="font-size: 9.5pt; color: #444444; margin-top: 1rem; line-height: 1.5;">
+                    <strong>Nota Operacional:</strong> Devido à grande escala e complexidade estrutural deste banco de dados, o diagrama acima foi rotacionado automaticamente para orientação paisagem (landscape) para otimização de impressão. O arquivo vetorial original de alta resolução que acompanha a documentação (<code>sigebr_der_completo.svg</code>) pode ser aberto no navegador web para aproximação e inspeção detalhada de chaves e relacionamentos.
+                </p>
             </section>
 
             <!-- CAPÍTULO 5 -->
@@ -1464,6 +1578,64 @@ php artisan storage:link</code></pre>
                 }
             }
         };
+
+        // Interactive Zoom Controls for the Database Diagram
+        let currentZoomPercent = 100;
+        const derImg = document.getElementById('der-diagram-img');
+        const derViewport = document.getElementById('derViewport');
+
+        function adjustZoom(amount) {
+            if (!derImg) return;
+            currentZoomPercent = Math.max(30, Math.min(550, currentZoomPercent + amount));
+            derImg.style.width = currentZoomPercent + '%';
+            derImg.style.maxWidth = 'none';
+        }
+
+        function resetZoom() {
+            if (!derImg) return;
+            currentZoomPercent = 100;
+            derImg.style.width = '100%';
+            derImg.style.maxWidth = '100%';
+        }
+
+        // Drag to scroll logic for the database diagram viewport
+        if (derViewport) {
+            let isDown = false;
+            let startX;
+            let startY;
+            let scrollLeft;
+            let scrollTop;
+
+            derViewport.addEventListener('mousedown', (e) => {
+                isDown = true;
+                derViewport.style.cursor = 'grabbing';
+                startX = e.pageX - derViewport.offsetLeft;
+                startY = e.pageY - derViewport.offsetTop;
+                scrollLeft = derViewport.scrollLeft;
+                scrollTop = derViewport.scrollTop;
+            });
+
+            derViewport.addEventListener('mouseleave', () => {
+                isDown = false;
+                derViewport.style.cursor = 'grab';
+            });
+
+            derViewport.addEventListener('mouseup', () => {
+                isDown = false;
+                derViewport.style.cursor = 'grab';
+            });
+
+            derViewport.addEventListener('mousemove', (e) => {
+                if (!isDown) return;
+                e.preventDefault();
+                const x = e.pageX - derViewport.offsetLeft;
+                const y = e.pageY - derViewport.offsetTop;
+                const walkX = (x - startX) * 1.5; // scroll-speed
+                const walkY = (y - startY) * 1.5;
+                derViewport.scrollLeft = scrollLeft - walkX;
+                derViewport.scrollTop = scrollTop - walkY;
+            });
+        }
     </script>
 </body>
 
