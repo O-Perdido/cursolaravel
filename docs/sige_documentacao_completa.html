@@ -1,0 +1,1470 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memória Descritiva de Software e Banco de Dados - SIGE</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap"
+        rel="stylesheet">
+
+    <!-- Mermaid.js for Vector Diagrams -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.2.4/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'neutral',
+            securityLevel: 'loose',
+            flowchart: { useMaxWidth: true, htmlLabels: false }
+        });
+    </script>
+
+    <style>
+        /* CSS Variables & Palette (Rich Aesthetics) */
+        :root {
+            --bg-body: #f8fafc;
+            --bg-card: #ffffff;
+            --bg-sidebar: #ffffff;
+            --border-color: #e2e8f0;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --text-white: #ffffff;
+
+            --primary: #6d28d9;
+            --primary-light: #8b5cf6;
+            --primary-glow: rgba(109, 40, 217, 0.15);
+            --secondary: #10b981;
+
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.03);
+
+            --font-display: 'Outfit', sans-serif;
+            --font-sans: 'Inter', sans-serif;
+            --font-mono: 'Fira Code', monospace;
+
+            --sidebar-width: 320px;
+            --transition-speed: 0.3s;
+        }
+
+        [data-theme="dark"] {
+            --bg-body: #0b0f19;
+            --bg-card: rgba(17, 24, 39, 0.75);
+            --bg-sidebar: rgba(11, 15, 25, 0.9);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --text-main: #f1f5f9;
+            --text-muted: #94a3b8;
+
+            --primary: #a78bfa;
+            --primary-light: #c084fc;
+            --primary-glow: rgba(167, 139, 250, 0.15);
+            --secondary: #34d399;
+
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
+            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.3);
+            --shadow-lg: 0 12px 24px -4px rgba(0, 0, 0, 0.4);
+        }
+
+        /* Core reset */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            line-height: 1.6;
+            display: flex;
+            min-height: 100vh;
+            transition: background-color var(--transition-speed), color var(--transition-speed);
+        }
+
+        /* Cover Page (Visual Wow) */
+        .cover-page {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 95vh;
+            width: 100%;
+            background: linear-gradient(135deg, rgba(109, 40, 217, 0.08) 0%, rgba(16, 185, 129, 0.02) 100%);
+            padding: 3rem;
+            position: relative;
+            overflow: hidden;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 5rem;
+        }
+
+        .cover-page::before {
+            content: '';
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, var(--primary-glow) 0%, rgba(0, 0, 0, 0) 70%);
+            top: -200px;
+            right: -200px;
+            z-index: 0;
+        }
+
+        .cover-container {
+            max-width: 800px;
+            text-align: center;
+            z-index: 1;
+            animation: fadeIn 1s ease-out;
+        }
+
+        .cover-badge {
+            background-color: var(--primary-glow);
+            color: var(--primary);
+            padding: 0.5rem 1.25rem;
+            border-radius: 50px;
+            font-size: 0.875rem;
+            font-family: var(--font-display);
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            display: inline-block;
+            margin-bottom: 1.5rem;
+            border: 1px solid rgba(167, 139, 250, 0.2);
+        }
+
+        .cover-title {
+            font-family: var(--font-display);
+            font-size: 3.5rem;
+            font-weight: 800;
+            line-height: 1.15;
+            letter-spacing: -0.02em;
+            margin-bottom: 1.5rem;
+            color: var(--primary);
+        }
+
+        .cover-subtitle {
+            font-size: 1.25rem;
+            color: var(--text-muted);
+            margin-bottom: 3rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .cover-meta {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            border-top: 1px solid var(--border-color);
+            padding-top: 2rem;
+            font-size: 0.95rem;
+        }
+
+        .meta-item {
+            text-align: left;
+        }
+
+        .meta-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            margin-bottom: 0.25rem;
+        }
+
+        .meta-value {
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        /* Layout Main Document */
+        .app-container {
+            display: flex;
+            width: 100%;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Glassmorphic */
+        .sidebar {
+            width: var(--sidebar-width);
+            background-color: var(--bg-sidebar);
+            border-right: 1px solid var(--border-color);
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            transition: transform var(--transition-speed);
+        }
+
+        .sidebar-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .sidebar-brand {
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .sidebar-brand span {
+            color: var(--primary);
+        }
+
+        .search-box {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            font-family: var(--font-sans);
+            font-size: 0.875rem;
+            transition: border-color var(--transition-speed);
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .sidebar-nav {
+            overflow-y: auto;
+            flex: 1;
+            padding: 1rem 0;
+        }
+
+        .nav-item {
+            display: block;
+            padding: 0.75rem 1.5rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+        }
+
+        .nav-item:hover,
+        .nav-item.active {
+            color: var(--text-main);
+            background-color: rgba(109, 40, 217, 0.05);
+            border-left-color: var(--primary);
+        }
+
+        .sidebar-footer {
+            padding: 1rem 1.5rem;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Core Content Layout */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            flex: 1;
+            min-width: 0;
+            padding: 2.5rem;
+            max-width: 1200px;
+        }
+
+        /* Chapter Cards & Formatting */
+        .chapter {
+            margin-bottom: 4rem;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        .chapter-header {
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 0.75rem;
+            position: relative;
+        }
+
+        .chapter-title {
+            font-family: var(--font-display);
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-main);
+            letter-spacing: -0.01em;
+        }
+
+        .chapter-number {
+            color: var(--primary);
+            font-size: 1rem;
+            font-family: var(--font-mono);
+            display: block;
+            margin-bottom: 0.25rem;
+        }
+
+        h3 {
+            font-family: var(--font-display);
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        p {
+            margin-bottom: 1.25rem;
+            color: var(--text-muted);
+            font-size: 1rem;
+            text-align: justify;
+        }
+
+        /* Custom UI Elements */
+        .card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: var(--shadow-sm);
+            transition: box-shadow var(--transition-speed);
+        }
+
+        .card:hover {
+            box-shadow: var(--shadow-md);
+        }
+
+        /* Bullet lists styling */
+        ul,
+        ol {
+            margin-left: 1.5rem;
+            margin-bottom: 1.5rem;
+            color: var(--text-muted);
+        }
+
+        li {
+            margin-bottom: 0.5rem;
+        }
+
+        /* Code Block Styling */
+        pre {
+            background-color: #0b0f19;
+            color: #f1f5f9;
+            border-radius: 6px;
+            padding: 1rem;
+            overflow-x: auto;
+            margin-bottom: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            position: relative;
+        }
+
+        code {
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+            background-color: rgba(109, 40, 217, 0.08);
+            color: var(--primary);
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+        }
+
+        pre code {
+            background-color: transparent;
+            color: inherit;
+            padding: 0;
+            font-size: 0.85rem;
+        }
+
+        /* Copier Button */
+        .btn-copy {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #94a3b8;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-copy:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: #f1f5f9;
+        }
+
+        /* Table Styling */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+            box-shadow: var(--shadow-sm);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        th,
+        td {
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--border-color);
+            text-align: left;
+        }
+
+        th {
+            background-color: rgba(109, 40, 217, 0.05);
+            color: var(--text-main);
+            font-weight: 600;
+        }
+
+        tr:nth-child(even) {
+            background-color: rgba(0, 0, 0, 0.01);
+        }
+
+        [data-theme="dark"] tr:nth-child(even) {
+            background-color: rgba(255, 255, 255, 0.01);
+        }
+
+        /* Diagram Box */
+        .diagram-container {
+            background-color: #0b0f19;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: center;
+            overflow-x: auto;
+        }
+
+        .mermaid {
+            width: 100%;
+            text-align: center;
+        }
+
+        /* Interactive Controls */
+        .theme-toggle,
+        .print-btn {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.2s;
+        }
+
+        .theme-toggle:hover,
+        .print-btn:hover {
+            background-color: var(--border-color);
+            transform: scale(1.05);
+        }
+
+        .print-btn {
+            gap: 0.5rem;
+            width: auto;
+            border-radius: 6px;
+            padding: 0 1rem;
+            font-family: var(--font-display);
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+
+        /* Back to top button */
+        .back-to-top {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background-color: var(--primary);
+            color: var(--text-white);
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            z-index: 99;
+            transition: transform 0.2s;
+        }
+
+        .back-to-top:hover {
+            transform: translateY(-2px);
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 992px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .sidebar.active {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 1.5rem;
+            }
+
+            .cover-title {
+                font-size: 2.5rem;
+            }
+        }
+
+        /* ==========================================================================
+           @media print - CSS OTIMIZADO PARA EXPORTAÇÃO EM PDF (ESTILO LIVRO CORPORATIVO)
+           ========================================================================== */
+        @media print {
+
+            /* Forçar cores de fundo para impressão */
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            body {
+                background: #ffffff !important;
+                color: #000000 !important;
+                font-family: Arial, sans-serif !important;
+                font-size: 11pt !important;
+                line-height: 1.6 !important;
+                display: block !important;
+            }
+
+            /* Ocultar elementos interativos e de tela */
+            .sidebar,
+            .theme-toggle,
+            .print-btn,
+            .btn-enter,
+            .btn-copy,
+            .back-to-top,
+            .no-print {
+                display: none !important;
+            }
+
+            /* Ajustar container do conteúdo */
+            .app-container {
+                display: block !important;
+            }
+
+            .main-content {
+                margin: 0 !important;
+                padding: 0 !important;
+                width: 100% !important;
+                max-width: 100% !important;
+            }
+
+            /* Configuração da Capa em Impressão */
+            .cover-page {
+                height: 95vh !important;
+                min-height: 95vh !important;
+                display: flex !important;
+                flex-direction: column !important;
+                justify-content: center !important;
+                align-items: center !important;
+                background: none !important;
+                border: 2px solid #000000 !important;
+                border-radius: 8px !important;
+                padding: 3rem !important;
+                page-break-after: always !important;
+                break-after: page !important;
+            }
+
+            .cover-title {
+                font-size: 32pt !important;
+                color: #6d28d9 !important;
+                background: none !important;
+                -webkit-text-fill-color: #6d28d9 !important;
+                margin-top: 2rem !important;
+                margin-bottom: 1rem !important;
+            }
+
+            .cover-subtitle {
+                color: #444444 !important;
+                font-size: 14pt !important;
+            }
+
+            .cover-meta {
+                width: 100% !important;
+                margin-top: auto !important;
+                border-top: 1px solid #444444 !important;
+                padding-top: 1.5rem !important;
+            }
+
+            .meta-label {
+                color: #666666 !important;
+            }
+
+            .meta-value {
+                color: #000000 !important;
+            }
+
+            /* Formatação de Capítulos e Títulos */
+            .chapter {
+                page-break-before: always !important;
+                break-before: page !important;
+                margin-bottom: 2rem !important;
+            }
+
+            /* Impedir quebra de página logo após títulos */
+            h1,
+            h2,
+            h3,
+            h4 {
+                page-break-after: avoid !important;
+                break-after: avoid !important;
+                color: #000000 !important;
+            }
+
+            .chapter-title {
+                font-size: 18pt !important;
+                border-bottom: 1px solid #000000 !important;
+                padding-bottom: 0.5rem !important;
+                margin-bottom: 1rem !important;
+            }
+
+            h3 {
+                font-size: 13pt !important;
+                margin-top: 1.5rem !important;
+                margin-bottom: 0.75rem !important;
+            }
+
+            p {
+                color: #000000 !important;
+                font-size: 11pt !important;
+                margin-bottom: 1rem !important;
+            }
+
+            /* Tabelas Impressas */
+            table {
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+                border: 1px solid #000000 !important;
+            }
+
+            th,
+            td {
+                border: 1px solid #000000 !important;
+                padding: 6px 8px !important;
+                font-size: 9.5pt !important;
+            }
+
+            th {
+                background-color: #f0f0f0 !important;
+                color: #000000 !important;
+            }
+
+            tr {
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+            }
+
+            /* Blocos de Código Impressos */
+            pre {
+                background: #fcfcfc !important;
+                border: 1px dashed #444444 !important;
+                color: #000000 !important;
+                padding: 0.75rem !important;
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+                white-space: pre-wrap !important;
+                word-wrap: break-word !important;
+            }
+
+            code {
+                background: #f0f0f0 !important;
+                color: #000000 !important;
+                font-size: 9.5pt !important;
+                padding: 1px 3px !important;
+                border: 1px solid #ddd !important;
+            }
+
+            /* Elementos Gráficos / Diagramas em Impressão */
+            .diagram-container {
+                background: #ffffff !important;
+                border: 1px solid #000000 !important;
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+                padding: 1rem !important;
+            }
+
+            .card {
+                background: #ffffff !important;
+                border: 1px solid #cccccc !important;
+                box-shadow: none !important;
+                margin-bottom: 1rem !important;
+                padding: 1rem !important;
+            }
+
+            ul,
+            ol {
+                color: #000000 !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ==========================================
+         MAIN DOCUMENT APP CONTAINER
+         ========================================== -->
+    <div class="app-container" id="appContainer">
+
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-brand">
+                    <span>SIGE</span> Docs
+                </div>
+            </div>
+
+            <div class="search-box">
+                <input type="text" id="searchInput" class="search-input" placeholder="Buscar na documentação..."
+                    onkeyup="filterDocs()">
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="#capa" class="nav-item active">Capa do Documento</a>
+                <a href="#cap1" class="nav-item">1. Apresentação e Identificação</a>
+                <a href="#cap2" class="nav-item">2. Arquitetura Tecnológica</a>
+                <a href="#cap3" class="nav-item">3. Casos de Uso (UML)</a>
+                <a href="#cap4" class="nav-item">4. Banco de Dados (DER)</a>
+                <a href="#cap5" class="nav-item">5. Estagiários e Perfil</a>
+                <a href="#cap6" class="nav-item">6. Termos (TCE) e Aditivos</a>
+                <a href="#cap7" class="nav-item">7. Assinatura ZapSign</a>
+                <a href="#cap8" class="nav-item">8. Vagas e Candidaturas</a>
+                <a href="#cap9" class="nav-item">9. Avaliações de Desempenho</a>
+                <a href="#cap10" class="nav-item">10. Folha de Pagamento</a>
+                <a href="#cap11" class="nav-item">11. Chamados e Suporte</a>
+                <a href="#cap12" class="nav-item">12. Módulo SIGE Concursos</a>
+                <a href="#cap13" class="nav-item">13. Políticas de Segurança</a>
+                <a href="#cap14" class="nav-item">14. Manual de Instalação</a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()"
+                    title="Alternar tema claro/escuro">
+                    🌙
+                </button>
+                <button class="print-btn" onclick="window.print()" title="Imprimir / Salvar como PDF">
+                    🖨️ Salvar PDF
+                </button>
+            </div>
+        </aside>
+
+        <!-- MAIN CONTENT PANEL -->
+        <main class="main-content">
+
+            <!-- CAPA (COVER PAGE) -->
+            <section id="capa" class="cover-page">
+                <div class="cover-container">
+                    <span class="cover-badge">SIGEBR - EBCP</span>
+                    <h1 class="cover-title">Documento Descritivo de Software e Banco de Dados</h1>
+                    <p class="cover-subtitle">
+                        SIGEBR - Sistema de Integração e Gestão de Estágios.
+                    </p>
+
+                    <div class="cover-meta">
+                        <div class="meta-item">
+                            <div class="meta-label">Sistema</div>
+                            <div class="meta-value">SIGEBR</div>
+                        </div>
+                        <div class="meta-item">
+                            <div class="meta-label">Autor</div>
+                            <div class="meta-value">Vinícius Pedro Elias Neto</div>
+                        </div>
+                        <div class="meta-item">
+                            <div class="meta-label">Finalidade</div>
+                            <div class="meta-value">Documentação do Software</div>
+                        </div>
+                        <div class="meta-item">
+                            <div class="meta-label">Versão</div>
+                            <div class="meta-value">1.6.26</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- CAPÍTULO 1 -->
+            <section id="cap1" class="chapter">
+                <div class="chapter-header">
+                    <span class="chapter-number">Capítulo 01</span>
+                    <h2 class="chapter-title">Apresentação e Identificação do Software</h2>
+                </div>
+                <div class="card">
+                    <p>
+                        O <strong>SIGE (Sistema de Gestão de Estágios)</strong> é uma plataforma integrada de gestão
+                        operacional, administrativa e financeira desenvolvida em arquitetura web moderna. O sistema foi
+                        projetado para atuar como um Hub corporativo que conecta unidades concedentes (empresas),
+                        instituições de ensino (escolas), estagiários, supervisores de estágio, candidatos a processos
+                        seletivos públicos (concursos) e operadores administrativos.
+                    </p>
+                    <p>
+                        O sistema divide-se em três grandes frentes de atuação tecnológica:
+                    </p>
+                    <ul>
+                        <li><strong>Gestão de Estágios e Contratos (TCE)</strong>: Automação completa do fluxo de
+                            contratação de estagiários, controle de limites por empresa, aditivos de alteração,
+                            rescisões, controle de recesso, avaliações automáticas de desempenho e assinatura digital de
+                            documentos via integração com ZapSign.</li>
+                        <li><strong>Portal de Vagas e Candidaturas</strong>: Painel para empresas publicarem
+                            oportunidades de estágio e emprego, com área pública de busca, envio de currículos e
+                            sincronização automática com o cadastro de contratos.</li>
+                        <li><strong>SIGE Concursos</strong>: Módulo completo para elaboração e controle de concursos
+                            públicos e processos seletivos. Permite cadastrar órgãos públicos, editais, cargos, locais
+                            de prova e salas, executar o algoritmo de alocação automática e balanceada de candidatos por
+                            sala, homologar inscrições (com exportação financeira de taxas e isenções) e emitir folhas
+                            de presença de provas.</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- CAPÍTULO 2 -->
+            <section id="cap2" class="chapter">
+                <div class="chapter-header">
+                    <span class="chapter-number">Capítulo 02</span>
+                    <h2 class="chapter-title">Especificação de Arquitetura Tecnológica</h2>
+                </div>
+                <div class="card">
+                    <p>
+                        A plataforma foi construída seguindo padrões de engenharia de software de alta performance,
+                        portabilidade e segurança:
+                    </p>
+                    <ul>
+                        <li><strong>Backend Framework</strong>: Laravel (PHP 8.1+), empregando o padrão arquitetural MVC
+                            (Model-View-Controller), ORM Eloquent para abstração e segurança das transações do banco de
+                            dados, e Jobs assíncronos/agendados para tarefas em background.</li>
+                        <li><strong>Database Engine</strong>: MySQL (5.7 ou superior), utilizando índices otimizados nas
+                            chaves de relacionamento, transações SQL acopladas (para garantir a integridade dos dados em
+                            caso de falhas) e restrições de chave estrangeira (FK) em nível de banco de dados.</li>
+                        <li><strong>Frontend e UI</strong>: Blade templates integrados a bibliotecas JavaScript
+                            assíncronas (AJAX via Axios/Fetch) e CSS Vanilla estruturado de alto desempenho. A navegação
+                            de buscas utiliza Select2 dinâmico para otimizar a renderização de grandes volumes de
+                            registros.</li>
+                        <li><strong>Portabilidade Móvel (PWA)</strong>: O sistema opera também como um PWA
+                            (<em>Progressive Web App</em>). Possui Service Worker configurado para controle de cache,
+                            manipulação offline de ativos essenciais e manifest de instalação que permite que o sistema
+                            seja adicionado como aplicativo nativo em dispositivos móveis Android e iOS.</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- CAPÍTULO 3 -->
+            <section id="cap3" class="chapter">
+                <div class="chapter-header">
+                    <span class="chapter-number">Capítulo 03</span>
+                    <h2 class="chapter-title">Mapeamento de Casos de Uso (UML)</h2>
+                </div>
+                <p>
+                    O diagrama a seguir representa graficamente as permissões funcionais e casos de uso de cada tipo de
+                    ator dentro do ecossistema do SIGE.
+                </p>
+                <div class="diagram-container">
+                    <pre class="mermaid">
+graph TD
+    subgraph Atores do Sistema
+        Admin[Admin / Operador]
+        Empresa[Empresa Concedente]
+        Estag[Estagiário]
+        Cand[Candidato Público]
+    end
+
+    subgraph Funcionalidades Administrativas
+        Admin --> AD1(Gerenciar Estagiários e Escolas)
+        Admin --> AD2(Criar Termos e Contratos TCE)
+        Admin --> AD3(Processar Folha e Remessas)
+        Admin --> AD4(Configurar Concursos e Salas)
+    end
+
+    subgraph Funcionalidades da Empresa
+        Empresa --> EM1(Publicar Vagas de Estágio)
+        Empresa --> EM2(Abrir Chamados de Suporte)
+        Empresa --> EM3(Consultar Contratos e Chat)
+    end
+
+    subgraph Funcionalidades do Estagiário
+        Estag --> ES1(Atualizar Perfil e Enviar Documentos)
+        Estag --> ES2(Gerar Avaliação para Supervisor)
+        Estag --> ES3(Recuperar Acesso por CPF)
+    end
+
+    subgraph Funcionalidades de Concursos
+        Cand --> CA1(Inscrição e Envio de Currículo)
+        Cand --> CA2(Consultar Local de Prova e Sala)
+    end
+</pre>
+                </div>
+            </section>
+
+            <!-- CAPÍTULO 4 -->
+            <section id="cap4" class="chapter">
+                <div class="chapter-header">
+                    <span class="chapter-number">Capítulo 04</span>
+                    <h2 class="chapter-title">Modelo de Banco de Dados (DER)</h2>
+                </div>
+                <p>
+                    Mapeamento físico de relacionamentos do banco de dados <code>ebcp_db</code>. O diagrama exibe chaves
+                    primárias (PK), chaves estrangeiras (FK) e a normalização aplicada.
+                </p>
+                <div class="diagram-container">
+                    <pre class="mermaid">
+erDiagram
+    USERS ||--o| tb_empresas : fk_id_empresa
+    USERS ||--o| tb_estagiarios : fk_id_estagiario
+    tb_empresas ||--o{ tb_supervisores : fk_id_empresa
+    tb_empresas ||--o{ tb_local : fk_id_empresa
+    tb_empresas ||--o{ tb_termos : fk_id_empresa
+    tb_estagiarios ||--o{ tb_termos : fk_id_estagiario
+    tb_escolas ||--o{ tb_termos : fk_id_escola
+    tb_supervisores ||--o{ tb_termos : fk_id_supervisor
+    tb_local ||--o{ tb_termos : fk_id_local
+    tb_termos ||--o{ tb_alteracao_termo : fk_id_termo
+    tb_termos ||--o| tb_rescisao : fk_id_termo
+    tb_termos ||--o{ tb_concessoes_recesso : fk_id_termo
+    tb_termos ||--o{ tb_avaliacoes : fk_id_termo
+    tb_empresas ||--o{ tb_folhas_pagamento : fk_id_empresa
+    tb_folhas_pagamento ||--o{ tb_folhas_termos : fk_id_folha
+    tb_termos ||--o{ tb_folhas_termos : fk_id_termo
+    tb_empresas ||--o{ tb_chamados : fk_id_empresa
+    tb_chamados ||--o{ tb_chamados_mensagens : fk_id_chamado
+    tb_tipos_chamados ||--o{ tb_chamados : fk_id_tipo_chamado
+</pre>
+                </div>
+            </section>
+
+            <!-- CAPÍTULO 5 -->
+            <section id="cap5" class="chapter">
+                <div class="chapter-header">
+                    <span class="chapter-number">Capítulo 05</span>
+                    <h2 class="chapter-title">Módulo de Estagiários, Escolas e Supervisores</h2>
+                </div>
+                <div class="card">
+                    <h3>Upload Seguro de Documentos de Identidade</h3>
+                    <p>
+                        No portal "Meu Perfil", o estagiário anexa cópias digitais de documentos pessoais (Documento de
+                        Identidade, Comprovante de Residência e Comprovante Escolar). Para evitar instabilidades e perda
+                        de consistência, o fluxo de desenvolvimento implementa:
+                    </p>
+                    <ul>
+                        <li>Limite de tamanho aumentado para <strong>5MB (5120 KB)</strong> por documento, permitindo
+                            arquivos em PDF gerados por scanner sem estouros de cota.</li>
+                        <li>Controle transacional no backend: se o upload físico de qualquer arquivo falhar no disco, a
+                            transação no banco sofre rollback completo, deletando arquivos parciais e mantendo a
+                            integridade.</li>
+                        <li>A exclusão do arquivo antigo no storage do servidor só é efetuada após a gravação com
+                            sucesso dos novos dados.</li>
+                    </ul>
+
+                    <h3>Recuperação de Login Automática</h3>
+                    <p>
+                        Para estagiários que possuem o termo de estágio cadastrado administrativamente mas nunca criaram
+                        suas credenciais do portal, o sistema disponibiliza um fluxo baseado na inserção do CPF. O
+                        sistema consulta <code>tb_estagiarios</code> e bifurca conforme o status:
+                    </p>
+                    <ol>
+                        <li><strong>CPF não localizado</strong>: O sistema redireciona para a tela de novo cadastro.
+                        </li>
+                        <li><strong>Cadastro duplicado</strong>: Bloqueia a ação por segurança e orienta o estagiário a
+                            contatar o suporte via WhatsApp.</li>
+                        <li><strong>E-mail existente</strong>: Informa o e-mail de login cadastrado e solicita
+                            recuperação de senha clássica.</li>
+                        <li><strong>Cadastro sem e-mail de usuário</strong>: Renderiza na tela um formulário seguro de
+                            primeiro acesso para o usuário preencher e-mail e nova senha corporativa.</li>
+                    </ol>
+
+                    <h3>Pesquisa Rápida de Usuários</h3>
+                    <p>
+                        Painel de listagem de usuários administrativos contendo filtro com busca de termos assíncronas
+                        para estagiários e empresas, limitando a visualização em no máximo 50 itens retornados para
+                        preservação de processamento.
+                    </p>
+                </div>
+            </section>
+
+            <!-- CAPÍTULO 6 -->
+            <section id="cap6" class="chapter">
+                <div class="chapter-header">
+                    <span class="chapter-number">Capítulo 06</span>
+                    <h2 class="chapter-title">Gestão de Termos (TCE), Alterações e Rescisões</h2>
+                </div>
+                <div class="card">
+                    <h3>Conceito de Auditoria de Termos (Campos Fixo)</h3>
+                    <p>
+                        Como contratos e termos de estágio (TCE) possuem validade jurídica, alterações cadastrais
+                        posteriores de empresas ou estagiários (como mudança de razão social, CNPJ ou nome) não podem
+                        invalidar ou alterar silenciosamente os termos antigos gerados no passado.
+                    </p>
+                    <p>
+                        Para resolver isso, a tabela <code>tb_termos</code> armazena os dados correntes em
+                        relacionamentos, mas espelha permanentemente os dados vitais em colunas terminadas em
+                        <code>_fixo</code>:
+                    </p>
+                    <ul>
+                        <li><code>desc_atividades_fixo</code>: Armazena a redação exata do plano de atividades.</li>
+                        <li><code>nome_orientador_fixo</code> e <code>cargo_orientador_fixo</code>: Salva os dados do
+                            supervisor.</li>
+                        <li><code>data_fim_estagio_fixo</code>: O prazo final acordado.</li>
+                        <li><code>valor_bolsa_fixo</code> e <code>auxilio_transporte_fixo</code>: Dados financeiros
+                            permanentes.</li>
+                        <li><code>horario_fixo</code>: Jornada do estagiário no ato de emissão.</li>
+                    </ul>
+
+                    <h3>Aditivos e Rescisões de Contratos</h3>
+                    <p>
+                        As alterações de contratos em andamento criam registros na tabela
+                        <code>tb_alteracao_termo</code>, guardando o histórico das configurações financeiras e
+                        cronogramas antigos. As rescisões encerram a vigência, atualizam as concessões e geram cálculos
+                        de saldos na tabela <code>tb_concessoes_recesso</code>, garantindo a governança do saldo de dias
+                        remanescentes para pagamento rescisório.
+                    </p>
+                    <p>
+                        Além disso, o sistema controla limites individuais de estágios ativos por empresa e restringe
+                        visualizações: empresas e estagiários acessam apenas dados associados aos seus IDs, enquanto
+                        operadores e administradores dispõem de visão global.
+                    </p>
+                </div>
+            </section>
+
+            <!-- CAPÍTULO 7 -->
+            <section id="cap7" class="chapter">
+                <div class="chapter-header">
+                    <span class="chapter-number">Capítulo 07</span>
+                    <h2 class="chapter-title">Integração ZapSign para Assinatura Eletrônica</h2>
+                </div>
+                <div class="card">
+                    <p>
+                        Para eliminar o envio físico de papéis e assinaturas manuais, o SIGE implementa integração
+                        direta com a API da ZapSign para assinatura digital de termos.
+                    </p>
+
+                    <h3>Fluxo Técnico de Assinaturas</h3>
+                    <ol>
+                        <li>O operador cria o termo (TCE) e clica no botão "Enviar para Assinatura Eletrônica".</li>
+                        <li>O sistema gera o documento em PDF, empacota metadados (nome da empresa, estagiário,
+                            testemunhas, e-mails de envio) e realiza chamada REST POST para a ZapSign.</li>
+                        <li>A API retorna um código identificador exclusivo (<code>zapsign_doc_token</code>) que é
+                            gravado no banco local, alterando o status do termo para "Aguardando Assinatura".</li>
+                    </ol>
+
+                    <h3>Sincronização via Webhook</h3>
+                    <p>
+                        O sistema expõe um endpoint público para escuta dos eventos da ZapSign. Quando todas as partes
+                        interessadas assinam o documento digitalmente, a ZapSign realiza chamada POST (Webhook) para o
+                        SIGE. O backend:
+                    </p>
+                    <ul>
+                        <li>Registra os dados recebidos na tabela de log <code>ZapSignWebhookLog</code>.</li>
+                        <li>Altera a coluna <code>zapsign_status</code> na tabela <code>tb_termos</code> para
+                            "assinado".</li>
+                        <li>Habilita instantaneamente o botão de download do PDF assinado para estagiários, operadores e
+                            empresas associadas ao contrato.</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- CAPÍTULO 8 -->
+            <section id="cap8" class="chapter">
+                <div class="chapter-header">
+                    <span class="chapter-number">Capítulo 08</span>
+                    <h2 class="chapter-title">Portal de Vagas e Candidaturas (Vagas de Emprego)</h2>
+                </div>
+                <div class="card">
+                    <p>
+                        O sistema possui um portal dedicado para a publicação e captação de currículos de estagiários.
+                    </p>
+
+                    <h3>Divulgação e Seleção</h3>
+                    <ul>
+                        <li><strong>Numeração automática</strong>: Cada vaga criada recebe um número sequencial
+                            exclusivo gerado anualmente por empresa no formato <code>ANO-SEQUENCIA</code> (ex:
+                            <code>2026-0001</code>).
+                        </li>
+                        <li><strong>Busca Pública de Vagas</strong>: Candidatos e estudantes buscam vagas ativas por
+                            atividades ou localidade diretamente no portal de divulgação.</li>
+                        <li><strong>Envio de Currículo</strong>: O candidato submete sua candidatura anexando currículo
+                            em PDF ou DOC (limite máximo de 5MB por arquivo).</li>
+                        <li><strong>Controle de Status</strong>: A empresa e o operador triam candidatos, alteram o
+                            status curricular e escolhem o estagiário vencedor, que recebe notificação imediata por
+                            e-mail configurado.</li>
+                    </ul>
+
+                    <h3>Vinculação com o Cadastro do Contrato</h3>
+                    <p>
+                        Quando um estagiário é escolhido em uma vaga, o sistema marca o registro da vaga como
+                        "estagiário definido". Ao criar um novo Termo de Compromisso de Estágio (TCE), o operador
+                        simplesmente seleciona a vaga correspondente. O sistema puxa todos os dados cadastrados na vaga
+                        (plano de atividades, cargo do supervisor, horário, valor da bolsa e auxílio transporte) e
+                        preenche automaticamente o formulário do contrato, tornando os campos de dados contratuais
+                        apenas-leitura (readonly) para manter conformidade.
+                    </p>
+                </div>
+            </section>
+
+            <!-- CAPÍTULO 9 -->
+            <section id="cap9" class="chapter">
+                <div class="chapter-header">
+                    <span class="chapter-number">Capítulo 09</span>
+                    <h2 class="chapter-title">Módulo de Avaliações de Desempenho</h2>
+                </div>
+                <div class="card">
+                    <p>
+                        Em conformidade com a legislação federal brasileira, os estagiários precisam ter seu desempenho
+                        avaliado periodicamente pelos supervisores.
+                    </p>
+
+                    <h3>Geração e Agendamento Automático</h3>
+                    <p>
+                        O sistema gera avaliações de desempenho em dois momentos específicos:
+                    </p>
+                    <ul>
+                        <li><strong>Periódica (6 Meses)</strong>: Gerada de forma automatizada quando o termo de estágio
+                            ativo completa 6 meses de vigência.</li>
+                        <li><strong>Finalização/Rescisão</strong>: Gerada manualmente pelo operador no momento em que um
+                            termo é rescindido.</li>
+                    </ul>
+                    <p>
+                        A rotina agendada diária <code>GerarAvaliacoesAutomaticasJob</code> executa no servidor Laravel
+                        às 02:00, varrendo os contratos, calculando a periodicidade e gerando registros na tabela
+                        <code>tb_avaliacoes</code> com as perguntas padrão em formato JSON.
+                    </p>
+
+                    <h3>Formulários Sem Login Necessário (Segurança via Tokens)</h3>
+                    <p>
+                        Para evitar que supervisores externos tenham que realizar cadastro e login na plataforma apenas
+                        para responder a avaliação, o sistema gera links públicos temporários.
+                    </p>
+                    <p>
+                        O link contém um token de segurança de 32 bytes gerado via
+                        <code>bin2hex(random_bytes(32))</code>. O supervisor acessa o link, preenche as notas (de 1 a 5)
+                        e feedbacks textuais, valida seu e-mail e submete a resposta. No exato instante do salvamento
+                        das respostas, o token é permanentemente invalidado e deletado do banco, impedindo novos acessos
+                        a essas informações.
+                    </p>
+                </div>
+            </section>
+
+            <!-- CAPÍTULO 10 -->
+            <section id="cap10" class="chapter">
+                <div class="chapter-header">
+                    <span class="chapter-number">Capítulo 10</span>
+                    <h2 class="chapter-title">Cálculo e Processamento de Folha de Pagamento</h2>
+                </div>
+                <div class="card">
+                    <h3>Salvamento em Lote (Processamento Batch)</h3>
+                    <p>
+                        Para garantir que o processamento mensal da remuneração de milhares de estagiários não gere
+                        estouros de memória PHP ou timeout de banco de dados, o sistema divide os salvamentos das
+                        parcelas em lotes. Cada lote processa, calcula as horas/dias úteis e insere até 50 registros por
+                        inserção em lote na tabela <code>tb_folhas_termos</code>.
+                    </p>
+
+                    <h3>Geração de Remessas Bancárias</h3>
+                    <p>
+                        Uma vez consolidada a folha mensal de pagamento (Bolsa Auxílio + Auxílio Transporte -
+                        Descontos), o operador pode gerar arquivos no layout de remessa bancária nacional. O sistema
+                        permite agrupar os lançamentos por localidade de trabalho ou empresa concedente e efetua a
+                        divisão automática em múltiplos arquivos de lote para importação direta no internet banking da
+                        cooperativa/banco de pagamento.
+                    </p>
+                </div>
+            </section>
+
+            <!-- CAPÍTULO 11 -->
+            <section id="cap11" class="chapter">
+                <div class="chapter-header">
+                    <span class="chapter-number">Capítulo 11</span>
+                    <h2 class="chapter-title">Módulo de Chamados e Suporte Técnico</h2>
+                </div>
+                <div class="card">
+                    <p>
+                        Para centralizar a comunicação de alterações contratuais e suporte de dúvidas das empresas
+                        concedentes, o SIGE implementa um módulo de chamados operacionais.
+                    </p>
+
+                    <h3>Tipagem Contextual de Chamados</h3>
+                    <p>
+                        Quando a empresa abre um chamado, ela define seu escopo:
+                    </p>
+                    <ul>
+                        <li><strong>Rescisão de Contrato</strong>: Exige preenchimento obrigatório da data final
+                            pretendida e motivo específico da rescisão contratual.</li>
+                        <li><strong>Alteração de Termo</strong>: Exige a escolha do estagiário e descrição das
+                            alterações solicitadas (bolsa, horário, atividades).</li>
+                        <li><strong>Outros</strong>: Chamado geral de livre preenchimento para dúvidas ou suporte de
+                            sistema, com suporte ao envio de até 5 arquivos anexos.</li>
+                    </ul>
+
+                    <h3>Chat com Loading State e Anexos</h3>
+                    <p>
+                        O painel de detalhes do chamado renderiza um chat bidirecional em tempo real. O botão de envio
+                        do chat desabilita-se instantaneamente exibindo um spinner de loading após o clique, garantindo
+                        que o usuário não submeta mensagens repetidas em redes instáveis. O chat suporta até 5 anexos de
+                        no máximo 5MB cada nos formatos de imagem, PDF ou documentos corporativos.
+                    </p>
+
+                    <h3>Notificações Inteligentes por E-mail</h3>
+                    <p>
+                        Para evitar excesso de e-mails em chamados com responsável definido, o backend gerencia
+                        notificações da seguinte forma:
+                    </p>
+                    <ul>
+                        <li>Se o chamado tiver um operador responsável associado na tabela <code>tb_chamados</code>,
+                            apenas este operador recebe o e-mail de alerta de novas mensagens.</li>
+                        <li>Se o chamado não tiver responsável, todos os operadores e administradores cadastrados
+                            recebem a notificação de nova mensagem no chat.</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- CAPÍTULO 12 -->
+            <section id="cap12" class="chapter">
+                <div class="chapter-header">
+                    <span class="chapter-number">Capítulo 12</span>
+                    <h2 class="chapter-title">Módulo SIGE Concursos (Processos Seletivos)</h2>
+                </div>
+                <div class="card">
+                    <h3>Isolamento e Cadastro</h3>
+                    <p>
+                        Para garantir que o módulo de concursos públicos não misture dados cadastrais com o sistema de
+                        gestão de estágios padrão, o SIGE Concursos trabalha com tabelas próprias utilizando o prefixo
+                        <code>sigeconcursos_tb_</code>. O cadastro abrange Órgãos Públicos, Processos (Editais), Cargos
+                        vinculados com remuneração e taxas individuais, locais de prova física e salas.
+                    </p>
+
+                    <h3>Algoritmo de Distribuição por Salas</h3>
+                    <p>
+                        O sistema possui rotina automatizada que distribui os candidatos homologados nos assentos
+                        disponíveis das salas de provas físicas:
+                    </p>
+                    <ol>
+                        <li>Mapeia os candidatos de acordo com as opções de localidade e cargos.</li>
+                        <li>Calcula a quantidade mínima necessária de salas em cada local de prova que somadas suportem
+                            a capacidade total de inscritos.</li>
+                        <li>Preenche as salas ordenando nominalmente os candidatos em ordem alfabética.</li>
+                        <li>Aplica balanceamento proporcional: se uma sala suporta 50 candidatos mas o local possui 80
+                            inscritos divididos em duas salas, o sistema distribui exatamente 40 em cada sala, mantendo
+                            a diferença máxima de no máximo 1 assento de variação entre salas.</li>
+                    </ol>
+
+                    <h3>Hub Operacional de Status</h3>
+                    <p>
+                        Em vez de forçar o operador administrativo a alterar manualmente a fase do concurso em várias
+                        telas (o que acarreta riscos de inconsistências entre as páginas públicas de candidatos e
+                        painéis internos), o sistema calcula a etapa dominante com base nas operações executadas no
+                        banco:
+                    </p>
+                    <ul>
+                        <li><strong>Inscrições Abertas</strong>: Se a data corrente estiver dentro da janela de início e
+                            fim.</li>
+                        <li><strong>Homologação</strong>: Após o fim do período de inscrições e verificação de
+                            pagamentos/isenções de taxas.</li>
+                        <li><strong>Distribuição de Salas</strong>: Quando o operador roda a rotina física de alocação
+                            de candidatos.</li>
+                        <li><strong>Local de Prova Liberado</strong>: Quando a distribuição física é confirmada no
+                            backend.</li>
+                    </ul>
+
+                    <h3>Relatórios de Concursos</h3>
+                    <p>
+                        Para o dia de aplicação das provas, o módulo gera em PDF as <strong>Listas de Presença por
+                            Sala</strong>, contendo cabeçalho institucional, identificador da sala e listagem nominal
+                        dos candidatos com campo para assinatura. A tela de controle de inscritos permite também
+                        exportar a listagem de homologações em Excel ou PDF, com opção de censurar os números de CPF dos
+                        candidatos para conformidade legal.
+                    </p>
+                </div>
+            </section>
+
+            <!-- CAPÍTULO 13 -->
+            <section id="cap13" class="chapter">
+                <div class="chapter-header">
+                    <span class="chapter-number">Capítulo 13</span>
+                    <h2 class="chapter-title">Políticas de Segurança e Integridade dos Dados</h2>
+                </div>
+                <div class="card">
+                    <p>
+                        A segurança lógica e a integridade jurídica das transações do sistema são mantidas por meio de:
+                    </p>
+                    <ul>
+                        <li><strong>Middleware de Controle de Níveis (RBAC)</strong>: Bloqueio físico em nível HTTP que
+                            impede usuários estagiários e empresas concedentes de acessarem caminhos administrativos
+                            (prefixados com <code>/admin</code> ou <code>/operador</code>), independentemente de
+                            manipulação de parâmetros.</li>
+                        <li><strong>Transações Atômicas de Banco de Dados</strong>: Gravações de contratos, pagamentos,
+                            chamados e distribuições de salas operam acopladas a transações SQL. Em caso de quedas de
+                            conexão do servidor no meio de uma rotina, a transação reverte totalmente (rollback) os
+                            dados para o último estado seguro, prevenindo corrupção no banco de dados.</li>
+                        <li><strong>Auditoria Jurídica Física</strong>: A retenção física e imutável de registros
+                            contráteis de estágios em colunas <code>_fixo</code> inviabiliza alterações fraudulentas
+                            retroativas e assegura a integridade das auditorias governamentais.</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- CAPÍTULO 14 -->
+            <section id="cap14" class="chapter">
+                <div class="chapter-header">
+                    <span class="chapter-number">Capítulo 14</span>
+                    <h2 class="chapter-title">Manual de Instalação e Execução Técnica (Setup)</h2>
+                </div>
+                <div class="card">
+                    <h3>Requisitos do Servidor Operacional</h3>
+                    <ul>
+                        <li>Servidor Apache com módulo <code>mod_rewrite</code> ativo, ou servidor Nginx.</li>
+                        <li>PHP 8.1 ou superior com extensões: <code>pdo_mysql</code>, <code>mbstring</code>,
+                            <code>xml</code>, <code>gd</code>, <code>zip</code>, <code>openssl</code>.
+                        </li>
+                        <li>Banco de Dados MySQL 5.7+ ou MariaDB 10.3+.</li>
+                        <li>Composer e Node.js/NPM instalados no servidor para build.</li>
+                    </ul>
+
+                    <h3>Comandos de Inicialização e Provisionamento</h3>
+                    <p>
+                        Para provisionar o sistema de forma limpa em ambiente de produção, execute a sequência de
+                        comandos descrita abaixo:
+                    </p>
+
+                    <pre><code># Instalar as dependências do backend PHP de forma otimizada
+composer install --no-dev --optimize-autoloader
+
+# Instalar dependências e compilar assets de frontend (Tailwind/Vite)
+npm install && npm run build
+
+# Executar as migrações estruturais das tabelas de banco de dados
+php artisan migrate
+
+# Popular tabelas auxiliares essenciais (Cidades, Estados, Tipos de Chamados)
+php artisan db:seed
+
+# Criar link simbólico para a pasta pública de storage
+php artisan storage:link</code></pre>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Back to Top Button -->
+    <button class="back-to-top" id="backToTop" onclick="scrollToTop()">▲</button>
+
+    <script>
+        // Toggle Theme (Dark / Light) with visual animations
+        function toggleTheme() {
+            const html = document.documentElement;
+            const currentTheme = html.getAttribute('data-theme');
+            const themeBtn = document.getElementById('themeToggle');
+
+            if (currentTheme === 'dark') {
+                html.setAttribute('data-theme', 'light');
+                themeBtn.innerHTML = '☀️';
+            } else {
+                html.setAttribute('data-theme', 'dark');
+                themeBtn.innerHTML = '🌙';
+            }
+        }
+
+        // Real-time Sidebar Search
+        function filterDocs() {
+            const searchInput = document.getElementById('searchInput').value.toLowerCase();
+            const chapters = document.querySelectorAll('.chapter, .cover-page');
+            const navItems = document.querySelectorAll('.nav-item');
+
+            chapters.forEach((chapter, index) => {
+                const text = chapter.innerText.toLowerCase();
+                const navItem = navItems[index];
+
+                // Exclude cover page from search filtering to keep it scrollable/active
+                if (chapter.classList.contains('cover-page')) {
+                    return;
+                }
+
+                if (text.includes(searchInput)) {
+                    chapter.style.display = 'block';
+                    if (navItem) navItem.style.display = 'block';
+                } else {
+                    chapter.style.display = 'none';
+                    if (navItem) navItem.style.display = 'none';
+                }
+            });
+        }
+
+        // Sidebar navigation highlight on scroll
+        window.addEventListener('scroll', () => {
+            const chapters = document.querySelectorAll('.chapter, .cover-page');
+            const navItems = document.querySelectorAll('.nav-item');
+            let currentId = 'capa';
+
+            chapters.forEach(chapter => {
+                const chapterTop = chapter.offsetTop - 150;
+                if (window.scrollY >= chapterTop) {
+                    currentId = chapter.getAttribute('id');
+                }
+            });
+
+            navItems.forEach(item => {
+                item.classList.remove('active');
+                if (item.getAttribute('href') === `#${currentId}`) {
+                    item.classList.add('active');
+                }
+            });
+        });
+
+        // Scroll controls
+        function scrollToTop() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        window.onscroll = function () {
+            const b = document.getElementById("backToTop");
+            if (b) {
+                if (document.body.scrollTop > 300 || document.documentElement.scrollTop > 300) {
+                    b.style.display = "flex";
+                } else {
+                    b.style.display = "none";
+                }
+            }
+        };
+    </script>
+</body>
+
+</html>
