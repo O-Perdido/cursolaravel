@@ -376,7 +376,7 @@ class ProcessoSeletivoController extends Controller
     }
 
     // Listar inscrições
-    public function listarInscricoes($id)
+    public function listarInscricoes(Request $request, $id)
     {
         $processo = ProcessoSeletivo::findOrFail($id);
         $user = Auth::user();
@@ -409,7 +409,63 @@ class ProcessoSeletivoController extends Controller
             }
         }
 
+        // Filtrar por busca (nome, cpf, email, n inscrição)
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $cleanCpf = preg_replace('/\D/', '', $search);
+            $query->where(function ($q) use ($search, $cleanCpf) {
+                $q->where('numero_inscricao', 'like', "%{$search}%")
+                  ->orWhereHas('estagiario', function ($qEst) use ($search, $cleanCpf) {
+                      $qEst->where('nome_estagiario', 'like', "%{$search}%")
+                           ->orWhere('email', 'like', "%{$search}%");
+                      if (!empty($cleanCpf)) {
+                          $qEst->orWhere('numero_cpf', 'like', "%{$cleanCpf}%");
+                      }
+                  });
+            });
+        }
+
+        // Filtrar por status
+        if ($request->filled('status')) {
+            $query->where('status_inscricao', $request->input('status'));
+        }
+
+        // Filtrar por curso
+        if ($request->filled('curso')) {
+            $curso = $request->input('curso');
+            $query->whereHas('estagiario', function ($qEst) use ($curso) {
+                $qEst->where('curso', $curso);
+            });
+        }
+
         $inscricoes = $query->orderByDesc('created_at')->paginate(50);
+
+        // Obter cursos únicos para o filtro
+        $cursos = DB::table('tb_inscricoes_processo')
+            ->join('tb_estagiarios', 'tb_inscricoes_processo.fk_id_estagiario', '=', 'tb_estagiarios.id_estagiario')
+            ->where('tb_inscricoes_processo.fk_id_processo', $id)
+            ->whereNotNull('tb_estagiarios.curso')
+            ->where('tb_estagiarios.curso', '<>', '')
+            ->groupBy('tb_estagiarios.curso')
+            ->orderBy('tb_estagiarios.curso', 'asc')
+            ->pluck('tb_estagiarios.curso')
+            ->toArray();
+
+        // Obter estatísticas do processo seletivo
+        $statsQuery = $processo->inscricoes();
+        if ($user->nivel === 'empresa') {
+            $apenasDeferidos = \App\Models\Configuracao::obterComFallback('processos_empresa_apenas_deferidos', $user->fk_id_empresa, false);
+            if ($apenasDeferidos) {
+                $statsQuery->where('status_inscricao', 'deferido');
+            }
+        }
+
+        $stats = [
+            'total' => (clone $statsQuery)->count(),
+            'deferidos' => (clone $statsQuery)->where('status_inscricao', 'deferido')->count(),
+            'indeferidos' => (clone $statsQuery)->where('status_inscricao', 'indeferido')->count(),
+            'inscritos' => (clone $statsQuery)->where('status_inscricao', 'inscrito')->count(),
+        ];
 
         // Obter informação de restrição de apenas deferidos
         $apenasDeferidosConfig = false;
@@ -424,7 +480,7 @@ class ProcessoSeletivoController extends Controller
             'apenas_deferidos' => $apenasDeferidosConfig,
         ];
 
-        return view('processos-seletivos.inscricoes', compact('processo', 'inscricoes', 'config'));
+        return view('processos-seletivos.inscricoes', compact('processo', 'inscricoes', 'config', 'cursos', 'stats'));
     }
 
     // Atualizar status de uma inscrição
