@@ -69,7 +69,6 @@
                     <p class="mb-1"><strong>Instituição de Ensino:</strong> {{ $estagiario->instituicao_ensino }}</p>
                     <p class="mb-1"><strong>Curso:</strong> {{ $estagiario->curso }}</p>
                     <p class="mb-1"><strong>Nível do Curso:</strong> {{ $estagiario->nivel_curso }}</p>
-                    <p class="mb-1"><strong>Área de Estágio:</strong> {{ $estagiario->area_de_estagio }}</p>
                     <p class="mb-1"><strong>Nome da Mãe:</strong> {{ $estagiario->nome_mae }}</p>
                     <p class="mb-1"><strong>PIS:</strong> {{ $estagiario->numero_pis }}</p>
                     <p class="mb-1"><strong>Tipo de Chave PIX:</strong> {{ $estagiario->tipo_chave_pix }}</p>

@@ -7,6 +7,51 @@
         $possuiNomeSocial = old('possui_nome_social') !== null
             ? (bool) old('possui_nome_social')
             : !empty($estagiario->nome_secundario);
+
+        $dataNascimentoValor = old('data_nascimento');
+        if (empty($dataNascimentoValor) && isset($estagiario) && !empty($estagiario->data_nascimento)) {
+            if (strpos($estagiario->data_nascimento, '/') !== false) {
+                try {
+                    $dataNascimentoValor = \Carbon\Carbon::createFromFormat('d/m/Y', $estagiario->data_nascimento)->format('Y-m-d');
+                } catch (\Throwable $e) {
+                    $dataNascimentoValor = null;
+                }
+            } else {
+                try {
+                    $dataNascimentoValor = \Carbon\Carbon::parse($estagiario->data_nascimento)->format('Y-m-d');
+                } catch (\Throwable $e) {
+                    $dataNascimentoValor = null;
+                }
+            }
+        }
+        $dataNascimentoObj = null;
+
+        if (!empty($dataNascimentoValor)) {
+            try {
+                $dataNascimentoObj = \Carbon\Carbon::parse($dataNascimentoValor);
+            } catch (\Throwable $exception) {
+                $dataNascimentoObj = null;
+            }
+        }
+
+        $diaSelecionado = $dataNascimentoObj ? (int) $dataNascimentoObj->day : null;
+        $mesSelecionado = $dataNascimentoObj ? (int) $dataNascimentoObj->month : null;
+        $anoSelecionado = $dataNascimentoObj ? (int) $dataNascimentoObj->year : null;
+        
+        $meses = [
+            1 => 'Janeiro',
+            2 => 'Fevereiro',
+            3 => 'Março',
+            4 => 'Abril',
+            5 => 'Maio',
+            6 => 'Junho',
+            7 => 'Julho',
+            8 => 'Agosto',
+            9 => 'Setembro',
+            10 => 'Outubro',
+            11 => 'Novembro',
+            12 => 'Dezembro',
+        ];
     @endphp
 
     @if($errors->any())
@@ -86,14 +131,70 @@
                             <input type="text" class="form-control" id="nome_secundario" name="nome_secundario"
                                 value="{{ old('nome_secundario', $estagiario->nome_secundario) }}">
                         </div>
-
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label for="data_nascimento" class="form-label">Data de Nascimento *</label>
-                                <input type="date" class="form-control" id="data_nascimento" name="data_nascimento"
-                                    value="{{ old('data_nascimento', \Carbon\Carbon::createFromFormat('d/m/Y', $estagiario->data_nascimento)->format('Y-m-d')) }}"
-                                    required>
+                                <label class="form-label">Data de Nascimento *</label>
+                                <input type="hidden" id="data_nascimento" name="data_nascimento" value="{{ $dataNascimentoValor }}" required>
+                                <div class="row g-1">
+                                    <div class="col-4" style="padding-right: 2px;">
+                                        <select class="form-control" id="data_nascimento_dia" required>
+                                            <option value="">Dia</option>
+                                            @for ($dia = 1; $dia <= 31; $dia++)
+                                                <option value="{{ $dia }}" {{ $diaSelecionado === $dia ? 'selected' : '' }}>
+                                                    {{ str_pad((string) $dia, 2, '0', STR_PAD_LEFT) }}
+                                                </option>
+                                            @endfor
+                                        </select>
+                                    </div>
+                                    <div class="col-4" style="padding-left: 2px; padding-right: 2px;">
+                                        <select class="form-control" id="data_nascimento_mes" required>
+                                            <option value="">Mês</option>
+                                            @foreach ($meses as $numeroMes => $nomeMes)
+                                                <option value="{{ $numeroMes }}" {{ $mesSelecionado === $numeroMes ? 'selected' : '' }}>
+                                                    {{ $nomeMes }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="col-4" style="padding-left: 2px;">
+                                        <select class="form-control" id="data_nascimento_ano" required>
+                                            <option value="">Ano</option>
+                                            @for ($ano = now()->year; $ano >= 1900; $ano--)
+                                                <option value="{{ $ano }}" {{ $anoSelecionado === $ano ? 'selected' : '' }}>
+                                                    {{ $ano }}
+                                                </option>
+                                            @endfor
+                                        </select>
+                                    </div>
+                                </div>
                             </div>
+                            <script>
+                                (function() {
+                                    const diaSel = document.getElementById('data_nascimento_dia');
+                                    const mesSel = document.getElementById('data_nascimento_mes');
+                                    const anoSel = document.getElementById('data_nascimento_ano');
+                                    const hiddenInput = document.getElementById('data_nascimento');
+
+                                    function updateHiddenInput() {
+                                        const dia = diaSel.value;
+                                        const mes = mesSel.value;
+                                        const ano = anoSel.value;
+
+                                        if (dia && mes && ano) {
+                                            const padDia = dia.toString().padStart(2, '0');
+                                            const padMes = mes.toString().padStart(2, '0');
+                                            hiddenInput.value = `${ano}-${padMes}-${padDia}`;
+                                        } else {
+                                            hiddenInput.value = '';
+                                        }
+                                        hiddenInput.dispatchEvent(new Event('change'));
+                                    }
+
+                                    diaSel.addEventListener('change', updateHiddenInput);
+                                    mesSel.addEventListener('change', updateHiddenInput);
+                                    anoSel.addEventListener('change', updateHiddenInput);
+                                })();
+                            </script>
                             <div class="col-md-6 mb-3">
                                 <label for="nome_mae" class="form-label">Nome da Mãe *</label>
                                 <input type="text" class="form-control" id="nome_mae" name="nome_mae"
@@ -262,22 +363,21 @@
                             <input type="text" class="form-control" id="instituicao_ensino" name="instituicao_ensino"
                                 value="{{ old('instituicao_ensino', $estagiario->instituicao_ensino) }}" required>
                         </div>
-                        <div class="mb-3">
-                            <label for="curso" class="form-label">Curso *</label>
-                            <input type="text" class="form-control" id="curso" name="curso"
-                                value="{{ old('curso', $estagiario->curso) }}" required>
-                        </div>
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="nivel_curso" class="form-label">Nível do Curso *</label>
-                                <input type="text" class="form-control" id="nivel_curso" name="nivel_curso"
-                                    value="{{ old('nivel_curso', $estagiario->nivel_curso) }}" 
-                                    placeholder="Ex: Graduação, Ensino Médio" required>
+                                <select class="form-control" id="nivel_curso" name="nivel_curso" required>
+                                    <option value="">Selecione o nível</option>
+                                    <option value="Ensino Médio" {{ (old('nivel_curso', $estagiario->nivel_curso ?? '') == 'Ensino Médio' || old('nivel_curso', $estagiario->nivel_curso ?? '') == 'Ensino Medio') ? 'selected' : '' }}>Ensino Médio</option>
+                                    <option value="Técnico" {{ (old('nivel_curso', $estagiario->nivel_curso ?? '') == 'Técnico' || old('nivel_curso', $estagiario->nivel_curso ?? '') == 'Tecnico') ? 'selected' : '' }}>Técnico</option>
+                                    <option value="Graduação" {{ (old('nivel_curso', $estagiario->nivel_curso ?? '') == 'Graduação' || old('nivel_curso', $estagiario->nivel_curso ?? '') == 'Graduacao') ? 'selected' : '' }}>Graduação</option>
+                                    <option value="Pós Graduação" {{ (old('nivel_curso', $estagiario->nivel_curso ?? '') == 'Pós Graduação' || old('nivel_curso', $estagiario->nivel_curso ?? '') == 'Pós' || old('nivel_curso', $estagiario->nivel_curso ?? '') == 'Pos') ? 'selected' : '' }}>Pós Graduação</option>
+                                </select>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label for="area_de_estagio" class="form-label">Área de Estágio *</label>
-                                <input type="text" class="form-control" id="area_de_estagio" name="area_de_estagio"
-                                    value="{{ old('area_de_estagio', $estagiario->area_de_estagio) }}" required>
+                                <label for="curso" class="form-label">Curso *</label>
+                                <input type="text" class="form-control" id="curso" name="curso"
+                                    value="{{ old('curso', $estagiario->curso) }}" required>
                             </div>
                         </div>
                     </div>

@@ -181,16 +181,12 @@
                             <p class="fw-semibold mb-0">{{ $estagiario->instituicao_ensino ?? 'Não informado' }}</p>
                         </div>
                         <div class="col-md-6">
-                            <label class="text-muted small mb-1">Curso</label>
-                            <p class="fw-semibold mb-0">{{ $estagiario->curso ?? 'Não informado' }}</p>
-                        </div>
-                        <div class="col-md-6">
                             <label class="text-muted small mb-1">Nível do Curso</label>
                             <p class="fw-semibold mb-0">{{ $estagiario->nivel_curso ?? 'Não informado' }}</p>
                         </div>
-                        <div class="col-md-12">
-                            <label class="text-muted small mb-1">Área de Estágio</label>
-                            <p class="fw-semibold mb-0">{{ $estagiario->area_de_estagio ?? 'Não informado' }}</p>
+                        <div class="col-md-6">
+                            <label class="text-muted small mb-1">Curso</label>
+                            <p class="fw-semibold mb-0">{{ $estagiario->curso ?? 'Não informado' }}</p>
                         </div>
                     </div>
                 </div>
